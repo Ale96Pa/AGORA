@@ -1,0 +1,60 @@
+#table-container {
+    width: 100%;
+    /* Adjust the width as needed */
+    height: 300px;
+    /* Set a fixed height or adjust as needed */
+    overflow-x: auto;
+    /* Allows horizontal scrolling */
+    overflow-y: auto;
+    /* Allows vertical scrolling */
+}
+
+#table-container form.oi-ec050e-table {
+    margin: 0 !important;
+    /* Overrides any existing margin styles */
+    overflow-y: auto;
+    /* Keeps the vertical scroll if needed */
+    width: 100%;
+    /* Ensures the form takes full width */
+}
+
+.table {
+    width: 100%;
+    /* Ensures the table expands to fill the container */
+    border-collapse: collapse;
+    /* Removes space between borders */
+    background-color: #111;
+    /* Dark background *
+    border-spacing: 0;
+    /* No space between cells */
+}
+
+.table th,
+.table td {
+    border: 1px solid #ddd;
+    /* Light gray border */
+    padding: 8px;
+    /* Padding within cells */
+    text-align: left;
+    /* Align text to the left */
+    color: white;
+}
+
+.table th {
+    background-color: #222;
+    /* Slightly darker background for headers */
+}
+
+.table tr:nth-child(even) {
+    background-color: #181818;
+    /* Dark background for even rows */
+}
+
+.table tr:hover {
+    background-color: #333;
+    /* Background for hover */
+}
+
+.table-layout {
+    width: 100%;
+}

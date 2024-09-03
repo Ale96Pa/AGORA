@@ -1,24 +1,50 @@
-import logo from './logo.svg';
 import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+import NavigationBar from './NavigationBar.js';
+import SideBar from './SideBar.js';
+import ProcessAnalysis from './ProcessAnalysis.js';
+import { useState } from 'react';
+
+// Point Eel web socket to the instance
+export const eel = window.eel
+eel.set_host('ws://localhost:8080')
+
+// Expose the `sayHelloJS` function to Python as `say_hello_js`
+function sayHelloJS(x: any) {
+  console.log('Hello from ' + x)
+}
+// WARN: must use window.eel to keep parse-able eel.expose{...}
+window.eel.expose(sayHelloJS, 'say_hello_js')
+
+// Test anonymous function when minimized. See https://github.com/samuelhwilliams/Eel/issues/363
+function show_log(msg: string) {
+  console.log(msg)
+}
+window.eel.expose(show_log, 'show_log')
+
+// Test calling sayHelloJS, then call the corresponding Python function
+sayHelloJS('Javascript World!')
+eel.say_hello_py('Javascript World!')
 
 function App() {
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const refreshSecurityControls = () => {
+    setRefreshTrigger(!refreshTrigger);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <div className="div">
+        <NavigationBar refreshTrigger={refreshTrigger} />
+        <div className="div-34">
+          <div className="div-35">
+            <SideBar refreshTrigger={refreshTrigger} refreshControls={refreshSecurityControls} />
+            <ProcessAnalysis refreshTrigger={refreshTrigger}/>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 

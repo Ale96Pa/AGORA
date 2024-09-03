@@ -1,0 +1,131 @@
+import React, { useState, useEffect } from 'react';
+import './NavigationBar.css';
+import { eel } from './App.js';
+
+function NavigationBar({ refreshTrigger }) {
+  const [showSettings, setShowSettings] = useState(false);
+  const [selectedMetric, setSelectedMetric] = useState('Fitness');
+  const [notCoveredCount, setNotCoveredCount] = useState(0);
+  const [partiallyCoveredCount, setPartiallyCoveredCount] = useState(0);
+  const [coveredCount, setCoveredCount] = useState(0);
+
+  const handleSettingsClick = () => {
+    setShowSettings(!showSettings);
+  };
+
+  const handleMetricChange = (metric) => {
+    setSelectedMetric(metric);
+    eel.set_incident_complinace_metric(metric)();
+    console.log(`Selected metric: ${metric}`);
+  };
+
+  useEffect(() => {
+    const fetchSecurityControlsCounts = async () => {
+      try {
+        const notCoveredResponse = await eel.count_security_controls('not covered')();
+        const partiallyCoveredResponse = await eel.count_security_controls('partially covered')();
+        const coveredResponse = await eel.count_security_controls('covered')();
+
+        setNotCoveredCount(notCoveredResponse);
+        setPartiallyCoveredCount(partiallyCoveredResponse);
+        setCoveredCount(coveredResponse);
+      } catch (error) {
+        console.error('Failed to fetch security control counts:', error);
+      }
+    };
+
+    fetchSecurityControlsCounts();
+  }, [refreshTrigger]);
+
+  return (
+    <div className="navbar-container">
+      <div className="section-container">
+        <div className="control-count">
+          <div className="count-circle" style={{ backgroundColor: '#b80000' }}>{notCoveredCount}</div>
+          <div className="count-label">Not covered<br />SecControls</div>
+        </div>
+        <div className="control-count">
+          <div className="count-circle" style={{ backgroundColor: '#FF7A00' }}>{partiallyCoveredCount}</div>
+          <div className="count-label">Partially covered<br />SecControls</div>
+        </div>
+        <div className="control-count">
+          <div className="count-circle" style={{ backgroundColor: '#00b81d' }}>{coveredCount}</div>
+          <div className="count-label">Covered<br />SecControls</div>
+        </div>
+      </div>
+      <div className="section-container">
+        <div className="section-content">
+          <img
+            loading="lazy"
+            src="https://cdn.builder.io/api/v1/image/assets/TEMP/a0101106d9a7a8f8a3f962ef55b73d7ed82213c2a2e2060c8819adc6c98b8dda?"
+            className="icon"
+          />
+          <div className="label">Process Analysis</div>
+        </div>
+        {selectedMetric === 'Non-Compliance Cost' && (
+          <div className="section-content">
+            <img
+              loading="lazy"
+              src="https://cdn.builder.io/api/v1/image/assets/TEMP/f55b8ec5e2018e1c09c718b738209d508d25cf7828184d0449292be8bf35eecb?"
+              className="icon"
+            />
+            <div className="label">Cost Model Analysis</div>
+          </div>
+        )}
+        <div className="section-content">
+          <img
+            loading="lazy"
+            src="https://cdn.builder.io/api/v1/image/assets/TEMP/c9a8d4b2ef37e2b2802b332e933fa26d144caf98f5b1bc9450d1ae093dc83243?"
+            className="icon"
+          />
+          <div className="label">Reporting</div>
+        </div>
+      </div>
+      <div className="settings-section">
+        <div className="settings-icon" onClick={handleSettingsClick}>
+          <img
+            loading="lazy"
+            src="https://cdn.builder.io/api/v1/image/assets/TEMP/a0dc1aa43d8dcaab4ca7b2f4afa065dfacdf8e35c3817a3f65d71e91a8101128?"
+            className="icon"
+          />
+        </div>
+        {showSettings && (
+          <div className="settings-dropdown">
+            <div className="metric-label">Fitness</div>
+            <label className="switch">
+              <input 
+                type="checkbox" 
+                checked={selectedMetric === 'costTotal'}
+                onChange={(e) => handleMetricChange(e.target.checked ? 'costTotal' : 'fitness')}
+              />
+              <span className="slider round"></span>
+            </label>
+            <div className="metric-label">Non-Compliance Cost</div>
+          </div>
+        )}
+        <div className="settings-icon">
+          <img
+            loading="lazy"
+            src="https://cdn.builder.io/api/v1/image/assets/TEMP/11b127d01f10e38475e271d30a9081d6eb85debdad6155a1bfc6158be65009a0?"
+            className="icon"
+          />
+        </div>
+        <div className="profile-section">
+          <div className="profile-icon">
+            <img
+              loading="lazy"
+              srcSet="..."
+              className="profile-img"
+            />
+          </div>
+          <div className="profile-details">
+            <div className="profile-name">John Doe</div>
+            <div className="profile-role">FULL INTERFACE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default NavigationBar;

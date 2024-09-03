@@ -1,0 +1,260 @@
+import React, { useRef, useEffect, useState } from 'react';
+import * as d3 from 'd3';
+import './TechnicalAnalysis.css';
+
+const SankeyDiagram = ({ width = 1000, height = 500 }) => {
+  const svgRef = useRef();
+  const [enabledScales, setEnabledScales] = useState({
+    symptom: true,
+    impact: true,
+    urgency: true,
+    priority: true,
+    location: true,
+    category: true, // Always true and cannot be disabled
+  });
+
+  // State to track selected values on each axis
+  const [selectedValues, setSelectedValues] = useState({
+  symptom: [],
+  impact: [],
+  urgency: [],
+  priority: [],
+  location: [],
+  category: [],
+  });
+
+  // Define multiple traces with different values for each scale
+  const traces = [
+    { symptom: 1, impact: 3, urgency: 5, priority: 8, location: 1, category: 1 },
+    { symptom: 1, impact: 3, urgency: 5, priority: 2, location: 1, category: 1 },
+    { symptom: 1, impact: 5, urgency: 7, priority: 4, location: 1, category: 3 },
+  ];
+
+  let categoryDistribution = [
+    { category: 1, count: 2 },
+    { category: 3, count: 1 },
+  ];
+
+  // Sort categoryDistribution by count in descending order
+  categoryDistribution = categoryDistribution.sort((a, b) => b.count - a.count);
+
+  useEffect(() => {
+    const svg = d3.select(svgRef.current);
+    const containerWidth = svgRef.current.getBoundingClientRect().width;
+
+    // Clear previous SVG content
+    svg.selectAll('*').remove();
+
+    const margin = { top: 40, right: 20, bottom: 20, left: 40 };
+    const innerWidth = containerWidth - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+
+    const scales = {
+      symptom: [1],
+      impact: d3.range(1, 11),
+      urgency: d3.range(1, 11),
+      priority: d3.range(1, 11),
+      location: [1],
+      category: categoryDistribution.map(d => d.category),
+    };
+
+    const enabledKeys = Object.keys(enabledScales).filter(key => enabledScales[key]);
+    const scaleWidth = innerWidth / (enabledKeys.length + 1); // +1 for the histogram
+
+    const g = svg.append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    const yScales = {};
+
+    // Draw scales
+    enabledKeys.forEach((scale, index) => {
+      const xPosition = index * scaleWidth + scaleWidth / 2; // Center the axis and title
+      const scaleGroup = g.append('g')
+        .attr('transform', `translate(${xPosition}, 0)`);
+
+      const yScale = d3.scaleLinear()
+        .domain([1, d3.max(scales[scale])])
+        .range([innerHeight, 0]);
+
+      yScales[scale] = yScale;
+
+      const yAxis = d3.axisLeft(yScale)
+        .ticks(scales[scale].length)
+        .tickFormat(d3.format('d'));
+
+      const axisGroup = scaleGroup.append('g')
+        .call(yAxis)
+        .attr('class', `${scale}-axis`);
+
+      axisGroup.selectAll('text')
+        .attr('fill', d => (selectedValues[scale].includes(d) ? 'red' : 'white')) // Highlight selected value in red
+        .style('cursor', 'pointer')
+        .on('click', function (event, d) {
+          setSelectedValues(prev => {
+            const newSelectedValues = { ...prev };
+            const selectedForScale = newSelectedValues[scale];
+            
+            if (selectedForScale.includes(d)) {
+              // If the value is already selected, remove it
+              newSelectedValues[scale] = selectedForScale.filter(value => value !== d);
+            } else {
+              // Otherwise, add it to the selected values
+              newSelectedValues[scale] = [...selectedForScale, d];
+            }
+            console.log(newSelectedValues);
+            return newSelectedValues;
+          });
+        });
+
+      // Add scale title, highlight in red if any value on this axis is selected
+      scaleGroup.append('text')
+        .attr('x', 0)
+        .attr('y', -20)
+        .attr('text-anchor', 'middle')
+        .attr('fill', selectedValues[scale].length > 0 ? 'red' : 'white')
+        .style('font-size', '12px')
+        .text(scale.charAt(0).toUpperCase() + scale.slice(1));
+    });
+
+    // Adjust the yScale for Category to ensure correct alignment
+    const yCategoryScale = d3.scaleBand()
+      .domain(scales.category)
+      .range([0, innerHeight]); // Reverse the range to start from the top
+
+    // Create a map to count the number of occurrences of each link
+    const linkCountMap = {};
+
+    traces.forEach((trace) => {
+      enabledKeys.forEach((key, index) => {
+        if (index < enabledKeys.length - 1) {
+          const nextKey = enabledKeys[index + 1];
+          const linkKey = `${key}-${trace[key]}-${nextKey}-${trace[nextKey]}`;
+
+          if (linkCountMap[linkKey]) {
+            linkCountMap[linkKey] += 1;
+          } else {
+            linkCountMap[linkKey] = 1;
+          }
+        }
+      });
+    });
+
+    // Draw each trace separately
+    traces.forEach((sampleData, traceIndex) => {
+      const trace = enabledKeys.map((key, index) => ({
+        x: index * scaleWidth + scaleWidth / 2,
+        y: key === 'category' ? yCategoryScale(sampleData[key]) + yCategoryScale.bandwidth() / 2 : yScales[key](sampleData[key]),
+      }));
+
+      trace.forEach((point, index) => {
+        if (index < trace.length - 1) {
+          const nextPoint = trace[index + 1];
+          const linkKey = `${enabledKeys[index]}-${sampleData[enabledKeys[index]]}-${enabledKeys[index + 1]}-${sampleData[enabledKeys[index + 1]]}`;
+          const strokeWidth = 2 + (linkCountMap[linkKey] - 1); // Increase line thickness if link appears multiple times
+
+          g.append('line')
+            .attr('x1', point.x)
+            .attr('y1', point.y)
+            .attr('x2', nextPoint.x)
+            .attr('y2', nextPoint.y)
+            .attr('stroke', 'white')
+            .attr('stroke-width', strokeWidth);
+        }
+      });
+
+      // Draw trace points for better visibility for each trace
+      g.selectAll(`.trace-point-${traceIndex}`)
+        .data(trace)
+        .enter()
+        .append('circle')
+        .attr('class', `trace-point-${traceIndex}`)
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y)
+        .attr('r', 4)
+        .attr('fill', 'white');
+    });
+
+    // Draw the histogram for the Category distribution as a horizontal bar chart
+    const histogramXPosition = enabledKeys.length * scaleWidth + scaleWidth / 2; // Position the histogram to the right
+
+    const xHistogramScale = d3.scaleLinear()
+      .domain([0, d3.max(categoryDistribution, d => d.count)])
+      .range([0, scaleWidth]);
+
+    const yHistogramScale = d3.scaleBand()
+      .domain(categoryDistribution.map(d => d.category))
+      .range([0, innerHeight]) // Match the category axis, starting from the top
+      .padding(0.1);
+
+    const histogramGroup = g.append('g')
+      .attr('transform', `translate(${histogramXPosition - scaleWidth / 2}, 0)`); // Align histogram with category axis
+
+    histogramGroup.selectAll('.bar')
+      .data(categoryDistribution.filter(d => d.count > 0))
+      .enter().append('rect')
+      .attr('class', 'bar')
+      .attr('x', 0)
+      .attr('y', d => yHistogramScale(d.category))
+      .attr('width', d => xHistogramScale(d.count))
+      .attr('height', yHistogramScale.bandwidth())
+      .attr('fill', 'steelblue');
+
+    // Align the histogram's y-axis with the Category axis
+    g.select(`.${enabledKeys[enabledKeys.length - 1]}-axis`).call(d3.axisLeft(yHistogramScale))
+      .selectAll('text')
+      .attr('fill', 'white'); // Make the axis text white
+
+    // Add the histogram's x-axis for the counts
+    histogramGroup.append('g')
+      .attr('transform', `translate(0,${innerHeight})`)
+      .call(d3.axisBottom(xHistogramScale).ticks(5))
+      .selectAll('text')
+      .attr('fill', 'white'); // Make the axis text white
+
+    // Calculate total count for the category
+    const totalCount = categoryDistribution.reduce((acc, cur) => acc + cur.count, 0);
+
+    // Add total count text between category axis and the bar chart
+    histogramGroup.selectAll('.total-count')
+      .data(categoryDistribution.filter(d => d.count > 0))
+      .enter()
+      .append('text')
+      .attr('x', d => -scaleWidth / 4)
+      .attr('y', d => yHistogramScale(d.category) + yHistogramScale.bandwidth() / 2)
+      .attr('dy', '0.35em')
+      .attr('fill', 'white')
+      .attr('text-anchor', 'middle')
+      .style('font-size', '14px')
+      .text(d => `${d.count}`);
+  }, [enabledScales, selectedValues, width, height]);
+
+  const toggleScale = scale => {
+    // Prevent disabling the Category scale and remove it from the checkbox list
+    if (scale !== 'category') {
+      setEnabledScales({
+        ...enabledScales,
+        [scale]: !enabledScales[scale],
+      });
+    }
+  };
+
+  return (
+    <div>
+      <div className="controls" style={{ marginBottom: '20px' }}>
+        {Object.keys(enabledScales).filter(scale => scale !== 'category').map(scale => (
+          <label key={scale} style={{ color: 'white', marginRight: '10px' }}>
+            <input
+              type="checkbox"
+              checked={enabledScales[scale]}
+              onChange={() => toggleScale(scale)}
+            />
+            {scale.charAt(0).toUpperCase() + scale.slice(1)}
+          </label>
+        ))}
+      </div>
+      <svg ref={svgRef} style={{ width: '100%', height: height }} />
+    </div>
+  );
+};
+
+export default SankeyDiagram;

@@ -1,4 +1,27 @@
-# Getting Started with Create React App
+# Structure
+
+This application uses React for frontend visualizations while python scripts are used for backend calculations.
+Frontend and backend are connected via eel. Data are stored inside /my_app/src/data directory
+
+# Dependencies
+
+## Javascript
+
+react
+
+## Python
+
+eel
+
+# Run the application
+
+Start backend:
+Run 'source venv/bin/activate' inside my_app directory to activate the virtual python environment
+Inside /my_app/src/backend directory run 'python3 server.py true'
+
+Afterwards in second terminal start the frontend from my_app directory by calling 'npm start'
+
+# README FROM REACT + EEL TEPMLATE
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
