@@ -1,3 +1,5 @@
+## visIMP
+
 # Structure
 
 This application uses React for frontend visualizations while python scripts are used for backend calculations.
@@ -16,10 +18,10 @@ eel
 # Run the application
 
 Start backend:
-Run 'source venv/bin/activate' inside my_app directory to activate the virtual python environment
-Inside /my_app/src/backend directory run 'python3 server.py true'
+Run 'source venv/bin/activate' inside root directory to activate the virtual python environment
+Inside /src/backend directory run 'python3 server.py true'
 
-Afterwards in second terminal start the frontend from my_app directory by calling 'npm start'
+Afterwards in second terminal start the frontend from root directory by calling 'npm start'
 
 # README FROM REACT + EEL TEPMLATE
 
