@@ -1,0 +1,42 @@
+.individual-analysis {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    /* Keep this at 100% of its parent */
+}
+
+.averages-section {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 10px;
+}
+
+.average-item {
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+}
+
+.details-section {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    /* Fix the width to prevent the parent from stretching */
+    overflow-x: auto;
+    /* Enable horizontal scrolling */
+    overflow-y: auto;
+    max-width: 100%;
+    /* Ensure the container itself doesn't stretch */
+}
+
+.incident-sequence-svg {
+    background-color: #1b1b1b;
+    min-width: 100%;
+    /* Ensure the SVG can grow but not affect the parent container's width */
+}
+
+
+.x-axis path,
+.y-axis path {
+    stroke: white;
+}

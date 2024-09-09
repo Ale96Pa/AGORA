@@ -218,7 +218,7 @@ async function createVisualization(containerId, places, transitions, arcs, devia
         .attr("dy", "2em")
         .attr("text-anchor", "middle")
         .attr("fill", "#FFF")
-        .attr("font-size", "8px")  // Adjust the font size as needed
+        .attr("font-size", "8px")
         .text(d => stateMapping[d.label] && stateTimes[stateMapping[d.label]] ? stateTimes[stateMapping[d.label]] : '');
 
     const transitionTexts = svg.append("g")

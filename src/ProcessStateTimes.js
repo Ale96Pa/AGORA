@@ -34,7 +34,7 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
       const containerWidth = svgElement.node().parentNode.clientWidth;
 
       const width = containerWidth;
-      const margin = { top: 20, right: 5, bottom: 30, left: 40 };
+      const margin = { top: 20, right: 5, bottom: 30, left: 60 };
       const innerWidth = width - margin.left - margin.right;
       const innerHeight = height - margin.top - margin.bottom;
 
@@ -72,7 +72,6 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
         return acc;
       }, { _lines: [] });
 
-      console.log(d3.extent(data, d => new Date(d.closed_at)));
       // Set up scales
       const xScale = d3.scaleTime()
         .domain([
@@ -110,8 +109,14 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
         g.select('.y-axis').selectAll('.tick line')
           .filter(d => d === yDomain[1])
           .remove();
+
+        // Style the y-axis text and lines
+        g.select('.y-axis').selectAll('text').attr('fill', 'white');
+        g.select('.y-axis path').style('stroke', 'white');
+        g.select('.y-axis line').style('stroke', 'white');
       };
 
+      // Initial y-axis setup
       g.append('g')
         .attr('class', 'y-axis')
         .call(d3.axisLeft(yScale).tickSize(-innerWidth).tickPadding(10))
@@ -119,8 +124,8 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
         .attr('fill', 'white');  // Make the axis text white
 
       g.select('.y-axis path').style('stroke', 'white'); // Make y-axis line white
-      g.select('.y-axis line').style('stroke', 'white'); // Make y-axis ticks white
 
+      // Initial x-axis setup
       g.append('g')
         .attr('transform', `translate(0,${innerHeight})`)
         .attr('class', 'x-axis')
@@ -129,7 +134,7 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
         .attr('fill', 'white');  // Make the axis text white
 
       g.select('.x-axis path').style('stroke', 'white'); // Make x-axis line white
-      g.select('.x-axis line').style('stroke', 'white'); // Make x-axis ticks white
+      
 
       // Draw connecting lines between points for each incident
       const lineSelection = g.selectAll('.line')
@@ -145,11 +150,13 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
           .y(d => yScale(d.value))
         );
 
-      // Draw points for each process state
+      // Draw points and connect same-state points with lines
+      const stateLines = {};  // Store state lines for zoom updates
       Object.keys(parsedData).forEach(state => {
         if (state !== '_lines') {
           const data = parsedData[state];
           if (data && data.length) {
+            // Draw the points for each state
             g.selectAll(`.point-${state}`)
               .data(data)
               .join('circle')
@@ -158,35 +165,59 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
               .attr('cy', d => yScale(d.value))
               .attr('r', 4)
               .attr('fill', colorScale(state));
+
+            // Connect same-state points with lines and store the reference for zoom update
+            stateLines[state] = g.append("path")
+              .datum(data)
+              .attr("fill", "none")
+              .attr("stroke", colorScale(state))
+              .attr("stroke-width", 2)
+              .attr("d", d3.line()
+                .x(d => xScale(d.date))
+                .y(d => yScale(d.value))
+              );
           }
         }
       });
 
-      // Apply zoom behavior
+      // Apply zoom behavior (x-axis only)
       const zoom = d3.zoom()
-        .scaleExtent([1, 8])
-        .translateExtent([[margin.left, margin.top], [width - margin.right, height - margin.top]])
-        .extent([[margin.left, margin.top], [width - margin.right, height - margin.top]])
+        .scaleExtent([1, 1000])  // Matching zoom extent to ProcessComplianceBarChart
+        .translateExtent([[margin.left, margin.top], [containerWidth - margin.right, height - margin.top]])
+        .extent([[margin.left, margin.top], [containerWidth - margin.right, height - margin.top]])
         .on("zoom", (event) => {
           const newXScale = event.transform.rescaleX(xScale);
-          const newYScale = event.transform.rescaleY(yScale);
 
+          // Update all elements that rely on x-scale
           g.selectAll('circle')
-            .attr('cx', d => newXScale(d.date))
-            .attr('cy', d => newYScale(d.value));
+            .attr('cx', d => newXScale(d.date));  // Only update the x position for the circles
 
+          // Update the incident lines
           lineSelection.attr('d', d3.line()
             .x(d => newXScale(d.date))
-            .y(d => newYScale(d.value))
+            .y(d => yScale(d.value))  // Keep y value static
           );
 
+          // Update same-state lines
+          Object.keys(stateLines).forEach(state => {
+            stateLines[state].attr("d", d3.line()
+              .x(d => newXScale(d.date))
+              .y(d => yScale(d.value))
+            );
+          });
+
+          // Update the x-axis based on the new x-scale
           g.select('.x-axis').call(d3.axisBottom(newXScale).tickPadding(10));
-          updateYAxis(newYScale);
+
+          // Reapply styles to x-axis elements after zoom
+          g.select('.x-axis').selectAll('text').attr('fill', 'white');
+          g.select('.x-axis path').style('stroke', 'white');
+          g.select('.x-axis line').style('stroke', 'white');
         });
 
       svgElement.call(zoom);
 
-      updateYAxis(yScale);  // Initial call to set the y-axis format and remove the upper grid line
+      updateYAxis(yScale);
     });
   }, [enabledStates, height, refreshTrigger]);
 

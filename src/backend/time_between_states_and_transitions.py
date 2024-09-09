@@ -301,7 +301,7 @@ def calculate_time_to_last_occurrence(db_path="../data/incidents.db"):
 
 # Example usage
 if __name__ == "__main__":
-    state_intervals = get_event_state_intervals('INC0000045')
+    state_intervals = get_event_state_intervals('INC0000084')
     print(state_intervals)
 
     print(calculate_time_in_all_states(state_intervals))

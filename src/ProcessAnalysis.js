@@ -12,6 +12,8 @@ import { eel } from './App';
 import ProcessStateTimes from './ProcessStateTimes.js';
 import TechnicalAnalysis from './TechnicalAnalysis.js';
 import LinearizedPnmlVisualization from './LinearizedPnmlVisualization.js';
+import IndividualAnalysis from './IndividualAnalysis.js';
+import ProcessIndicatorsVisualization from './ProcessIndicatorsVisualization.js';
 
 async function getPNML() {
   try {
@@ -92,6 +94,8 @@ function ProcessAnalysis() {
                 </div>
               </div>
             </div>
+            <div className="name">STATISTICAL ANALYSIS</div>
+            <div className="name">ACTIVE/(COMPLIANT)CLOSED INCIDENTS OVER TIME</div>
           </div>
           <div className="view" style={{ flex: '3'}}>
             <div className="view-header">
@@ -112,19 +116,8 @@ function ProcessAnalysis() {
                 />
               </div>
             </div>
-            <LinearizedPnmlVisualization height={150} />
-            <div className="tag-container">
-              <div className="tags-box">
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/93e295a61d18502fff4488b64966b7279dba43b5b9d37df2b7f3b3bfda6ed02e?"
-                  className="img-42"
-                />
-                <div className="tag">Reference Model</div>
-              </div>
-            </div>
-            <ProcessStateTimes height={200} refreshTrigger={refreshTrigger}/>
-            <ProcessComplianceBarChart height={200} refreshTrigger={refreshTrigger}/>
+            <LinearizedPnmlVisualization height={150} refreshTrigger={refreshTrigger} />
+            <ProcessIndicatorsVisualization refreshTrigger={refreshTrigger} />
           </div>
           <div className="view" style={{ flex: '1'}}>
             <div className="div-155">
@@ -146,7 +139,9 @@ function ProcessAnalysis() {
               </div>
             </div>
             <CommonVariants height={200} refreshTrigger={refreshTrigger} />
-            <DistributionViolinPlot height={500} refreshTrigger={refreshTrigger} />
+            <div className="name">MOST CRITICAL INCIDENTS TBD</div>
+            <div className="name">COMPLIANCE DISTRIBUTION</div>
+            <DistributionViolinPlot height={250} refreshTrigger={refreshTrigger} />
             <div className="tag-container">
               <div className="tags-box">
                 <img
@@ -180,19 +175,7 @@ function ProcessAnalysis() {
                   />
                 </div>
               </div>
-              <TechnicalAnalysis height={400}/>
-              <div className="tag-container">
-                <div className="tags-box">
-                  <img
-                    loading="lazy"
-                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/c2f5e035522b816cb51a71137ab4407d6be46a71358d3cb0e7e8c02a54f78df7?"
-                    className="img-75"
-                  />
-                  <div className="div-252">
-                    <div className="tag">Technical Analysis</div>
-                  </div>
-                </div>
-              </div>
+              <TechnicalAnalysis height={300}/>
             </div>
             <div className="view" style={{ flex: '2'}}>
               <div className="div-258">
@@ -246,6 +229,7 @@ function ProcessAnalysis() {
                   />
                 </div>
               </div>
+              <IndividualAnalysis height="500px" />
               <div className="tag-container">
                 <div className="tags-box">
                   <img

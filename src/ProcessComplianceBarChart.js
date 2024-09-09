@@ -12,7 +12,7 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
       const containerWidth = svgElement.node().parentNode.clientWidth;
 
       const width = containerWidth;
-      const margin = { top: 20, right: 5, bottom: 30, left: 40 };
+      const margin = { top: 20, right: 5, bottom: 30, left: 60 };
       const innerWidth = width - margin.left - margin.right;
       const innerHeight = height - margin.top - margin.bottom;
       const barWidth = 4; // Width of the bars
@@ -50,7 +50,7 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
       // Append the bars
       g.append("g")
         .attr("class", "bars")
-        .attr("fill", "steelblue")
+        .attr("fill", "white")
         .selectAll("rect")
         .data(parsedData)
         .join("rect")

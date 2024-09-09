@@ -46,6 +46,5 @@
     <arc id="a3" source="p3" target="p4"/>
     <arc id="a4" source="p4" target="p5"/>
     <arc id="a5" source="p2" target="p4"/>
-    <arc id="a6" source="p2" target="p5"/>
   </net>
 </pnml>
