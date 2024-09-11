@@ -6,14 +6,13 @@ import CommonVariants from './common_variants.js';
 import IncidentSelection from './incident_selection.js';
 import { useEffect, useState } from 'react';
 import './ProcessStateTimes.js';
-import ProcessComplianceBarChart from './ProcessComplianceBarChart.js';
 import DistributionViolinPlot from './ComplianceDistributionViolinPlot.js';
 import { eel } from './App';
-import ProcessStateTimes from './ProcessStateTimes.js';
 import TechnicalAnalysis from './TechnicalAnalysis.js';
 import LinearizedPnmlVisualization from './LinearizedPnmlVisualization.js';
 import IndividualAnalysis from './IndividualAnalysis.js';
 import ProcessIndicatorsVisualization from './ProcessIndicatorsVisualization.js';
+import IncidentsLineChart from './IncidentsLineChart.js';
 
 async function getPNML() {
   try {
@@ -96,6 +95,7 @@ function ProcessAnalysis() {
             </div>
             <div className="name">STATISTICAL ANALYSIS</div>
             <div className="name">ACTIVE/(COMPLIANT)CLOSED INCIDENTS OVER TIME</div>
+            <IncidentsLineChart height={300} refreshTrigger={refreshTrigger} />
           </div>
           <div className="view" style={{ flex: '3'}}>
             <div className="view-header">

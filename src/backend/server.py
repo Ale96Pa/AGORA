@@ -21,6 +21,7 @@ from pnml_reader import get_pnml_data
 from process_compliance_time import get_closed_ordered_incidents
 from process_compliance_distribution import get_compliance_metric_distribution
 from process_timedeltas import get_ordered_time_to_states_last_occurrence
+from active_closed_incidents import get_incidents_open_and_closed_over_time
 
 from database_filter_variables import *
 

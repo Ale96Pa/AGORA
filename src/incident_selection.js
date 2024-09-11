@@ -6,10 +6,10 @@ import 'rc-slider/assets/index.css';
 import ProgressBar from 'react-bootstrap/ProgressBar';
 
 const IncidentSelection = ({ onSelectionChange }) => {
-    const [minDate, setMinDate] = useState('');
-    const [maxDate, setMaxDate] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const [minDate, setMinDate] = useState('09/01/2017'); // Set initial minDate
+    const [maxDate, setMaxDate] = useState('18/02/2017'); // Set initial maxDate
+    const [startDate, setStartDate] = useState('09/01/2017'); // Set initial startDate
+    const [endDate, setEndDate] = useState('18/02/2017'); // Set initial endDate
     const [incidentCount, setIncidentCount] = useState(null);
     const [totalIncidents, setTotalIncidents] = useState(null);
 
@@ -28,16 +28,14 @@ const IncidentSelection = ({ onSelectionChange }) => {
                 const formattedMinDate = formatToDDMMYYYY(minDateFromBackend);
                 const formattedMaxDate = formatToDDMMYYYY(maxDateFromBackend);
 
-                setMinDate(formattedMinDate);
-                setMaxDate(formattedMaxDate);
-                setStartDate(formattedMinDate);
-                setEndDate(formattedMaxDate);
+                setMinDate(formattedMinDate); // Set fetched minDate from backend
+                setMaxDate(formattedMaxDate); // Set fetched maxDate from backend
 
                 const totalIncidentsFromBackend = await eel.count_unique_incidents()();
                 setTotalIncidents(totalIncidentsFromBackend);
 
-                // Fetch initial incident count
-                const count = await eel.number_of_closed_incidents_in_time_period(formattedMinDate, formattedMaxDate)();
+                // Fetch initial incident count for the specified date range
+                const count = await eel.number_of_closed_incidents_in_time_period('09/01/2017', '18/02/2017')();
                 setIncidentCount(count);
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -136,9 +134,10 @@ const IncidentSelection = ({ onSelectionChange }) => {
                 <div className="name">PERC SELECTED INCIDENTS</div>
                 {incidentCount !== null && totalIncidents !== null && (
                     <ProgressBar
-                        now={progressBarValue}
-                        label={`${incidentCount} / ${totalIncidents} (${Math.round(progressBarValue)}%)`}
                         className="progress-bar-full"
+                        striped variant="info"
+                        label={`${incidentCount} / ${totalIncidents} (${Math.round(progressBarValue)}%)`}
+                        now={progressBarValue} // Still needed to render the progress visually
                     />
                 )}
             </div>
