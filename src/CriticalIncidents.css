@@ -1,0 +1,33 @@
+.critical-incidents-container {
+    padding: 20px;
+    background-color: #1c1c1c;
+    color: white;
+    border-radius: 8px;
+    max-height: 400px;
+    /* Can be dynamically set */
+    overflow-y: auto;
+}
+
+.critical-incidents-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.critical-incidents-table th,
+.critical-incidents-table td {
+    border: 1px solid #444;
+    padding: 10px;
+    text-align: center;
+}
+
+.critical-incidents-table th {
+    background-color: #2d2d2d;
+}
+
+.critical-incidents-table tr:nth-child(even) {
+    background-color: #292929;
+}
+
+.critical-incidents-table tr:hover {
+    background-color: #3b3b3b;
+}

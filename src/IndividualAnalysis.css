@@ -5,17 +5,7 @@
     /* Keep this at 100% of its parent */
 }
 
-.averages-section {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 10px;
-}
 
-.average-item {
-    font-size: 14px;
-    font-weight: bold;
-    color: white;
-}
 
 .details-section {
     display: flex;
@@ -39,4 +29,40 @@
 .x-axis path,
 .y-axis path {
     stroke: white;
+}
+
+
+.averages-section {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    /* 3 equal columns */
+    grid-template-rows: auto auto;
+    /* 2 rows: one for labels and one for values */
+    gap: 10px;
+    /* Adjust gap as needed */
+    text-align: center;
+    /* Center align the text */
+    color: white;
+}
+
+.average-item {
+    display: flex;
+    flex-direction: column;
+    /* Stack label and value vertically */
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    font-weight: bold;
+    color: white;
+    gap: 4px;
+}
+
+.average-item-label {
+    font-weight: bold;
+    vertical-align: top;
+}
+
+.average-item-value {
+    /* Adjust space between label and value */
+    font-size: 1em;
 }

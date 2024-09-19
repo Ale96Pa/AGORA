@@ -1,8 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as d3 from 'd3';
+import { eel } from './App';
 import './TechnicalAnalysis.css';
 
-const SankeyDiagram = ({ width = 1000, height = 500 }) => {
+const TechnicalAnalysis = ({ width = 1000, height = 500, refreshTrigger }) => {
   const svgRef = useRef();
   const [enabledScales, setEnabledScales] = useState({
     symptom: true,
@@ -23,8 +24,11 @@ const SankeyDiagram = ({ width = 1000, height = 500 }) => {
   category: [],
   });
 
+  const [traces, setTraces] = useState([]);
+  const [categoryDistribution, setCategoryDistribution] = useState([]);
+
   // Define multiple traces with different values for each scale
-  const traces = [
+  /*const traces = [
     { symptom: 1, impact: 3, urgency: 5, priority: 8, location: 1, category: 1 },
     { symptom: 1, impact: 3, urgency: 5, priority: 2, location: 1, category: 1 },
     { symptom: 1, impact: 5, urgency: 7, priority: 4, location: 1, category: 3 },
@@ -33,10 +37,47 @@ const SankeyDiagram = ({ width = 1000, height = 500 }) => {
   let categoryDistribution = [
     { category: 1, count: 2 },
     { category: 3, count: 1 },
-  ];
+  ];*/
 
-  // Sort categoryDistribution by count in descending order
-  categoryDistribution = categoryDistribution.sort((a, b) => b.count - a.count);
+  // Fetch incident technical attributes from the backend using eel
+  useEffect(() => {
+    const fetchTechnicalAttributes = async () => {
+      try {
+        // Call the eel function to get the technical attributes for selected incidents
+        const result = await eel.get_incident_technical_attributes()();
+        
+        // Convert the fetched result to JSON
+        const incidentData = JSON.parse(result);
+        
+        console.log(incidentData);
+        // Set the traces with the actual data
+        setTraces(incidentData);
+
+        // Build the category distribution based on the fetched data
+        const categoryCountMap = {};
+        incidentData.forEach(trace => {
+          const category = trace.category;
+          if (categoryCountMap[category]) {
+            categoryCountMap[category] += 1;
+          } else {
+            categoryCountMap[category] = 1;
+          }
+        });
+
+        const categoryDistributionData = Object.keys(categoryCountMap).map(category => ({
+          category: parseInt(category, 10),
+          count: categoryCountMap[category],
+        }));
+
+        // Sort categoryDistribution by count in descending order
+        setCategoryDistribution(categoryDistributionData.sort((a, b) => b.count - a.count));
+      } catch (error) {
+        console.error('Failed to fetch technical attributes:', error);
+      }
+    };
+
+    fetchTechnicalAttributes();
+  }, [refreshTrigger]);
 
   useEffect(() => {
     const svg = d3.select(svgRef.current);
@@ -150,7 +191,7 @@ const SankeyDiagram = ({ width = 1000, height = 500 }) => {
         if (index < trace.length - 1) {
           const nextPoint = trace[index + 1];
           const linkKey = `${enabledKeys[index]}-${sampleData[enabledKeys[index]]}-${enabledKeys[index + 1]}-${sampleData[enabledKeys[index + 1]]}`;
-          const strokeWidth = 2 + (linkCountMap[linkKey] - 1); // Increase line thickness if link appears multiple times
+          const strokeWidth = 1 + (linkCountMap[linkKey] - 1); // Increase line thickness if link appears multiple times
 
           g.append('line')
             .attr('x1', point.x)
@@ -257,4 +298,4 @@ const SankeyDiagram = ({ width = 1000, height = 500 }) => {
   );
 };
 
-export default SankeyDiagram;
+export default TechnicalAnalysis;

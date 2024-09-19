@@ -14,22 +14,22 @@ const ProcessIndicatorsVisualization = ({ refreshTrigger }) => {
     const fetchData = async () => {
       try {
         // Fetch state mapping from eel
-        const statesFromEel = await eel.read_mapping_from_file()();
-        const deviationsFromEel = await eel.count_frequencies()();
-        const durationsFromEel = await eel.get_average_state_times()();
+        const states = await eel.read_mapping_from_file()();
+        const deviations = await eel.count_frequencies()();
+        const durations = await eel.get_average_state_times()();
 
         // Calculate deviations and durations for each state
-        const statesArray = Object.keys(statesFromEel).map(state => {
-          const stateId = statesFromEel[state];
+        const statesArray = Object.keys(states).map(state => {
+          const stateId = states[state];
           
           // Sum deviations (missing, repetition, mismatch) for each state
           const totalDeviations = 
-            deviationsFromEel.missing[stateId] +
-            deviationsFromEel.repetition[stateId] +
-            deviationsFromEel.mismatch[stateId];
+            deviations.missing[stateId] +
+            deviations.repetition[stateId] +
+            deviations.mismatch[stateId];
 
           // Get the corresponding duration for each state
-          const duration = durationsFromEel[stateId] || '0h'; // Fallback to '0h' if not available
+          const duration = durations[stateId] || '0h'; // Fallback to '0h' if not available
 
           return {
             state,
@@ -62,7 +62,7 @@ const ProcessIndicatorsVisualization = ({ refreshTrigger }) => {
               </div>
             ))}
           </div>]}>
-          <DeviationsBarChart height={50} refreshTrigger={refreshTrigger} />
+          <DeviationsBarChart height={80} refreshTrigger={refreshTrigger} />
         </Collapsible>
 
         {/* DURATIONS Row */}

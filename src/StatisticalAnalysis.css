@@ -1,0 +1,14 @@
+.progress-bars-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.progress-box {
+    text-align: center;
+}
+
+.progress-box-large {
+    grid-column: span 2;
+    text-align: center;
+}

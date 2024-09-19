@@ -22,7 +22,10 @@ from process_compliance_time import get_closed_ordered_incidents
 from process_compliance_distribution import get_compliance_metric_distribution
 from process_timedeltas import get_ordered_time_to_states_last_occurrence
 from active_closed_incidents import get_incidents_open_and_closed_over_time
-
+from critical_incidents import get_critical_incidents
+from individual_incident_metrics import calculate_individual_averages, get_incident_event_intervals
+from technical_analysis import get_incident_technical_attributes
+from statistical_analysis import get_statistical_analysis_data
 from database_filter_variables import *
 
 filter_conditions = {}

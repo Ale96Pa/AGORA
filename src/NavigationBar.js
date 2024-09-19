@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './NavigationBar.css';
 import { eel } from './App.js';
+import ThresholdSlider from './ThresholdSlider';
 
 function NavigationBar({ refreshTrigger }) {
   const [showSettings, setShowSettings] = useState(false);
@@ -8,14 +9,21 @@ function NavigationBar({ refreshTrigger }) {
   const [notCoveredCount, setNotCoveredCount] = useState(0);
   const [partiallyCoveredCount, setPartiallyCoveredCount] = useState(0);
   const [coveredCount, setCoveredCount] = useState(0);
+  const [thresholds, setThresholds] = useState([0.25, 0.5, 0.75]);
 
+  const handleThresholdChange = (newThresholds) => {
+    setThresholds(newThresholds);
+    console.log("Updated thresholds: ", newThresholds);
+    // You can pass this data to your backend or use it elsewhere in your app
+  };
+  
   const handleSettingsClick = () => {
     setShowSettings(!showSettings);
   };
 
   const handleMetricChange = (metric) => {
     setSelectedMetric(metric);
-    eel.set_incident_complinace_metric(metric)();
+    eel.set_incident_compliance_metric(metric)();
     console.log(`Selected metric: ${metric}`);
   };
 
@@ -91,16 +99,20 @@ function NavigationBar({ refreshTrigger }) {
         </div>
         {showSettings && (
           <div className="settings-dropdown">
-            <div className="metric-label">Fitness</div>
-            <label className="switch">
-              <input 
-                type="checkbox" 
-                checked={selectedMetric === 'costTotal'}
-                onChange={(e) => handleMetricChange(e.target.checked ? 'costTotal' : 'fitness')}
-              />
-              <span className="slider round"></span>
-            </label>
-            <div className="metric-label">Non-Compliance Cost</div>
+            <div className="compliance-metric-name">COMPLIANCE METRIC</div>
+            <div className="metric-container">
+              <div className="metric-label">Fitness</div>
+              <label className="switch">
+                <input 
+                  type="checkbox" 
+                  checked={selectedMetric === 'costTotal'}
+                  onChange={(e) => handleMetricChange(e.target.checked ? 'costTotal' : 'fitness')}
+                />
+                <span className="slider round"></span>
+              </label>
+              <div className="metric-label">Non-Compliance Cost</div>
+            </div>
+            <ThresholdSlider onThresholdChange={handleThresholdChange} />
           </div>
         )}
         <div className="settings-icon">

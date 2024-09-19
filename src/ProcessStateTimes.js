@@ -14,17 +14,8 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
   });
 
   const formatTimeForYAxis = (minutes) => {
-    if (minutes < 60) {
-      return `${minutes} min`;
-    } else if (minutes < 1440) {
-      const hours = Math.floor(minutes / 60);
-      const remainingMinutes = minutes % 60;
-      return `${hours} h ${remainingMinutes} min`;
-    } else {
-      const days = Math.floor(minutes / 1440);
-      const hours = Math.floor((minutes % 1440) / 60);
-      return `${days} d ${hours} h`;
-    }
+    const days = Math.floor(minutes / 1440); // Convert minutes to days (1440 minutes in a day)
+    return `${days} d`;
   };
 
   useEffect(() => {
@@ -97,13 +88,17 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
         const yDomain = yScale.domain();
         const yRange = yDomain[1] - yDomain[0];
 
-        const format = yRange < 60
-          ? d => `${d} min`
-          : yRange < 1440
-            ? d => `${Math.floor(d / 60)} h ${d % 60} min`
-            : d => `${Math.floor(d / 1440)} d ${Math.floor((d % 1440) / 60)} h`;
+        // Format for days, reducing the tick frequency for clarity
+        const format = d => formatTimeForYAxis(d);
 
-        g.select('.y-axis').call(d3.axisLeft(yScale).tickSize(-innerWidth).tickPadding(10).tickFormat(format));
+        // Set fewer ticks on the Y-axis
+        g.select('.y-axis')
+          .call(d3.axisLeft(yScale)
+            .ticks(5)  // Reduce the number of ticks to 5
+            .tickSize(-innerWidth)
+            .tickPadding(10)
+            .tickFormat(format)
+          );
 
         // Remove the upper grid line on the max y value
         g.select('.y-axis').selectAll('.tick line')
@@ -135,7 +130,6 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
 
       g.select('.x-axis path').style('stroke', 'white'); // Make x-axis line white
       
-
       // Draw connecting lines between points for each incident
       const lineSelection = g.selectAll('.line')
         .data(parsedData['_lines'])

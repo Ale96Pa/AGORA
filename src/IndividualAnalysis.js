@@ -1,61 +1,91 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
+import { eel } from './App';  // Import eel to fetch data from the backend
 import './IndividualAnalysis.css';
 
-const IndividualAnalysis = ({ height }) => {
-    // Example data for averages
-    const averages = {
-        timeToClose: '5 days',
-        fitness: '0.85',
-        ncc: '0.92',
-    };
-
-    // Color mapping for stages
-    const stageColorMap = {
-        DET: 'steelblue',  // Detection
-        ACT: 'orange',     // Activation
-        AW: 'green',       // Awaiting
-        RES: 'red',        // Resolution
-        CL: 'purple',      // Closure
-    };
-
-    // Example data for incidents with time spent in each stage (in hours)
-    const incidents = [
-        { id: 5, stages: ['DET', 'ACT', 'RES', 'CL'], durations: [5, 10, 20, 10] },
-        { id: 9, stages: ['DET', 'ACT', 'RES', 'CL'], durations: [5, 8, 12, 15] },
-        { id: 20, stages: ['DET', 'ACT'], durations: [6, 14] },
-        { id: 28, stages: ['DET', 'ACT'], durations: [5, 9] },
-    ];
-
-    // Calculate the total duration for the X axis
-    const totalDuration = Math.max(...incidents.map(incident => incident.durations.reduce((a, b) => a + b, 0)));
+const IndividualAnalysis = ({ height, selectionTrigger }) => {
+    const [complianceMetric, setComplianceMetric] = useState('');  // Store compliance metric from the backend
+    const [individualMetricAverages, setIndividualMetricAverages] = useState({
+        average_ttr: '',
+        sla_percentage: '',
+        average_compliance_metric: '',
+    }); // Store fetched averages from the backend
+    const [incidentData, setIncidentData] = useState([]);  // Store incident data
 
     const svgRef = useRef();
 
+    // Fetch compliance metric from backend once on mount
+    useEffect(() => {
+        const fetchComplianceMetric = async () => {
+            try {
+                const metric = await eel.get_incident_compliance_metric()();  // Get compliance metric from backend
+                setComplianceMetric(metric);
+            } catch (error) {
+                console.error('Failed to fetch compliance metric:', error);
+            }
+        };
+
+        fetchComplianceMetric();  // Only run on mount
+    }, []);  // Empty dependency array to only fetch once on mount
+
+    // Fetch selected incidents whenever `selectionTrigger` changes
+    useEffect(() => {
+        const fetchSelectedIncidents = async () => {
+            try {
+                const result = await eel.calculate_individual_averages()();  // Fetch selected incidents from backend
+                setIndividualMetricAverages(result);
+                console.log(result);
+
+                const incidentDetails = await eel.get_incident_event_intervals()();  // Fetch event intervals
+                const parsedData = incidentDetails.map(item => ({
+                    ...item,
+                    event_intervals: JSON.parse(item.event_interval_minutes),  // Parse event intervals JSON
+                }));
+                setIncidentData(parsedData);
+                console.log(parsedData);
+            } catch (error) {
+                console.error('Failed to fetch selected incidents:', error);
+            }
+        };
+
+        fetchSelectedIncidents();  // Run when `selectionTrigger` changes
+    }, [selectionTrigger]);  // Only run when `selectionTrigger` changes
+
+    // Create the D3 chart
     useEffect(() => {
         const svg = d3.select(svgRef.current);
         svg.selectAll('*').remove();  // Clear previous content
 
         const width = 800;  // Total width for the graph
-        const height = incidents.length * 40; // Height based on number of incidents
-        const margin = { top: 30, right: 30, bottom: 30, left: 40 };
+        const rowHeight = 40;  // Fixed height for each incident row
+        const numRows = Math.max(incidentData.length, 5);  // Ensure at least 5 rows are displayed even if fewer incidents
+        const graphHeight = numRows * rowHeight; // Height based on number of incidents or fixed number of rows
+        const margin = { top: 30, right: 30, bottom: 10, left: 60 };
 
         const innerWidth = width - margin.left - margin.right;
-        const innerHeight = height - margin.top - margin.bottom;
+        const innerHeight = graphHeight - margin.top - margin.bottom;
 
-        // Create a linear scale based on total duration (time in hours)
+        // Calculate total duration for each incident (sum of event intervals)
+        const calculateTotalDuration = (eventIntervals) =>
+            Object.values(eventIntervals).reduce((total, duration) => total + duration, 0);
+
+        const maxDuration = Math.max(
+            ...incidentData.map(incident => calculateTotalDuration(incident.event_intervals))
+        );
+
+        // Create a linear scale based on total duration (time in minutes)
         const xScale = d3.scaleLinear()
-            .domain([0, totalDuration])
+            .domain([0, maxDuration])
             .range([0, innerWidth]);
 
         // Y-axis based on incident ids
         const yScale = d3.scaleBand()
-            .domain(incidents.map(incident => incident.id))
+            .domain(incidentData.map(incident => incident.incident_id))
             .range([0, innerHeight])
             .padding(0.2);
 
         // Create an x-axis generator for time
-        const xAxis = d3.axisTop(xScale).ticks(10).tickFormat(d => `${d}h`);
+        const xAxis = d3.axisTop(xScale).ticks(10).tickFormat(d => `${d} min`);
 
         // Create a y-axis generator for incident IDs
         const yAxis = d3.axisLeft(yScale);
@@ -75,39 +105,60 @@ const IndividualAnalysis = ({ height }) => {
             .call(yAxis)
             .selectAll('text')
             .style('fill', 'white');  // White text for visibility on dark backgrounds
-
-        // Draw the stages as horizontal bars
-        incidents.forEach((incident, index) => {
+            
+        // Draw the event intervals as horizontal bars
+        incidentData.forEach((incident) => {
             let cumulativeDuration = 0;
-            incident.stages.forEach((stage, stageIndex) => {
-                const stageDuration = incident.durations[stageIndex];
+            Object.entries(incident.event_intervals).forEach(([eventCode, duration]) => {
                 svg.append('rect')
                     .attr('x', margin.left + xScale(cumulativeDuration))  // Start of the bar based on cumulative duration
-                    .attr('y', margin.top + yScale(incident.id))  // Position based on incident id
-                    .attr('width', xScale(stageDuration))  // Width of the bar proportional to the duration
+                    .attr('y', margin.top + yScale(incident.incident_id))  // Position based on incident id
+                    .attr('width', xScale(duration))  // Width of the bar proportional to the duration
                     .attr('height', yScale.bandwidth())  // Bar height based on yScale bandwidth
-                    .attr('fill', stageColorMap[stage]);  // Color based on the stage
-                cumulativeDuration += stageDuration;  // Update cumulative duration for next stage
+                    .attr('fill', getColorForEvent(eventCode));  // Color based on the event code
+                cumulativeDuration += duration;  // Update cumulative duration for next event
             });
         });
-    }, [totalDuration, incidents]);
+    }, [incidentData]);  // Re-run effect when incidentData changes
+
+
+    // Helper function to get color for each event code, including W
+    const getColorForEvent = (eventCode) => {
+        const eventColorMap = {
+            N: 'steelblue',  // Event N
+            A: 'orange',     // Event A
+            R: 'red',        // Event R
+            C: 'purple',     // Event C
+            W: 'green'       // Event W
+        };
+        return eventColorMap[eventCode] || 'gray';  // Fallback to gray if event code is not found
+    };
 
     return (
         <div className="individual-analysis" style={{ height }}>
+            {/* Averages Section */}
             <div className="averages-section">
                 <div className="average-item">
-                    <span>Time to Close: </span>{averages.timeToClose}
+                    <div className="average-item-label">AVG TIME TO RESOLVE</div>
+                    <div className="average-item-value">{individualMetricAverages.average_ttr}</div>
                 </div>
                 <div className="average-item">
-                    <span>Fitness: </span>{averages.fitness}
+                    <div className="average-item-label">AVG {complianceMetric.toUpperCase()}</div>
+                    <div className="average-item-value">
+                        {individualMetricAverages.average_compliance_metric ? individualMetricAverages.average_compliance_metric.toFixed(2) : ''}
+                    </div>
                 </div>
                 <div className="average-item">
-                    <span>NCC: </span>{averages.ncc}
+                    <div className="average-item-label">PERC SLA MET</div>
+                    <div className="average-item-value">
+                        {individualMetricAverages.sla_percentage ? individualMetricAverages.sla_percentage : ''} %
+                    </div>
                 </div>
             </div>
 
-            <div className="details-section">
-                <svg ref={svgRef} className="incident-sequence-svg" width="100%" height={incidents.length * 50 + 50} />
+            {/* Scrollable Incident Details Section */}
+            <div className="details-section-scrollable" style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '400px' }}>
+                <svg ref={svgRef} className="incident-sequence-svg" width="100%" height={incidentData.length * 50 + 50} />
             </div>
         </div>
     );

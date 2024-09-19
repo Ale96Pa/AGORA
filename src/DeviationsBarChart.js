@@ -19,7 +19,6 @@ const DeviationsBarChart = ({ height, refreshTrigger }) => {
     try {
       const stateMapping = await eel.read_mapping_from_file()();
 
-      
       const statesArray = Object.keys(stateMapping).map((state, index) => ({
         stateName: state,
         deviations: {
@@ -44,7 +43,7 @@ const DeviationsBarChart = ({ height, refreshTrigger }) => {
     // X and Y scales
     const xScale = d3.scaleBand()
       .domain(['MISSING', 'REPETITION', 'MISMATCH'])
-      .range([0, width])  // Reduced padding between bars
+      .range([0, width])
       .paddingOuter(3);
 
     const yScale = d3.scaleLinear()
@@ -67,37 +66,55 @@ const DeviationsBarChart = ({ height, refreshTrigger }) => {
       .attr('height', d => height - 20 - yScale(d[1]))
       .attr('fill', d => colorScale(d[0]));
 
+    // Add text for each bar to show the number of deviations
+    svg.selectAll('text')
+      .data(Object.entries(data.deviations))
+      .enter()
+      .append('text')
+      .attr('x', d => xScale(d[0]) + xScale.bandwidth() / 2)  // Center text in the bar
+      .attr('y', d => yScale(d[1]) - 5)  // Position above the bar
+      .attr('text-anchor', 'middle')
+      .attr('fill', 'white')  // Text color
+      .style('font-size', '10px')  // Font size
+      .text(d => d[1]);  // Display the deviation value
+
     // Add X-axis with ticks and labels but hide the axis line
     const xAxis = svg.append('g')
       .attr('transform', `translate(0, ${height - 20})`)
-      .call(d3.axisBottom(xScale).tickSize(0));  // Remove tick lines if not needed
+      .call(d3.axisBottom(xScale).tickSize(0));
 
     // Remove the X-axis line but keep the ticks and labels
-    xAxis.select('path').remove();  // This removes the axis line itself
-    xAxis.selectAll('.tick text')  // Style the axis labels
-      .attr('fill', 'white')
-      .style('font-size', '10px');  // Adjust text size if needed
+    xAxis.select('path').remove();
 
-    
+    // Style and adjust the labels
+    xAxis.selectAll('.tick text')
+      .attr('fill', 'white')
+      .style('font-size', '8px')
+      .attr('dx', (d, i) => {
+        if (i === 0) return '-1em'; // Adjust for spacing
+        if (i === 2) return '1em';
+      })
+      .attr('dy', (d, i) => {
+        if (i === 1) return '2em'; // Lower middle label
+        return '1em';
+      });
+
+    // Remove the tick lines
     xAxis.selectAll('.tick line').remove();
   };
 
-  
   useEffect(() => {
     fetchStateMapping();
   }, [refreshTrigger]);
 
-  
   useEffect(() => {
     if (deviationData.length > 0 && containerRef.current) {
       const containerWidth = containerRef.current.getBoundingClientRect().width;
-      setContainerWidth(containerWidth); // Set container width to state
-
+      setContainerWidth(containerWidth);
 
       d3.select(containerRef.current).selectAll('*').remove();
 
-      
-      const chartWidth = containerWidth / deviationData.length; // Each chart takes equal space
+      const chartWidth = containerWidth / deviationData.length;
 
       // Render a chart for each state
       deviationData.forEach((stateData, index) => {

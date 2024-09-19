@@ -133,10 +133,10 @@ const IncidentSelection = ({ onSelectionChange }) => {
             <div className="result-section">
                 <div className="name">PERC SELECTED INCIDENTS</div>
                 {incidentCount !== null && totalIncidents !== null && (
-                    <ProgressBar
+                    <ProgressBar  
                         className="progress-bar-full"
-                        striped variant="info"
                         label={`${incidentCount} / ${totalIncidents} (${Math.round(progressBarValue)}%)`}
+                        striped variant="info"
                         now={progressBarValue} // Still needed to render the progress visually
                     />
                 )}

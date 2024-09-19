@@ -3,8 +3,10 @@ import * as d3 from 'd3';
 import { eel } from './App';
 import tabular from './tabular.js';  // Import tabular function
 
-async function createProgressBar(containerId, metricName, limits = [0, 1], severityLevels = [0, 0.25, 0.5, 0.75, 1], height = 30) {
-    
+async function createProgressBar(containerId, metricName, limits = [0, 1], height = 30) {
+    // Fetch the severity levels from the backend in the new JSON format
+    const severityLevels = JSON.parse(await eel.get_compliance_metric_thresholds()());
+    console.log(severityLevels);
     const progress = await eel.calculate_column_average(metricName)();
     const [min, max] = limits;
     const scaledProgress = ((progress - min) / (max - min)) * 100;
@@ -26,31 +28,37 @@ async function createProgressBar(containerId, metricName, limits = [0, 1], sever
         .attr('width', '100%')
         .attr('height', height);
 
-    const severityColors = ['#D5E8D4', '#FFF2CC', '#F8CECC', '#E1D5E7'];
+    // Define severity colors and map them to severity levels
+    const severityColors = ['purple', 'red', 'orange', 'green'];
+    const severityRanges = [
+        severityLevels.critical,
+        severityLevels.moderate,
+        severityLevels.high,
+        severityLevels.low
+    ];
 
-    // Create background rectangles for severity levels and add click event
-    severityLevels.forEach((level, index) => {
-        if (index < severityLevels.length - 1) {
-            const rect = svg.append('rect')
-                .attr('x', (width * (severityLevels[index] - min)) / (max - min))
-                .attr('y', 0)
-                .attr('width', (width * (severityLevels[index + 1] - severityLevels[index])) / (max - min))
-                .attr('height', height)
-                .attr('fill', severityColors[index])
-                .attr('stroke', 'none')
-                .on('click', async function () {
-                    const isSelected = d3.select(this).attr('stroke') === '#007FFF';
-                    d3.select(this).attr('stroke', isSelected ? 'none' : '#007FFF').attr('stroke-width', isSelected ? '0' : '3');
-                    
-                    const rangeStart = severityLevels[index];
-                    const rangeEnd = severityLevels[index + 1];
-                    const range = `${rangeStart} to ${rangeEnd}`;
+    // Create background rectangles for each severity range
+    severityRanges.forEach((range, index) => {
+        const rangeStart = range[0];
+        const rangeEnd = range[1];
 
-                    await eel.set_filter_compliance_metric_thresholds(metricName, rangeStart, rangeEnd)();
-                    
-                    tabular('table-container');
-                });
-        }
+        const rect = svg.append('rect')
+            .attr('x', (width * (rangeStart - min)) / (max - min))
+            .attr('y', 0)
+            .attr('width', (width * (rangeEnd - rangeStart)) / (max - min))
+            .attr('height', height)
+            .attr('fill', severityColors[index])
+            .attr('stroke', 'none')
+            .on('click', async function () {
+                const isSelected = d3.select(this).attr('stroke') === '#007FFF';
+                d3.select(this).attr('stroke', isSelected ? 'none' : '#007FFF').attr('stroke-width', isSelected ? '0' : '3');
+                
+                // Set the filter for the clicked severity range
+                await eel.set_filter_compliance_metric_thresholds(metricName, rangeStart, rangeEnd)();
+                
+                // Trigger tabular update after setting filter
+                //tabular('table-container');
+            });
     });
 
     // Add dotted line for average value
@@ -63,10 +71,10 @@ async function createProgressBar(containerId, metricName, limits = [0, 1], sever
         .attr('stroke-dasharray', '2,2')  // More dashes
         .attr('stroke-width', '2');
 
-    // Add text label for average value below the line
+    // Add text label for average value next to the line
     svg.append('text')
         .attr('x', (width * scaledProgress) / 100 + 20)
-        .attr('y', height / 2)  // Position below the progress bar
+        .attr('y', height / 2)  // Position at the middle of the bar
         .attr('dy', '.35em')
         .attr('text-anchor', 'middle')
         .attr('fill', '#000')
