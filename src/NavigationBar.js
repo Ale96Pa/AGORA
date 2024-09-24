@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './NavigationBar.css';
 import { eel } from './App.js';
 import ThresholdSlider from './ThresholdSlider';
+import TimeThresholds from './TimeThresholds.js';
 
 function NavigationBar({ refreshTrigger }) {
   const [showSettings, setShowSettings] = useState(false);
@@ -99,7 +100,7 @@ function NavigationBar({ refreshTrigger }) {
         </div>
         {showSettings && (
           <div className="settings-dropdown">
-            <div className="compliance-metric-name">COMPLIANCE METRIC</div>
+            <div className="settings-name">COMPLIANCE METRIC</div>
             <div className="metric-container">
               <div className="metric-label">Fitness</div>
               <label className="switch">
@@ -113,6 +114,7 @@ function NavigationBar({ refreshTrigger }) {
               <div className="metric-label">Non-Compliance Cost</div>
             </div>
             <ThresholdSlider onThresholdChange={handleThresholdChange} />
+            <TimeThresholds />
           </div>
         )}
         <div className="settings-icon">

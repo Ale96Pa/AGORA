@@ -1,8 +1,6 @@
 .critical-incidents-container {
-    padding: 20px;
     background-color: #1c1c1c;
     color: white;
-    border-radius: 8px;
     max-height: 400px;
     /* Can be dynamically set */
     overflow-y: auto;
@@ -16,7 +14,8 @@
 .critical-incidents-table th,
 .critical-incidents-table td {
     border: 1px solid #444;
-    padding: 10px;
+    padding-bottom: 10px;
+    padding-top: 10px;
     text-align: center;
 }
 

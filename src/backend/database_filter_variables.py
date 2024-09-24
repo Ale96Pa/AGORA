@@ -7,16 +7,18 @@ assessment_filters = {
     "filters": {
         "compliance_metric": "fitness",
         "thresholds": {
-            "complaince_metric_severity_levels": {
-                "low": ">= 0.75",
+            "compliance_metric_severity_levels": {
+                "low": ">= 0.75 AND <= 1",
                 "medium": ">= 0.5 AND < 0.75",
                 "high": ">= 0.25 AND < 0.5",
-                "critical": "<= 0.25"
+                "critical": ">= 0 AND <= 0.25"
             },
             "time_to_detection": False,
             "time_to_activation": False,
             "time_to_awaiting": False,
-            "time_to_resolving": False,
+            "time_to_resolving": {
+                "nonAcceptableTime": 5760
+            },
             "time_to_closure": False,
             "perc_sla_met": False,
             "perc_assigned_to_resolved_by": False,
@@ -25,31 +27,32 @@ assessment_filters = {
         "overview_metrics": {
             "date_range": {
                 "min_date": "2017-01-09",
-                "max_date": "2023-02-18"
+                "max_date": "2023-02-18",
+                "closed_incidents_in_time_period": False
             },
-            "severity_levels": {
-                "low": ">= 0.75",
-                "medium": ">= 0.5 AND < 0.75",
-                "high": ">= 0.25 AND < 0.5",
-                "critical": "<= 0.25"
+            "compliance_bar": {
+                "low": False,
+                "medium": False,
+                "high": False,
+                "critical": False
             }
         },
-        "refrerence_model": {
+        "reference_model": {
             "selected_states": False,
         },
         "common_variants": False,
         "statistical_analysis": {
-            "perc_sla_met": False,
-            "avg_time_to_resolve": False,
-            "perc_assigned_to_resolved_by": False,
-            "perc_false_positives": False,
+            "perc_sla_met": None,
+            "avg_time_to_resolve": None,
+            "perc_assigned_to_resolved_by": None,
+            "perc_false_positives": None,
         },
         "deviations_distribution": {
             "missing": False,
-            "repitition": False,
+            "repetition": False,
             "mismatch": False,
         },
-        "most_critical_variants": False,
+        "most_critical_incidents": False,
         "technical_analysis": {
             "symptom": False,
             "impact_level": False,
@@ -67,6 +70,7 @@ assessment_filters = {
     }
 }
 
+@eel.expose
 def get_filter_value(path):
     """
     Retrieves the value from the assessment_filters dictionary using the dot-separated path.
@@ -86,7 +90,7 @@ def get_filter_value(path):
     except KeyError:
         return None
 
-
+@eel.expose
 def set_filter_value(path, new_value):
     """
     Sets a new value in the assessment_filters dictionary using the dot-separated path.
@@ -104,9 +108,15 @@ def set_filter_value(path, new_value):
         for key in keys[:-1]:
             value = value[key]
         value[keys[-1]] = new_value
+
+        # Print the newly set filter value
+        print(f"Filter updated: {path} = {new_value}")
+
         return True
     except KeyError:
+        print(f"Failed to set filter: {path} is an invalid path.")
         return False
+
 
 #incident_ids_from_time_period = ['INC0121064']
 incident_ids_from_time_period = ['INC0121064']

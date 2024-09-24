@@ -35,14 +35,23 @@ const ThresholdSlider = ({ onThresholdChange }) => {
   // Send thresholds to backend when the user is done moving the slider
   const handleAfterChange = async (newThresholds) => {
     // Map the array of threshold values back into the JSON format
-    const thresholds = {
+    const thresholdsJSON = {
       critical: [newThresholds[0], newThresholds[1]],
       moderate: [newThresholds[1], newThresholds[2]],
       high: [newThresholds[2], newThresholds[3]],
       low: [newThresholds[3], newThresholds[4]]
     };
 
-    await eel.set_compliance_metric_thresholds(JSON.stringify(thresholds))(); // Save to backend
+    // Save to backend using the existing method
+    await eel.set_compliance_metric_thresholds(JSON.stringify(thresholdsJSON))();
+
+    // Update the assessment_filters in the backend
+    await eel.set_filter_value("filters.thresholds.compliance_metric_severity_levels.critical", `>= ${newThresholds[0]} AND <= ${newThresholds[1]}`)();
+    await eel.set_filter_value("filters.thresholds.compliance_metric_severity_levels.high", `<= ${newThresholds[2]} AND > ${newThresholds[1]}`)();
+    await eel.set_filter_value("filters.thresholds.compliance_metric_severity_levels.medium", `<= ${newThresholds[3]} AND > ${newThresholds[2]}`)();
+    await eel.set_filter_value("filters.thresholds.compliance_metric_severity_levels.low", `<= ${newThresholds[4]} AND > ${newThresholds[3]}`)();
+
+    console.log("Saved thresholds to assessment_filters:", thresholdsJSON);
   };
 
   return (

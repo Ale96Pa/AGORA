@@ -1,7 +1,4 @@
 import './ProcessAnalysis.css';
-import createProgressBar from './progress_bar.js';
-import tabular from './tabular.js';
-import visualizePnml from './visualize_pnml.js';
 import CommonVariants from './common_variants.js';
 import IncidentSelection from './incident_selection.js';
 import { useEffect, useState, useRef } from 'react';
@@ -16,6 +13,9 @@ import IncidentsLineChart from './IncidentsLineChart.js';
 import CriticalIncidents from './CriticalIncidents.js';
 import StatisticalAnalysis from './StatisticalAnalysis.js';
 import TabularAnalysis from './TabularAnalysis.js';
+import ComplianceBar from './ComplianceBar.js';
+import ProcessStatistics from './ProcessStatistics.js';
+import ComplianceDevelopment from './ComplianceDevelopment.js';
 import html2canvas from 'html2canvas';  // Import html2canvas for screenshot functionality
 
 async function getPNML() {
@@ -51,9 +51,7 @@ function ProcessAnalysis() {
 
   const fetchData = async () => {
     try {
-      createProgressBar('compliance-progress-container', await eel.get_incident_compliance_metric()(), [0, 1]);
       const pnmlData = await getPNML();
-      visualizePnml('pnml-container', pnmlData);
     } catch (error) {
       console.error('An error occurred:', error);
     }
@@ -119,7 +117,61 @@ function ProcessAnalysis() {
               </div>
             </div>
             <IncidentSelection onSelectionChange={handleSelectionChange} />
-            <div id="compliance-progress-container"></div>
+            <ComplianceBar refreshtrigger={refreshTrigger} />
+          </div>
+
+          {/* Reference Model */}
+          <div className="view" style={{ flex: '3'}} ref={referenceModelRef}>
+            <div className="view-header">
+              <div className="view-title">
+                <div className="view-color" />
+                <div className="view-name">Reference Model</div>
+              </div>
+              <div className="view-options">
+                <img
+                  loading="lazy"
+                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
+                  className="img-40"
+                  onClick={() => handleScreenshot(referenceModelRef)}  // Capture referenceModelRef
+                  style={{ cursor: 'pointer' }}
+                />
+                <img
+                  loading="lazy"
+                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/8895bd9f8d97cf1ce797fbfd735df7d6f317969a72619e5b468bb33460611015?"
+                  className="img-41"
+                />
+              </div>
+            </div>
+            <LinearizedPnmlVisualization height={150} refreshTrigger={refreshTrigger} />
+          </div>
+
+          {/* Common Variants */}
+          <div className="view" style={{ flex: '1'}} ref={commonVariantsRef}>
+            <div className="div-155">
+              <div className="div-156">
+                <div className="div-157" />
+                <div className="div-158">Common Variants</div>
+              </div>
+              <div className="div-159">
+                <img
+                  loading="lazy"
+                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/b8802bce4b2328afc3828723fb3f6019547d9405c4147e72d184d0ccb80e867c?"
+                  className="img-40"
+                  onClick={() => handleScreenshot(commonVariantsRef)}  // Capture commonVariantsRef
+                  style={{ cursor: 'pointer' }}
+                />
+                <img
+                  loading="lazy"
+                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/79f3833540a5f686ca5f9e789cde206e3cc3439275efc77c26b77963765104f3?"
+                  className="img-44"
+                />
+              </div>
+            </div>
+            <CommonVariants height={150} refreshTrigger={refreshTrigger} />
+          </div>
+        </div>
+        <div className="aggregated-view">
+          <div className="view" style={{ flex: '2'}} ref={overviewMetricsRef}>
             <div className="view-header">
               <div className="view-title">
                 <div className="view-color"/>
@@ -141,6 +193,59 @@ function ProcessAnalysis() {
               </div>
             </div>
             <StatisticalAnalysis refreshTrigger={refreshTrigger} />
+          </div>
+
+          {/* Reference Model */}
+          <div className="view" style={{ flex: '3'}} ref={referenceModelRef}>
+            <div className="view-header">
+              <div className="view-title">
+                <div className="view-color" />
+                <div className="view-name">Process Statistics</div>
+              </div>
+              <div className="view-options">
+                <img
+                  loading="lazy"
+                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
+                  className="img-40"
+                  onClick={() => handleScreenshot(referenceModelRef)}  // Capture referenceModelRef
+                  style={{ cursor: 'pointer' }}
+                />
+                <img
+                  loading="lazy"
+                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/8895bd9f8d97cf1ce797fbfd735df7d6f317969a72619e5b468bb33460611015?"
+                  className="img-41"
+                />
+              </div>
+            </div>
+            <ProcessStatistics refreshTrigger={refreshTrigger} />
+          </div>
+          <div className="view" style={{ flex: '1'}} ref={commonVariantsRef}>
+            <div className="view-header">
+              <div className="view-title">
+                <div className="view-color"/>
+                <div className="view-name">Most critical Incidents</div>
+              </div>
+              <div className="view-options">
+                <img
+                  loading="lazy"
+                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
+                  className="img-40"
+                  onClick={() => handleScreenshot(criticalIncidentsRef)}  // Capture criticalIncidentsRef
+                  style={{ cursor: 'pointer' }}
+                />
+                <img
+                  loading="lazy"
+                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/8895bd9f8d97cf1ce797fbfd735df7d6f317969a72619e5b468bb33460611015?"
+                  className="img-41"
+                />
+              </div>
+            </div>
+            <CriticalIncidents refreshTrigger={refreshTrigger} height={200} />
+          </div>
+        </div>
+        <div className="aggregated-view">
+          {/* Overview Metrics */}
+          <div className="view" style={{ flex: '2'}} ref={overviewMetricsRef}>
             <div className="view-header">
               <div className="view-title">
                 <div className="view-color"/>
@@ -169,7 +274,7 @@ function ProcessAnalysis() {
             <div className="view-header">
               <div className="view-title">
                 <div className="view-color" />
-                <div className="view-name">Reference Model</div>
+                <div className="view-name">Compliance Development</div>
               </div>
               <div className="view-options">
                 <img
@@ -186,54 +291,11 @@ function ProcessAnalysis() {
                 />
               </div>
             </div>
-            <LinearizedPnmlVisualization height={150} refreshTrigger={refreshTrigger} />
-            <ProcessIndicatorsVisualization refreshTrigger={refreshTrigger} />
+            <ComplianceDevelopment refreshTrigger={refreshTrigger} />
           </div>
 
           {/* Common Variants */}
           <div className="view" style={{ flex: '1'}} ref={commonVariantsRef}>
-            <div className="div-155">
-              <div className="div-156">
-                <div className="div-157" />
-                <div className="div-158">Common Variants</div>
-              </div>
-              <div className="div-159">
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/b8802bce4b2328afc3828723fb3f6019547d9405c4147e72d184d0ccb80e867c?"
-                  className="img-40"
-                  onClick={() => handleScreenshot(commonVariantsRef)}  // Capture commonVariantsRef
-                  style={{ cursor: 'pointer' }}
-                />
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/79f3833540a5f686ca5f9e789cde206e3cc3439275efc77c26b77963765104f3?"
-                  className="img-44"
-                />
-              </div>
-            </div>
-            <CommonVariants height={200} refreshTrigger={refreshTrigger} />
-            <div className="view-header">
-              <div className="view-title">
-                <div className="view-color"/>
-                <div className="view-name">Most critical Incidents</div>
-              </div>
-              <div className="view-options">
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
-                  className="img-40"
-                  onClick={() => handleScreenshot(criticalIncidentsRef)}  // Capture criticalIncidentsRef
-                  style={{ cursor: 'pointer' }}
-                />
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/8895bd9f8d97cf1ce797fbfd735df7d6f317969a72619e5b468bb33460611015?"
-                  className="img-41"
-                />
-              </div>
-            </div>
-            <CriticalIncidents refreshTrigger={refreshTrigger} height={200} />
             <div className="view-header">
               <div className="view-title">
                 <div className="view-color"/>
@@ -269,7 +331,6 @@ function ProcessAnalysis() {
             </div>
           </div>
         </div>
-
         {/* Second row of views */}
         <div className="aggregated-view">
           {/* Technical Analysis */}

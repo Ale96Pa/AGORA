@@ -16,28 +16,16 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, refreshTrigger }) => {
 
   // State to track selected values on each axis
   const [selectedValues, setSelectedValues] = useState({
-  symptom: [],
-  impact: [],
-  urgency: [],
-  priority: [],
-  location: [],
-  category: [],
+    symptom: [],
+    impact: [],
+    urgency: [],
+    priority: [],
+    location: [],
+    category: [],
   });
 
   const [traces, setTraces] = useState([]);
   const [categoryDistribution, setCategoryDistribution] = useState([]);
-
-  // Define multiple traces with different values for each scale
-  /*const traces = [
-    { symptom: 1, impact: 3, urgency: 5, priority: 8, location: 1, category: 1 },
-    { symptom: 1, impact: 3, urgency: 5, priority: 2, location: 1, category: 1 },
-    { symptom: 1, impact: 5, urgency: 7, priority: 4, location: 1, category: 3 },
-  ];
-
-  let categoryDistribution = [
-    { category: 1, count: 2 },
-    { category: 3, count: 1 },
-  ];*/
 
   // Fetch incident technical attributes from the backend using eel
   useEffect(() => {
@@ -130,7 +118,8 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, refreshTrigger }) => {
       axisGroup.selectAll('text')
         .attr('fill', d => (selectedValues[scale].includes(d) ? 'red' : 'white')) // Highlight selected value in red
         .style('cursor', 'pointer')
-        .on('click', function (event, d) {
+        .on('click', async function (event, d) {
+          // Update selected values in the state
           setSelectedValues(prev => {
             const newSelectedValues = { ...prev };
             const selectedForScale = newSelectedValues[scale];
@@ -142,7 +131,8 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, refreshTrigger }) => {
               // Otherwise, add it to the selected values
               newSelectedValues[scale] = [...selectedForScale, d];
             }
-            console.log(newSelectedValues);
+            // Update the backend with the new selected values
+            updateBackendFilter(scale, newSelectedValues[scale]);
             return newSelectedValues;
           });
         });
@@ -180,39 +170,104 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, refreshTrigger }) => {
       });
     });
 
-    // Draw each trace separately
+    // Function to determine the color of the trace based on selected values
+    const getTraceColor = (trace) => {
+      // Check if there are any selected values
+      const hasSelectedValues = Object.values(selectedValues).some(values => values.length > 0);
+
+      // If there are selected values, return red if the trace matches all selected values, else white
+      if (hasSelectedValues) {
+        return enabledKeys.every(key =>
+          selectedValues[key].length === 0 || selectedValues[key].includes(trace[key])
+        ) ? 'red' : 'white';
+      }
+
+      // If no values are selected, return white
+      return 'white';
+    };
+
+    // Draw white traces first
     traces.forEach((sampleData, traceIndex) => {
       const trace = enabledKeys.map((key, index) => ({
         x: index * scaleWidth + scaleWidth / 2,
         y: key === 'category' ? yCategoryScale(sampleData[key]) + yCategoryScale.bandwidth() / 2 : yScales[key](sampleData[key]),
       }));
 
-      trace.forEach((point, index) => {
-        if (index < trace.length - 1) {
-          const nextPoint = trace[index + 1];
-          const linkKey = `${enabledKeys[index]}-${sampleData[enabledKeys[index]]}-${enabledKeys[index + 1]}-${sampleData[enabledKeys[index + 1]]}`;
-          const strokeWidth = 1 + (linkCountMap[linkKey] - 1); // Increase line thickness if link appears multiple times
+      const traceColor = getTraceColor(sampleData); // Get the color based on selected values
 
-          g.append('line')
-            .attr('x1', point.x)
-            .attr('y1', point.y)
-            .attr('x2', nextPoint.x)
-            .attr('y2', nextPoint.y)
-            .attr('stroke', 'white')
-            .attr('stroke-width', strokeWidth);
-        }
-      });
+      // Only draw white traces in this loop
+      if (traceColor === 'white') {
+        trace.forEach((point, index) => {
+          if (index < trace.length - 1) {
+            const nextPoint = trace[index + 1];
+            const linkKey = `${enabledKeys[index]}-${sampleData[enabledKeys[index]]}-${enabledKeys[index + 1]}-${sampleData[enabledKeys[index + 1]]}`;
+            const strokeWidth = Math.log10(1 + linkCountMap[linkKey]);
 
-      // Draw trace points for better visibility for each trace
-      g.selectAll(`.trace-point-${traceIndex}`)
-        .data(trace)
-        .enter()
-        .append('circle')
-        .attr('class', `trace-point-${traceIndex}`)
-        .attr('cx', d => d.x)
-        .attr('cy', d => d.y)
-        .attr('r', 4)
-        .attr('fill', 'white');
+            g.append('line')
+              .attr('x1', point.x)
+              .attr('y1', point.y)
+              .attr('x2', nextPoint.x)
+              .attr('y2', nextPoint.y)
+              .attr('stroke', traceColor) // Use the determined trace color
+              .attr('stroke-width', strokeWidth)
+              .attr('opacity', 0.5);
+          }
+        });
+
+        // Draw trace points for better visibility for each trace
+        g.selectAll(`.trace-point-white-${traceIndex}`)
+          .data(trace)
+          .enter()
+          .append('circle')
+          .attr('class', `trace-point-white-${traceIndex}`)
+          .attr('cx', d => d.x)
+          .attr('cy', d => d.y)
+          .attr('r', 4)
+          .attr('fill', traceColor) // Use the determined trace color
+          .attr('opacity', 0.5);
+      }
+    });
+
+    // Draw red traces on top of white traces
+    traces.forEach((sampleData, traceIndex) => {
+      const trace = enabledKeys.map((key, index) => ({
+        x: index * scaleWidth + scaleWidth / 2,
+        y: key === 'category' ? yCategoryScale(sampleData[key]) + yCategoryScale.bandwidth() / 2 : yScales[key](sampleData[key]),
+      }));
+
+      const traceColor = getTraceColor(sampleData); // Get the color based on selected values
+
+      // Only draw red traces in this loop
+      if (traceColor === 'red') {
+        trace.forEach((point, index) => {
+          if (index < trace.length - 1) {
+            const nextPoint = trace[index + 1];
+            const linkKey = `${enabledKeys[index]}-${sampleData[enabledKeys[index]]}-${enabledKeys[index + 1]}-${sampleData[enabledKeys[index + 1]]}`;
+            const strokeWidth = Math.log10(1 + linkCountMap[linkKey]);
+
+            g.append('line')
+              .attr('x1', point.x)
+              .attr('y1', point.y)
+              .attr('x2', nextPoint.x)
+              .attr('y2', nextPoint.y)
+              .attr('stroke', traceColor) // Use the determined trace color
+              .attr('stroke-width', strokeWidth)
+              .attr('opacity', 0.5);
+          }
+        });
+
+        // Draw trace points for better visibility for each trace
+        g.selectAll(`.trace-point-red-${traceIndex}`)
+          .data(trace)
+          .enter()
+          .append('circle')
+          .attr('class', `trace-point-red-${traceIndex}`)
+          .attr('cx', d => d.x)
+          .attr('cy', d => d.y)
+          .attr('r', 4)
+          .attr('fill', traceColor) // Use the determined trace color
+          .attr('opacity', 0.5);
+      }
     });
 
     // Draw the histogram for the Category distribution as a horizontal bar chart
@@ -267,7 +322,22 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, refreshTrigger }) => {
       .attr('text-anchor', 'middle')
       .style('font-size', '14px')
       .text(d => `${d.count}`);
-  }, [enabledScales, selectedValues, width, height]);
+  }, [enabledScales, selectedValues, width, height, categoryDistribution, traces, refreshTrigger]);
+
+  // Function to update the backend filters
+  const updateBackendFilter = async (attribute, values) => {
+    const filterPath = `filters.technical_analysis.${attribute}`;
+    try {
+      if (values.length === 0) {
+        await eel.set_filter_value(filterPath, "False")(); // Set to None if no value is selected
+      } else {
+        await eel.set_filter_value(filterPath, values)(); // Update the backend with the selected values
+      }
+      console.log(`Updated filter ${filterPath} to ${values.length === 0 ? 'None' : values}`);
+    } catch (error) {
+      console.error(`Failed to update filter for ${filterPath}:`, error);
+    }
+  };
 
   const toggleScale = scale => {
     // Prevent disabling the Category scale and remove it from the checkbox list

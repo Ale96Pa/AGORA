@@ -222,3 +222,8 @@ input:checked+.slider:before {
     margin-bottom: 15px;
     /* Space below the metrics container */
 }
+
+.settings-name {
+    color: white;
+    padding-bottom: 5px;
+}

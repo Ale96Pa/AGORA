@@ -1,0 +1,67 @@
+.time-thresholds-container {
+    width: 80%;
+    margin: 0 auto;
+    background-color: #f5f5f5;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.settings-name {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.state-settings {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.slider-container {
+    margin-bottom: 20px;
+}
+
+.deviation-settings {
+    margin-top: 10px;
+}
+
+.deviation-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.deviation-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.deviation-item label {
+    font-size: 14px;
+    color: #333;
+}
+
+.deviation-item input {
+    width: 60px;
+    padding: 5px;
+    margin-top: 5px;
+}
+
+.save-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.save-button:hover {
+    background-color: #0056b3;
+}

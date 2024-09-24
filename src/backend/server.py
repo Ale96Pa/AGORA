@@ -9,7 +9,7 @@ import eel
 from validate_pnml import validate_pnml
 from calculate_averages_db import calculate_column_average
 from csv_reader import get_csv_data
-from pnml_reader import get_pnml_data
+from pnml_reader import get_pnml_data, get_pnml_states
 from common_variants_db import *
 from database_sec_controls import insert_security_control
 from count_deviations_db import count_frequencies

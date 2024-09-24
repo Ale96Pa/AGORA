@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { eel } from './App';
 
 const CommonVariants = ({ height = 500, refreshTrigger }) => {
   const containerRef = useRef();
+  const [selectedVariants, setSelectedVariants] = useState([]);
 
   useEffect(() => {
     // Create the visualization when the component mounts or when refreshTrigger changes
@@ -27,17 +28,43 @@ const CommonVariants = ({ height = 500, refreshTrigger }) => {
           .data(variantObjects)
           .enter()
           .append('div')
+          .attr('class', 'variant')
           .attr('style', 'padding: 5px; margin: 5px; border-bottom: 1px solid #ccc; cursor: pointer;')
           .text(d => `${d.count} (${d.percentage}) - ${d.sequence}`)
           .on('click', function(event, d) {
-            container.selectAll('div.variant').style('background-color', null); // Remove background from all
-            d3.select(this).style('background-color', '#f0f0f0'); // Highlight the clicked element
+            // Toggle selection
+            let updatedSelection;
+            if (selectedVariants.includes(d.sequence)) {
+              // If the clicked variant is already selected, unselect it
+              updatedSelection = selectedVariants.filter(variant => variant !== d.sequence);
+              d3.select(this).style('background-color', null); // Remove highlight
+            } else {
+              // Add the selected variant to the list
+              updatedSelection = [...selectedVariants, d.sequence];
+            }
+            setSelectedVariants(updatedSelection);
+            saveSelectedVariantsToBackend(updatedSelection);
           });
+
+        // Highlight the selected variants if they are already selected
+        container.selectAll('div.variant')
+          .filter(d => selectedVariants.includes(d.sequence))
+          .style('background-color', '#f0f0f0');
       });
     };
 
     createVisualization();
-  }, [refreshTrigger]); // The visualization will be recreated when the refreshTrigger changes
+  }, [refreshTrigger, selectedVariants]); // The visualization will be recreated when the refreshTrigger or selectedVariants changes
+
+  const saveSelectedVariantsToBackend = async (variants) => {
+    try {
+      // Call the exposed set_filter_value function to save the selected variants
+      await eel.set_filter_value("filters.common_variants", variants)();
+      console.log("Selected variants saved to backend:", variants);
+    } catch (error) {
+      console.error("Failed to save selected variants to backend:", error);
+    }
+  };
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: height, overflowY: 'auto' }} />

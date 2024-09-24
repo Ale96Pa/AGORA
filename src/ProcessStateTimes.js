@@ -18,6 +18,16 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
     return `${days} d`;
   };
 
+  // Function to calculate the moving average
+  const calculateMovingAverage = (data, windowSize) => {
+    return data.map((d, i, arr) => {
+      const start = Math.max(0, i - windowSize + 1);
+      const subset = arr.slice(start, i + 1);
+      const sum = subset.reduce((acc, val) => acc + val.value, 0);
+      return { date: d.date, value: sum / subset.length };
+    });
+  };
+
   useEffect(() => {
     // Fetch data from the exposed Python function
     eel.get_ordered_time_to_states_last_occurrence()().then(data => {
@@ -62,6 +72,15 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
 
         return acc;
       }, { _lines: [] });
+
+      // Apply moving average to each state's data
+      const windowSize = 5; // You can adjust the window size as needed
+      const movingAverageData = {};
+      Object.keys(parsedData).forEach(state => {
+        if (state !== '_lines' && parsedData[state].length) {
+          movingAverageData[state] = calculateMovingAverage(parsedData[state], windowSize);
+        }
+      });
 
       // Set up scales
       const xScale = d3.scaleTime()
@@ -138,19 +157,19 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
         .attr('fill', 'none')
         .attr('stroke', 'white')
         .attr('stroke-width', 1)
-        .attr('stroke-opacity', 0.2)
+        .attr('stroke-opacity', 0.1)  // Reduce opacity for original data
         .attr('d', d3.line()
           .x(d => xScale(d.date))
           .y(d => yScale(d.value))
         );
 
       // Draw points and connect same-state points with lines
-      const stateLines = {};  // Store state lines for zoom updates
+      const originalLines = {}; // Store original data lines for zoom updates
       Object.keys(parsedData).forEach(state => {
         if (state !== '_lines') {
           const data = parsedData[state];
           if (data && data.length) {
-            // Draw the points for each state
+            // Draw the original points for each state with reduced opacity
             g.selectAll(`.point-${state}`)
               .data(data)
               .join('circle')
@@ -158,19 +177,38 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
               .attr('cx', d => xScale(d.date))
               .attr('cy', d => yScale(d.value))
               .attr('r', 4)
-              .attr('fill', colorScale(state));
+              .attr('fill', colorScale(state))
+              .attr('fill-opacity', 0.1); // Reduce opacity for original data points
 
-            // Connect same-state points with lines and store the reference for zoom update
-            stateLines[state] = g.append("path")
+            // Connect same-state points with original lines with reduced opacity
+            originalLines[state] = g.append("path")
               .datum(data)
               .attr("fill", "none")
               .attr("stroke", colorScale(state))
-              .attr("stroke-width", 2)
+              .attr("stroke-width", 1)
+              .attr("stroke-opacity", 0.1) // Reduce opacity for original data lines
               .attr("d", d3.line()
                 .x(d => xScale(d.date))
                 .y(d => yScale(d.value))
               );
           }
+        }
+      });
+
+      // Draw moving average lines on top without data points
+      const movingAverageLines = {}; // Store moving average lines for zoom updates
+      Object.keys(movingAverageData).forEach(state => {
+        if (movingAverageData[state].length) {
+          movingAverageLines[state] = g.append("path")
+            .datum(movingAverageData[state])
+            .attr("fill", "none")
+            .attr("stroke", colorScale(state))
+            .attr("stroke-width", 2)
+            .attr('class', `state-line-${state}`)
+            .attr("d", d3.line()
+              .x(d => xScale(d.date))
+              .y(d => yScale(d.value))
+            );
         }
       });
 
@@ -192,9 +230,17 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
             .y(d => yScale(d.value))  // Keep y value static
           );
 
-          // Update same-state lines
-          Object.keys(stateLines).forEach(state => {
-            stateLines[state].attr("d", d3.line()
+          // Update same-state lines for original data
+          Object.keys(originalLines).forEach(state => {
+            originalLines[state].attr("d", d3.line()
+              .x(d => newXScale(d.date))
+              .y(d => yScale(d.value))
+            );
+          });
+
+          // Update moving average lines
+          Object.keys(movingAverageLines).forEach(state => {
+            movingAverageLines[state].attr("d", d3.line()
               .x(d => newXScale(d.date))
               .y(d => yScale(d.value))
             );
