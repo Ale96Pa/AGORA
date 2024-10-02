@@ -130,7 +130,7 @@ const LinearizedPnmlVisualization = ({ height, refreshTrigger }) => {
 
       const width = parent.node().getBoundingClientRect().width;
       const nodeRadius = 40;
-      const nodeYPosition = ( height + nodeRadius/ 2 ) / 2 ;
+      const nodeYPosition = ( height + nodeRadius/ 2 ) / 2 - 10;
 
       // Parse the PNML string
       const parsedPnml = await parsePnml(pnmlString);
@@ -192,7 +192,7 @@ const LinearizedPnmlVisualization = ({ height, refreshTrigger }) => {
         .selectAll("path")
         .data(arcs)
         .enter().append("path")
-        .attr("stroke-width", 2)
+        .attr("stroke-width", 3)
         .attr("stroke", "#aaa")
         .attr("fill", "none")
         .attr("d", d => calculateArcPath(d));
@@ -275,7 +275,7 @@ const LinearizedPnmlVisualization = ({ height, refreshTrigger }) => {
         const skippedNodes = allNodes.filter(n => n.x > sourceNode.x && n.x < targetNode.x);
 
         if (skippedNodes.length > 0) {
-          const radius = dx / 1.05;  // Adjust this value to make the arc radius smaller
+          const radius = dx / 0.75;  // Adjust this value to make the arc radius smaller
           const sweepFlag = 1;
           return `M${sourceNode.x},${sourceNode.y} A${radius},${radius} 0 0,${sweepFlag} ${targetNode.x},${targetNode.y}`;
         } else {

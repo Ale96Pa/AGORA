@@ -3,8 +3,9 @@ import './NavigationBar.css';
 import { eel } from './App.js';
 import ThresholdSlider from './ThresholdSlider';
 import TimeThresholds from './TimeThresholds.js';
+import IncidentSelection from './incident_selection.js';
 
-function NavigationBar({ refreshTrigger }) {
+function NavigationBar({ refreshTrigger, onSelectionChange }) {
   const [showSettings, setShowSettings] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState('Fitness');
   const [notCoveredCount, setNotCoveredCount] = useState(0);
@@ -26,6 +27,11 @@ function NavigationBar({ refreshTrigger }) {
     setSelectedMetric(metric);
     eel.set_incident_compliance_metric(metric)();
     console.log(`Selected metric: ${metric}`);
+  };
+
+  const handleSelectionChange = () => {
+    onSelectionChange();
+    console.log("Here works");
   };
 
   useEffect(() => {
@@ -51,16 +57,19 @@ function NavigationBar({ refreshTrigger }) {
       <div className="section-container">
         <div className="control-count">
           <div className="count-circle" style={{ backgroundColor: '#b80000' }}>{notCoveredCount}</div>
-          <div className="count-label">Not covered<br />SecControls</div>
+          <div className="count-label">Not covered SecControls</div>
         </div>
         <div className="control-count">
           <div className="count-circle" style={{ backgroundColor: '#FF7A00' }}>{partiallyCoveredCount}</div>
-          <div className="count-label">Partially covered<br />SecControls</div>
+          <div className="count-label">Partially covered SecControls</div>
         </div>
         <div className="control-count">
           <div className="count-circle" style={{ backgroundColor: '#00b81d' }}>{coveredCount}</div>
-          <div className="count-label">Covered<br />SecControls</div>
+          <div className="count-label">Covered SecControls</div>
         </div>
+      </div>
+      <div className='section-container'>
+        <IncidentSelection onSelectionChange={handleSelectionChange} />
       </div>
       <div className="section-container">
         <div className="section-content">

@@ -17,6 +17,7 @@
     overflow-y: auto;
     max-width: 100%;
     /* Ensure the container itself doesn't stretch */
+    max-width: 100;
 }
 
 .incident-sequence-svg {

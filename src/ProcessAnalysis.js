@@ -8,7 +8,6 @@ import { eel } from './App';
 import TechnicalAnalysis from './TechnicalAnalysis.js';
 import LinearizedPnmlVisualization from './LinearizedPnmlVisualization.js';
 import IndividualAnalysis from './IndividualAnalysis.js';
-import ProcessIndicatorsVisualization from './ProcessIndicatorsVisualization.js';
 import IncidentsLineChart from './IncidentsLineChart.js';
 import CriticalIncidents from './CriticalIncidents.js';
 import StatisticalAnalysis from './StatisticalAnalysis.js';
@@ -32,10 +31,12 @@ async function getPNML() {
   }
 }
 
-function ProcessAnalysis() {
+const ProcessAnalysis = ({ analysisTrigger}) => {
   const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [selectionTabularTrigger, setTabularSelectionTrigger] = useState(false);
-  
+  const [globalFilterTrigger, setGlobalFilterTrigger] = useState(false);
+  const [graphCursorTrigger, setGraphCursorTrigger] = useState(false);
+
   // Create separate refs for each view container
   const overviewMetricsRef = useRef(null);
   const statisticalAnalysisRef = useRef(null);
@@ -59,17 +60,29 @@ function ProcessAnalysis() {
 
   useEffect(() => {
     fetchData();
-  }, [refreshTrigger]);
+    setRefreshTrigger(prev => !prev);
+    console.log("works?");
+  }, [analysisTrigger]);
 
   const handleSelectionChange = () => {
     setRefreshTrigger(prev => !prev);
-    fetchData();
   };
 
   const handleTabularSelectionChange = () => {
     setTabularSelectionTrigger(prev => !prev);
     console.log("Process trigger");
   };
+
+  const handleTabularFilterChange = () => {
+    setGlobalFilterTrigger(prev => ! prev);
+    console.log("Global Filter trigger");
+  };
+
+  const handleGraphCursorChange = () => {
+    setGraphCursorTrigger(prev => ! prev);
+    console.log("Graph cursor trigger");
+  };
+
 
   // Function to handle the screenshot capture
   const handleScreenshot = async (ref) => {
@@ -94,19 +107,19 @@ function ProcessAnalysis() {
     <div className="conduct-audit-activities">
       <div className="div-114">
         <div className="aggregated-view">
-          {/* Overview Metrics */}
-          <div className="view" style={{ flex: '2'}} ref={overviewMetricsRef}>
+          {/* Active and (compliantly) closed incidents */}
+          <div className="view" style={{ flex: '3'}} ref={referenceModelRef}>
             <div className="view-header">
               <div className="view-title">
-                <div className="view-color"/>
-                <div className="view-name">Overview Metrics</div>
+                <div className="view-color" />
+                <div className="view-name">Active & (compliantly) closed incidents</div>
               </div>
               <div className="view-options">
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
                   className="img-40"
-                  onClick={() => handleScreenshot(overviewMetricsRef)}  // Capture overviewMetricsRef
+                  onClick={() => handleScreenshot(referenceModelRef)}  // Capture referenceModelRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
@@ -116,9 +129,36 @@ function ProcessAnalysis() {
                 />
               </div>
             </div>
-            <IncidentSelection onSelectionChange={handleSelectionChange} />
-            <ComplianceBar refreshtrigger={refreshTrigger} />
+            <IncidentsLineChart height={150} graphCursorTrigger={handleGraphCursorChange} refreshTrigger={refreshTrigger} />
           </div>
+
+          {/* Statistical Analysis */}
+          <div className="view" style={{ flex: '1'}} ref={commonVariantsRef}>
+            <div className="div-155">
+              <div className="div-156">
+                <div className="div-157" />
+                <div className="div-158">Statistical Analysis</div>
+              </div>
+              <div className="div-159">
+                <img
+                  loading="lazy"
+                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/b8802bce4b2328afc3828723fb3f6019547d9405c4147e72d184d0ccb80e867c?"
+                  className="img-40"
+                  onClick={() => handleScreenshot(commonVariantsRef)}  // Capture commonVariantsRef
+                  style={{ cursor: 'pointer' }}
+                />
+                <img
+                  loading="lazy"
+                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/79f3833540a5f686ca5f9e789cde206e3cc3439275efc77c26b77963765104f3?"
+                  className="img-44"
+                />
+              </div>
+            </div>
+            <ComplianceBar globalFilterTrigger={handleTabularFilterChange} refreshTrigger={refreshTrigger} />
+            <StatisticalAnalysis globalFilterTrigger={handleTabularFilterChange} refreshTrigger={refreshTrigger} />
+          </div>
+        </div>
+        <div className="aggregated-view">
 
           {/* Reference Model */}
           <div className="view" style={{ flex: '3'}} ref={referenceModelRef}>
@@ -142,7 +182,7 @@ function ProcessAnalysis() {
                 />
               </div>
             </div>
-            <LinearizedPnmlVisualization height={150} refreshTrigger={refreshTrigger} />
+            <LinearizedPnmlVisualization height={130} refreshTrigger={refreshTrigger} />
           </div>
 
           {/* Common Variants */}
@@ -167,33 +207,11 @@ function ProcessAnalysis() {
                 />
               </div>
             </div>
-            <CommonVariants height={150} refreshTrigger={refreshTrigger} />
+            <CommonVariants height={130} globalFilterTrigger={handleTabularFilterChange} refreshTrigger={refreshTrigger} />
           </div>
         </div>
         <div className="aggregated-view">
-          <div className="view" style={{ flex: '2'}} ref={overviewMetricsRef}>
-            <div className="view-header">
-              <div className="view-title">
-                <div className="view-color"/>
-                <div className="view-name">Statistical Analysis</div>
-              </div>
-              <div className="view-options">
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
-                  className="img-40"
-                  onClick={() => handleScreenshot(statisticalAnalysisRef)}  // Capture statisticalAnalysisRef
-                  style={{ cursor: 'pointer' }}
-                />
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/8895bd9f8d97cf1ce797fbfd735df7d6f317969a72619e5b468bb33460611015?"
-                  className="img-41"
-                />
-              </div>
-            </div>
-            <StatisticalAnalysis refreshTrigger={refreshTrigger} />
-          </div>
+         
 
           {/* Reference Model */}
           <div className="view" style={{ flex: '3'}} ref={referenceModelRef}>
@@ -217,7 +235,7 @@ function ProcessAnalysis() {
                 />
               </div>
             </div>
-            <ProcessStatistics refreshTrigger={refreshTrigger} />
+            <ProcessStatistics globalFilterTrigger={handleTabularFilterChange} graphCursorTrigger={handleGraphCursorChange} refreshTrigger={refreshTrigger} />
           </div>
           <div className="view" style={{ flex: '1'}} ref={commonVariantsRef}>
             <div className="view-header">
@@ -244,31 +262,6 @@ function ProcessAnalysis() {
           </div>
         </div>
         <div className="aggregated-view">
-          {/* Overview Metrics */}
-          <div className="view" style={{ flex: '2'}} ref={overviewMetricsRef}>
-            <div className="view-header">
-              <div className="view-title">
-                <div className="view-color"/>
-                <div className="view-name">Active/(compliant)closed Incidents</div>
-              </div>
-              <div className="view-options">
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
-                  className="img-40"
-                  onClick={() => handleScreenshot(incidentsLineChartRef)}  // Capture incidentsLineChartRef
-                  style={{ cursor: 'pointer' }}
-                />
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/8895bd9f8d97cf1ce797fbfd735df7d6f317969a72619e5b468bb33460611015?"
-                  className="img-41"
-                />
-              </div>
-            </div>
-            <IncidentsLineChart height={300} refreshTrigger={refreshTrigger} />
-          </div>
-
           {/* Reference Model */}
           <div className="view" style={{ flex: '3'}} ref={referenceModelRef}>
             <div className="view-header">
@@ -316,25 +309,13 @@ function ProcessAnalysis() {
                 />
               </div>
             </div>
-            <DistributionViolinPlot height={250} refreshTrigger={refreshTrigger} />
-            <div className="tag-container">
-              <div className="tags-box">
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/93e295a61d18502fff4488b64966b7279dba43b5b9d37df2b7f3b3bfda6ed02e?"
-                  className="img-40"
-                  onClick={() => handleScreenshot(commonVariantsRef)}  // Capture commonVariantsRef again
-                  style={{ cursor: 'pointer' }}
-                />
-                <div className="tag">Common Variants</div>
-              </div>
-            </div>
+            <DistributionViolinPlot height={150} refreshTrigger={refreshTrigger} />
           </div>
         </div>
         {/* Second row of views */}
         <div className="aggregated-view">
           {/* Technical Analysis */}
-          <div className="view" style={{ flex: '2'}} ref={technicalAnalysisRef}>
+          <div className="view" style={{ flex: '1.5'}} ref={technicalAnalysisRef}>
             <div className="div-258">
               <div className="div-259">
                 <div className="div-260" />
@@ -355,11 +336,11 @@ function ProcessAnalysis() {
                 />
               </div>
             </div>
-            <TechnicalAnalysis height={300} refreshTrigger={refreshTrigger}/>
+            <TechnicalAnalysis height={250} globalFilterTrigger={handleTabularFilterChange} refreshTrigger={refreshTrigger}/>
           </div>
 
           {/* Tabular Analysis */}
-          <div className="view" style={{ flex: '2'}} ref={tabularAnalysisRef}>
+          <div className="view" style={{ flex: '1.5'}} ref={tabularAnalysisRef}>
             <div className="div-258">
               <div className="div-259">
                 <div className="div-260" />
@@ -380,11 +361,11 @@ function ProcessAnalysis() {
                 />
               </div>
             </div>
-            <TabularAnalysis refreshTrigger={refreshTrigger} selectionTabularChange={handleTabularSelectionChange}/>
+            <TabularAnalysis refreshTrigger={refreshTrigger} globalFilterTrigger={handleTabularFilterChange} selectionTabularChange={handleTabularSelectionChange}/>
           </div>
 
           {/* Individual Analysis */}
-          <div className="view" style={{ flex: '1'}} ref={individualAnalysisRef}>
+          <div className="view" style={{ flex: '0.5'}} ref={individualAnalysisRef}>
             <div className="div-258">
               <div className="div-259">
                 <div className="div-260" />
@@ -405,43 +386,30 @@ function ProcessAnalysis() {
                 />
               </div>
             </div>
-            <IndividualAnalysis height="500px" selectionTrigger={selectionTabularTrigger}/>
+            <IndividualAnalysis height={250} selectionTrigger={selectionTabularTrigger}/>
           </div>
-        </div>
-
-        {/* What-if Analysis */}
-        <div className="div-284">
-          <div className="div-285">
-            <div className="div-286">
-              <div className="div-287" />
-              <div className="div-288">What-if Analysis</div>
+          <div className="view" style={{ flex: '0.5'}} ref={individualAnalysisRef}>
+            <div className="div-258">
+              <div className="div-259">
+                <div className="div-287" />
+                <div className="div-261">What-if Analysis</div>
+              </div>
+              <div className="div-262">
+                <img
+                  loading="lazy"
+                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/247bed24a7d4f2c3c91739144cd671e38774320b936ec7e542e65ce70b7fb329?"
+                  className="img-40"
+                  onClick={() => handleScreenshot(individualAnalysisRef)}  // Capture individualAnalysisRef
+                  style={{ cursor: 'pointer' }}
+                />
+                <img
+                  loading="lazy"
+                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/475ecedfbaad1db822df345503478a70f3355aee312eff89648301026c86ddf2?"
+                  className="img-77"
+                />
+              </div>
             </div>
-            <div className="div-289" ref={whatIfAnalysisRef}>
-              <img
-                loading="lazy"
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/8791a28fd8fdd1db22786bc32c1411c012ed991e5dcdea6907e9ea89771d1781?"
-                className="img-85"
-                onClick={() => handleScreenshot(whatIfAnalysisRef)}  // Capture whatIfAnalysisRef
-                style={{ cursor: 'pointer' }}
-              />
-              <img
-                loading="lazy"
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/4e52e004c4802f530ad05dfa28f94e77af82baabec24af27e3d58fe9bdda438d?"
-                className="img-86"
-              />
-            </div>
-          </div>
-          <div className="tag-container">
-            <div className="tags-box">
-              <img
-                loading="lazy"
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/887e66b7ec60c5d2eb2f7551362639e4e7ef1b40b9685fbc7762b3c3fb07a503?"
-                className="img-40"
-                onClick={() => handleScreenshot(whatIfAnalysisRef)}  // Capture whatIfAnalysisRef again
-                style={{ cursor: 'pointer' }}
-              />
-              <div className="tag" style={{ backgroundColor: 'rgba(255, 0, 122, 0.5)' }}>What-if Analysis</div>
-            </div>
+            <div className="name">Currently not available. <br></br> Define assessment tags.</div>
           </div>
         </div>
       </div>

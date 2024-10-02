@@ -4,7 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './StatisticalAnalysis.css';
 import { eel } from './App';  // Ensure eel is imported
 
-const StatisticalAnalysis = ({ refreshTrigger }) => {
+const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
   // State to store the progress bar data
   const [percSLAMet, setPercSLAMet] = useState(0);
   const [avgToResolve, setAvgToResolve] = useState(0);
@@ -73,6 +73,7 @@ const StatisticalAnalysis = ({ refreshTrigger }) => {
       // Update the backend filter value based on the click or deselection
       const filterValue = newSelectedPart ? isCoveredSelected : null; // If deselected, set to None
       await eel.set_filter_value(filterKey[metric], filterValue)();
+      globalFilterTrigger();
       console.log(`Set filter ${filterKey[metric]} to ${filterValue}`);
     } catch (error) {
       console.error(`Failed to set filter for ${filterKey[metric]}:`, error);
@@ -83,7 +84,7 @@ const StatisticalAnalysis = ({ refreshTrigger }) => {
   const renderProgressBar = (ref, metric, value, isPercentage = true) => {
     const container = d3.select(ref.current);
     const width = container.node().getBoundingClientRect().width;
-    const height = 30;
+    const height = 15;
     const coveredWidth = (value / (isPercentage ? 100 : 240)) * width; // Adjust max value for non-percentage metrics
     const uncoveredWidth = width - coveredWidth;
 
@@ -139,19 +140,19 @@ const StatisticalAnalysis = ({ refreshTrigger }) => {
   return (
     <div className="progress-bars-layout">
       <div className="progress-box">
-        <div className="name">PERC SLA MET</div>
+        <div className="name">SLA MET</div>
         <div ref={slaRef}></div>
       </div>
       <div className="progress-box">
-        <div className="name">AVG TIME TO RESOLVE</div>
+        <div className="name">AVG TTR</div>
         <div ref={resolveRef}></div>
       </div>
-      <div className="progress-box-large">
-        <div className="name">PERC ASSIGNED TO RESOLVED BY</div>
+      <div className="progress-box">
+        <div className="name">ASSIGN/RES.</div>
         <div ref={assignedRef}></div>
       </div>
-      <div className="progress-box-large">
-        <div className="name">FALSE POSITIVES</div>
+      <div className="progress-box">
+        <div className="name">FALSE POS.</div>
         <div ref={falsePositivesRef}></div>
       </div>
     </div>

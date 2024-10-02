@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import * as d3 from 'd3';
 import { eel } from './App';
 
-const DeviationsBarChart = ({ height, refreshTrigger }) => {
+const DeviationsBarChart = ({ height, globalFilterTrigger, refreshTrigger }) => {
   const containerRef = useRef();
   const [deviationData, setDeviationData] = useState([]);
   const [selectedFilters, setSelectedFilters] = useState({
@@ -67,6 +67,7 @@ const DeviationsBarChart = ({ height, refreshTrigger }) => {
     // Update the filter value in the backend
     try {
       await eel.set_filter_value(`filters.deviations_distribution.${deviationKey}`, updatedFilter);
+      globalFilterTrigger();
       console.log(`Set filter filters.deviations_distribution.${deviationKey} to ${JSON.stringify(updatedFilter)}`);
     } catch (error) {
       console.error(`Failed to set filter for filters.deviations_distribution.${deviationKey}:`, error);

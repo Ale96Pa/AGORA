@@ -21,6 +21,11 @@ const IncidentSelection = ({ onSelectionChange }) => {
         return `${day}/${month}/${year}`;
     };
 
+    const formatDateToYYYYMMDD = (dateStr) => {
+        const [day, month, year] = dateStr.split('/');
+        return `${year}-${month}-${day}`;
+    };
+
     useEffect(() => {
         const fetchMinMaxDatesAndTotalIncidents = async () => {
             try {
@@ -49,6 +54,11 @@ const IncidentSelection = ({ onSelectionChange }) => {
         debounce(async (startDate, endDate) => {
             try {
                 const count = await eel.number_of_closed_incidents_in_time_period(startDate, endDate)();
+                
+                // Set filter values in 'YYYY-MM-DD' format
+                await eel.set_filter_value("filters.overview_metrics.date_range.min_date", formatDateToYYYYMMDD(startDate));
+                await eel.set_filter_value("filters.overview_metrics.date_range.max_date", formatDateToYYYYMMDD(endDate));
+                
                 setIncidentCount(count);
                 onSelectionChange();  // Notify parent about the change
             } catch (error) {
@@ -94,7 +104,6 @@ const IncidentSelection = ({ onSelectionChange }) => {
     return (
         <div className="incident-query-container">
             <div className="date-range-container">
-                <div className="name">TIME PERIOD</div>
                 <Slider
                     range
                     min={formatDateToTimestamp(minDate)}
@@ -131,7 +140,6 @@ const IncidentSelection = ({ onSelectionChange }) => {
                 </div>
             </div>
             <div className="result-section">
-                <div className="name">PERC SELECTED INCIDENTS</div>
                 {incidentCount !== null && totalIncidents !== null && (
                     <ProgressBar  
                         className="progress-bar-full"

@@ -9,20 +9,55 @@ assessment_filters = {
         "thresholds": {
             "compliance_metric_severity_levels": {
                 "low": ">= 0.75 AND <= 1",
-                "medium": ">= 0.5 AND < 0.75",
+                "moderate": ">= 0.5 AND < 0.75",
                 "high": ">= 0.25 AND < 0.5",
                 "critical": ">= 0 AND <= 0.25"
             },
-            "time_to_detection": False,
-            "time_to_activation": False,
-            "time_to_awaiting": False,
-            "time_to_resolving": {
-                "nonAcceptableTime": 5760
+            "detection": {
+                "acceptableTime": "<= 100",
+                "nonAcceptableTime": ">= 14440",
+                "deviations": {
+                    "acceptableMissing": "<=100",
+                    "acceptableRepetition": "<=50",
+                    "acceptableMismatch": "<=5"
+                },
             },
-            "time_to_closure": False,
-            "perc_sla_met": False,
-            "perc_assigned_to_resolved_by": False,
-            "perc_false_positives": False,
+            "activation": {
+                "acceptableTime": "<= 100",
+                "nonAcceptableTime": ">= 14440",
+                "deviations": {
+                    "acceptableMissing": "<=100",
+                    "acceptableRepetition": "<=50",
+                    "acceptableMismatch": "<=5"
+                },
+            },
+            "awaiting": {
+                "acceptableTime": "<= 100",
+                "nonAcceptableTime": ">= 5760",
+                "deviations": {
+                    "acceptableMissing": "<=100",
+                    "acceptableRepetition": "<=50",
+                    "acceptableMismatch": "<=5"
+                },
+            },
+            "resolution": {
+                "acceptableTime": "<= 100",
+                "nonAcceptableTime": ">= 4000",
+                "deviations": {
+                    "acceptableMissing": "<=100",
+                    "acceptableRepetition": "<=50",
+                    "acceptableMismatch": "<=5"
+                },
+            },
+            "closure": {
+                "acceptableTime": "<= 100",
+                "nonAcceptableTime": ">= 5760",
+                "deviations": {
+                    "acceptableMissing": "<=100",
+                    "acceptableRepetition": "<=50",
+                    "acceptableMismatch": "<=5"
+                },
+            },
         },
         "overview_metrics": {
             "date_range": {
@@ -32,7 +67,7 @@ assessment_filters = {
             },
             "compliance_bar": {
                 "low": False,
-                "medium": False,
+                "moderate": False,
                 "high": False,
                 "critical": False
             }
@@ -40,7 +75,7 @@ assessment_filters = {
         "reference_model": {
             "selected_states": False,
         },
-        "common_variants": False,
+        "common_variants": None,
         "statistical_analysis": {
             "perc_sla_met": None,
             "avg_time_to_resolve": None,
@@ -54,13 +89,13 @@ assessment_filters = {
         },
         "most_critical_incidents": False,
         "technical_analysis": {
-            "symptom": False,
-            "impact_level": False,
-            "urgency_level": False,
-            "priority_level": False,
-            "location": False,
-            "category": False,
-            "subcategory": False,
+            "symptom": [],
+            "impact_level": [],
+            "urgency_level": [],
+            "priority_level": [],
+            "location": [],
+            "category": [],
+            "subcategory": [],
         },
         "graph_x-axis-sliders": {
             "min_date": False,
@@ -71,16 +106,24 @@ assessment_filters = {
 }
 
 @eel.expose
-def get_filter_value(path):
+def get_filter_value(path=None):
     """
     Retrieves the value from the assessment_filters dictionary using the dot-separated path.
+    If no path is provided, returns the entire assessment_filters dictionary.
 
     Args:
-        path (str): Dot-separated path to the value, e.g., "filters.overview_metrics.date_range.min_date".
+        path (str, optional): Dot-separated path to the value, e.g., "filters.overview_metrics.date_range.min_date".
+                              If not provided, the entire assessment_filters object is returned.
 
     Returns:
-        The value at the specified path, or None if the path is invalid.
+        The value at the specified path, or the entire assessment_filters if no path is provided,
+        or None if the path is invalid.
     """
+    # If no path is provided, return the entire assessment_filters object
+    if not path:
+        return assessment_filters
+
+    # Otherwise, retrieve the value using the provided path
     keys = path.split('.')
     value = assessment_filters
     try:
@@ -89,6 +132,7 @@ def get_filter_value(path):
         return value
     except KeyError:
         return None
+
 
 @eel.expose
 def set_filter_value(path, new_value):

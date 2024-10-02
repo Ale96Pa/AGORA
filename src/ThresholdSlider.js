@@ -47,9 +47,9 @@ const ThresholdSlider = ({ onThresholdChange }) => {
 
     // Update the assessment_filters in the backend
     await eel.set_filter_value("filters.thresholds.compliance_metric_severity_levels.critical", `>= ${newThresholds[0]} AND <= ${newThresholds[1]}`)();
-    await eel.set_filter_value("filters.thresholds.compliance_metric_severity_levels.high", `<= ${newThresholds[2]} AND > ${newThresholds[1]}`)();
-    await eel.set_filter_value("filters.thresholds.compliance_metric_severity_levels.medium", `<= ${newThresholds[3]} AND > ${newThresholds[2]}`)();
-    await eel.set_filter_value("filters.thresholds.compliance_metric_severity_levels.low", `<= ${newThresholds[4]} AND > ${newThresholds[3]}`)();
+    await eel.set_filter_value("filters.thresholds.compliance_metric_severity_levels.high", ` > ${newThresholds[1]} AND <= ${newThresholds[2]}`)();
+    await eel.set_filter_value("filters.thresholds.compliance_metric_severity_levels.moderate", `> ${newThresholds[2]} AND <= ${newThresholds[3]}`)();
+    await eel.set_filter_value("filters.thresholds.compliance_metric_severity_levels.low", `> ${newThresholds[3]} AND <= ${newThresholds[4]}`)();
 
     console.log("Saved thresholds to assessment_filters:", thresholdsJSON);
   };

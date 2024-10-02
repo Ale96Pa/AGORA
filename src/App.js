@@ -33,14 +33,18 @@ function App() {
     setRefreshTrigger(!refreshTrigger);
   };
 
+  const handleSelectionChange = () => {
+    setRefreshTrigger(prev => !prev);
+    console.log("here too");
+  }
   return (
     <>
       <div className="div">
-        <NavigationBar refreshTrigger={refreshTrigger} />
+        <NavigationBar onSelectionChange={handleSelectionChange} refreshTrigger={refreshTrigger} />
         <div className="div-34">
           <div className="div-35">
             <SideBar refreshTrigger={refreshTrigger} refreshControls={refreshSecurityControls} />
-            <ProcessAnalysis refreshTrigger={refreshTrigger}/>
+            <ProcessAnalysis analysisTrigger={refreshTrigger}/>
           </div>
         </div>
       </div>

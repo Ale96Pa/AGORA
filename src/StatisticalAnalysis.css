@@ -1,14 +1,21 @@
+
 .progress-bars-layout {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    /* Ensure both columns are equal */
     gap: 10px;
+    /* Add some padding around the grid */
 }
 
 .progress-box {
     text-align: center;
+    /* Add background color for better contrast */
+    /* Add padding inside each box */
+    border-radius: 5px;
+    /* Rounded corners */
 }
 
-.progress-box-large {
-    grid-column: span 2;
-    text-align: center;
+.name {
+    font-size: 8px;
+    color: white;
 }

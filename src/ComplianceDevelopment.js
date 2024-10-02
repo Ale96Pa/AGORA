@@ -15,27 +15,17 @@ const ComplianceDevelopment = ({ refreshTrigger }) => {
       try {
         // Fetch state mapping from eel
         const states = await eel.read_mapping_from_file()();
-        const deviations = await eel.count_frequencies()();
-        const durations = await eel.get_average_state_times()();
-
+        const compliance = JSON.parse(await eel.get_average_compliance_per_state()());
+        const compliance_metric = await eel.get_filter_value('filters.compliance_metric')();
         // Calculate deviations and durations for each state
         const statesArray = Object.keys(states).map(state => {
           const stateId = states[state];
-          
-          // Sum deviations (missing, repetition, mismatch) for each state
-          const totalDeviations = 
-            deviations.missing[stateId] +
-            deviations.repetition[stateId] +
-            deviations.mismatch[stateId];
-
-          // Get the corresponding duration for each state
-          const duration = durations[stateId] || '0h'; // Fallback to '0h' if not available
-
+          console.log(stateId);
+          console.log(compliance[stateId]);
           return {
             state,
-            deviations: totalDeviations,
-            durations: duration,
-            comp: Math.floor(Math.random() * 100) + 1 // Simulated compliance percentage
+            compliance_metric: compliance_metric.toUpperCase(),
+            comp: compliance[stateId] * 4// Simulated compliance percentage
           };
         });
 
@@ -59,11 +49,11 @@ const ComplianceDevelopment = ({ refreshTrigger }) => {
             <div className="layer-row full-width-trigger">
               {statesData.map((state, i) => (
                 <div className="state-column" key={`comp-${i}`}>
-                  {state.comp}
+                  AVG {state.state}<br></br>{state.compliance_metric} {state.comp}
                 </div>
               ))}
             </div>]}>
-          <ProcessComplianceBarChart height={100} refreshTrigger={refreshTrigger} />
+          <ProcessComplianceBarChart height={150} refreshTrigger={refreshTrigger} />
         </Collapsible>
       </div>
     </div>

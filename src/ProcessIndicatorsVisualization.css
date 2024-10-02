@@ -13,7 +13,6 @@
 .layer-row {
     display: flex;
     justify-content: space-between;
-    padding: 10px 0;
     cursor: pointer;
 }
 
@@ -34,7 +33,6 @@
 
 /* Additional styles to make the collapsible sections look better */
 .name {
-    margin-top: 10px;
     font-size: 16px;
     text-align: center;
     color: white;

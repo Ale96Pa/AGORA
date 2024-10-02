@@ -51,8 +51,43 @@ def get_sorted_variants_from_db():
     except Exception as e:
         print(f"An error occurred while querying the database: {e}")
         return []
+    
+def update_variants_in_db():
+    """
+    Queries all incident IDs and their alignments from the incident_alignment_table, processes the alignment data
+    to calculate the variant for each incident ID, and updates the variant column in the incidents_fa_values_table
+    with the calculated variant.
+    """
+    try:
+        db_path = "../data/incidents.db"
+        conn = sqlite3.connect(db_path)
+
+        # Query all incident_id and alignment data from incident_alignment_table
+        query = "SELECT incident_id, alignment FROM incident_alignment_table"
+        df = pd.read_sql(query, conn)
+
+        # Process each alignment to calculate the variant
+        df['variant'] = df['alignment'].apply(process_alignment)
+
+        # Update the variant in the incidents_fa_values_table
+        for _, row in df.iterrows():
+            update_query = """
+            UPDATE incidents_fa_values_table
+            SET variant = ?
+            WHERE incident_id = ?
+            """
+            conn.execute(update_query, (row['variant'], row['incident_id']))
+
+        # Commit changes and close the connection
+        conn.commit()
+        conn.close()
+        
+        print("Variants updated successfully in the database.")
+    except Exception as e:
+        print(f"An error occurred during the update process: {e}")
 
 # Example usage
 if __name__ == "__main__":
     sorted_variants = get_sorted_variants_from_db()
-    print(sorted_variants)
+    print(process_alignment("[S]N;[M]A;[S]R;[L]R;[S]C;"))
+    update_variants_in_db()

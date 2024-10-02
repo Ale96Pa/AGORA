@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { eel } from './App.js';  // Adjust the path to where your eel is located
 import './TabularAnalysis.css';  // Import custom styles for the table
 
-const TabularAnalysis = ({ refreshTrigger, selectionTabularChange }) => {
+const TabularAnalysis = ({ refreshTrigger, globalFilterTrigger, selectionTabularChange }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,7 +25,7 @@ const TabularAnalysis = ({ refreshTrigger, selectionTabularChange }) => {
   // Run fetchData on component mount and when refreshTrigger changes
   useEffect(() => {
     fetchData();  // Fetch data when the component mounts
-  }, [refreshTrigger]);  // Re-fetch data when refreshTrigger changes
+  }, [refreshTrigger, globalFilterTrigger]);  // Re-fetch data when refreshTrigger changes
 
   // Handle selection of incidents and send them to the backend
   const handleIncidentSelection = (selectedRows) => {
@@ -47,7 +47,8 @@ const TabularAnalysis = ({ refreshTrigger, selectionTabularChange }) => {
       const table = window.Inputs.table(data, {
         multiple: true,  // Allow multiple row selection
         width: '100%',
-        layout: 'auto',  // Auto layout for flexible column widths
+        layout: 'fixed',  // Auto layout for flexible column widths
+        maxWidth: 600
       });
 
       table.style.tableLayout = "fixed";  // Ensure fixed layout for consistent column widths

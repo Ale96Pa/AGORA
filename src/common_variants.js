@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { eel } from './App';
 
-const CommonVariants = ({ height = 500, refreshTrigger }) => {
+const CommonVariants = ({ height = 500, globalFilterTrigger, refreshTrigger }) => {
   const containerRef = useRef();
   const [selectedVariants, setSelectedVariants] = useState([]);
 
@@ -29,7 +29,7 @@ const CommonVariants = ({ height = 500, refreshTrigger }) => {
           .enter()
           .append('div')
           .attr('class', 'variant')
-          .attr('style', 'padding: 5px; margin: 5px; border-bottom: 1px solid #ccc; cursor: pointer;')
+          .attr('style', 'padding: 5px; margin: 5px; border-bottom: 1px solid #ccc; cursor: pointer; color: white')
           .text(d => `${d.count} (${d.percentage}) - ${d.sequence}`)
           .on('click', function(event, d) {
             // Toggle selection
@@ -60,6 +60,7 @@ const CommonVariants = ({ height = 500, refreshTrigger }) => {
     try {
       // Call the exposed set_filter_value function to save the selected variants
       await eel.set_filter_value("filters.common_variants", variants)();
+      globalFilterTrigger();
       console.log("Selected variants saved to backend:", variants);
     } catch (error) {
       console.error("Failed to save selected variants to backend:", error);

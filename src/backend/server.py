@@ -26,6 +26,7 @@ from critical_incidents import get_critical_incidents
 from individual_incident_metrics import calculate_individual_averages, get_incident_event_intervals
 from technical_analysis import get_incident_technical_attributes
 from statistical_analysis import get_statistical_analysis_data
+from compliance_metric_per_state import get_compliance_per_state_per_incident, get_average_compliance_per_state
 from database_filter_variables import *
 
 filter_conditions = {}

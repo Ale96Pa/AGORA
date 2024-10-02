@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { eel } from './App';
 import './ProcessStateTimes.css';
 
-const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
+const ProcessStateTimes = ({ height = 500, graphCursorTrigger, refreshTrigger }) => {
   const svgRef = useRef();
   const [enabledStates, setEnabledStates] = useState({
     detection: true,
@@ -211,6 +211,31 @@ const ProcessStateTimes = ({ height = 500, refreshTrigger }) => {
             );
         }
       });
+
+      // Add brush for selecting date range
+      const brush = d3.brushX()
+        .extent([[0, 0], [innerWidth, innerHeight]])
+        .on("end", (event) => {
+          if (!event.selection) return; // If no selection, ignore
+          const [start, end] = event.selection.map(xScale.invert); // Convert pixel values to dates
+
+          // Extract date without time
+          const startDate = d3.timeFormat("%Y-%m-%d")(start);
+          const endDate = d3.timeFormat("%Y-%m-%d")(end);
+
+          console.log(`Selected range: ${startDate} to ${endDate}`);
+          
+          // Store the date without time in filters
+          eel.set_filter_value("filters.graph_x-axis-sliders.min_date", startDate)();
+          eel.set_filter_value("filters.graph_x-axis-sliders.max_date", endDate)();
+        });
+
+      // Append brush to the chart and remove the gray background
+      g.append("g")
+        .attr("class", "brush")
+        .call(brush)
+        .selectAll(".selection")
+        .style("fill", "transparent"); // Remove the gray background by setting it to transparent
 
       // Apply zoom behavior (x-axis only)
       const zoom = d3.zoom()

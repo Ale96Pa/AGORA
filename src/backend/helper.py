@@ -35,6 +35,54 @@ def update_incidents_with_opened_at(db_path="../data/incidents.db"):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+def copy_deviation_columns(db_path="../data/incidents.db"):
+    """
+    Copies the content of the 'missing', 'repetition', and 'mismatch' columns from the 
+    'incident_alignment_table' into the 'missing_deviation', 'repetition_deviation', and 
+    'mismatch_deviation' columns of the 'incidents_fa_values_table'.
+    
+    Args:
+        db_path (str): Path to the SQLite database file.
+    """
+    try:
+        # Connect to the SQLite database
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # SQL query to update the incidents_fa_values_table
+        update_query = """
+        UPDATE incidents_fa_values_table
+        SET 
+            missing_deviation = (
+                SELECT missing 
+                FROM incident_alignment_table 
+                WHERE incident_alignment_table.incident_id = incidents_fa_values_table.incident_id
+            ),
+            repetition_deviation = (
+                SELECT repetition 
+                FROM incident_alignment_table 
+                WHERE incident_alignment_table.incident_id = incidents_fa_values_table.incident_id
+            ),
+            mismatch_deviation = (
+                SELECT mismatch 
+                FROM incident_alignment_table 
+                WHERE incident_alignment_table.incident_id = incidents_fa_values_table.incident_id
+            )
+        """
+
+        # Execute the update query
+        cursor.execute(update_query)
+
+        # Commit the changes
+        conn.commit()
+        print("Deviation columns updated successfully.")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        # Close the database connection
+        conn.close()
+
 # Example usage
 if __name__ == "__main__":
-    update_incidents_with_opened_at()
+    copy_deviation_columns()

@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { eel } from './App';
 import './TechnicalAnalysis.css';
 
-const TechnicalAnalysis = ({ width = 1000, height = 500, refreshTrigger }) => {
+const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, refreshTrigger }) => {
   const svgRef = useRef();
   const [enabledScales, setEnabledScales] = useState({
     symptom: true,
@@ -329,10 +329,11 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, refreshTrigger }) => {
     const filterPath = `filters.technical_analysis.${attribute}`;
     try {
       if (values.length === 0) {
-        await eel.set_filter_value(filterPath, "False")(); // Set to None if no value is selected
+        await eel.set_filter_value(filterPath, [])(); // Set to None if no value is selected
       } else {
         await eel.set_filter_value(filterPath, values)(); // Update the backend with the selected values
       }
+      globalFilterTrigger();
       console.log(`Updated filter ${filterPath} to ${values.length === 0 ? 'None' : values}`);
     } catch (error) {
       console.error(`Failed to update filter for ${filterPath}:`, error);

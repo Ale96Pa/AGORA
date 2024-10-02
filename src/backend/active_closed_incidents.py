@@ -8,13 +8,13 @@ import eel
 def get_incidents_open_and_closed_over_time(db_path="../data/incidents.db"):
     """
     Queries the incident opened_at and closed_at from the database and processes it
-    to return data for visualizing active and closed incidents over time.
+    to return data for visualizing active and closed incidents over time along with severity levels.
     
     Args:
         db_path (str): Path to the SQLite database file.
 
     Returns:
-        str: A JSON string containing two lists: active_incidents and closed_incidents over time.
+        str: A JSON string containing lists for active and closed incidents over time, and categorized severity counts.
     """
     try:
         # Connect to the SQLite database
@@ -29,26 +29,31 @@ def get_incidents_open_and_closed_over_time(db_path="../data/incidents.db"):
         # Execute the query and load the result into a DataFrame
         df = pd.read_sql_query(query, conn)
         
-        # Ensure that 'opened_at' and 'closed_at' are datetime objects an normalize 'opened_at' and 'closed_at' to remove the time component
+        # Ensure that 'opened_at' and 'closed_at' are datetime objects
         df['opened_at'] = pd.to_datetime(df['opened_at']).dt.normalize()
         df['closed_at'] = pd.to_datetime(df['closed_at'], errors='coerce').dt.normalize()  # Handle NaT values for open incidents
 
         # Sort the data by opened_at date
         df = df.sort_values('opened_at')
 
-
-        # Now filter the results based on min and max closed_at from the selected incident IDs
+        # Get selected incident IDs
         selected_incident_ids = get_incident_ids_selection()
         formatted_incident_ids = ', '.join(f"'{incident_id}'" for incident_id in selected_incident_ids)
 
-        # Query to get closed_at for the selected incidents
+        # Get compliance metric and thresholds
+        compliance_metric = get_filter_value("filters.compliance_metric")
+        compliance_metric_thresholds = get_filter_value("filters.thresholds.compliance_metric_severity_levels")
+
+        print(compliance_metric_thresholds)
+
+        # Query to get compliance metric values for the selected incidents
         query_selected = f"""
-        SELECT closed_at
+        SELECT incident_id, closed_at, {compliance_metric}
         FROM incidents_fa_values_table
         WHERE incident_id IN ({formatted_incident_ids})
         """
 
-        # Load the selected incidents' closed_at dates
+        # Load the selected incidents' closed_at dates and compliance metric
         df_selected = pd.read_sql_query(query_selected, conn)
 
         # Ensure 'closed_at' are datetime objects for the selected incidents
@@ -68,12 +73,29 @@ def get_incidents_open_and_closed_over_time(db_path="../data/incidents.db"):
         active_incidents = []
         closed_incidents = []
         closed_selected_incidents = []
+        closed_low_severity = []
+        closed_moderate_severity = []
+        closed_high_severity = []
+        closed_critical_severity = []
 
         # Initialize counters for active and closed incidents
         current_active_count = 0
         total_active_count = 0
         current_closed_count = 0
         previous_closed_count = 0
+        closed_low_severity_count = 0
+        closed_moderate_severity_count = 0
+        closed_high_severity_count = 0
+        closed_critical_severity_count = 0
+
+        # Helper function to check if a metric value falls within a given threshold range
+        def check_threshold(value, threshold):
+            conditions = threshold.split('AND')
+            for condition in conditions:
+                condition = condition.strip()
+                if not eval(f"{value} {condition}"):
+                    return False
+            return True
 
         # Iterate through each time point in the time range
         for time_point in time_range:
@@ -89,10 +111,33 @@ def get_incidents_open_and_closed_over_time(db_path="../data/incidents.db"):
             if time_point < min_selected_date:
                 previous_closed_count = current_closed_count
             
+            # Calculate closed incidents by severity levels
+            closed_at_current = df_selected_filtered[df_selected_filtered['closed_at'] == time_point]
+
+            # Evaluate each incident for its severity level based on the compliance metric value
+            for _, incident in closed_at_current.iterrows():
+                metric_value = incident[compliance_metric]
+
+                if check_threshold(metric_value, compliance_metric_thresholds['low']):
+                    closed_low_severity_count += 1
+                elif check_threshold(metric_value, compliance_metric_thresholds['moderate']):
+                    closed_moderate_severity_count += 1
+                elif check_threshold(metric_value, compliance_metric_thresholds['high']):
+                    closed_high_severity_count += 1
+                elif check_threshold(metric_value, compliance_metric_thresholds['critical']):
+                    closed_critical_severity_count += 1
+
             # Append the counts to the lists
             opened_incidents.append({'time': time_point.strftime('%Y-%m-%d'), 'count': total_active_count})
             active_incidents.append({'time': time_point.strftime('%Y-%m-%d'), 'count': current_active_count})
-            closed_incidents.append({'time': time_point.strftime('%Y-%m-%d'), 'count': current_closed_count})
+            closed_incidents.append({
+                'time': time_point.strftime('%Y-%m-%d'),
+                'count': current_closed_count,
+                'low': closed_low_severity_count,
+                'moderate': closed_moderate_severity_count,
+                'high': closed_high_severity_count,
+                'critical': closed_critical_severity_count
+            })
 
         print(previous_closed_count)
 
