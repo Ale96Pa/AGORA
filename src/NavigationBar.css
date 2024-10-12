@@ -52,6 +52,7 @@
     font: 15px/23px Inter, sans-serif;
     white-space: pre-wrap;
     color: white;
+    align-self: center;
 }
 
 .section-content {
@@ -63,6 +64,13 @@
     border: 1px solid rgba(36, 36, 36, 1);
     border-radius: 4px;
     background-color: #1b1b1b;
+}
+
+.active-tab {
+    border: 2px solid blue;
+    /* Apply blue border */
+    border-radius: 5px;
+    /* Optional: Add some rounding */
 }
 
 .icon {

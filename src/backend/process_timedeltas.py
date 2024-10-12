@@ -23,12 +23,26 @@ def get_ordered_time_to_states_last_occurrence(db_name='../data/incidents.db'):
         placeholder = ', '.join('?' for _ in incident_ids)
 
         # Query to select the incidents, filter by selected incident IDs, and order by closed_at
-        cursor.execute(f'''
+        # Start with the base query, including placeholders for the incident_ids
+        query = """
             SELECT incident_id, closed_at, time_to_states_last_occurrence
             FROM incidents_fa_values_table
             WHERE incident_id IN ({placeholder})
             ORDER BY closed_at ASC
-        ''', incident_ids)
+        """
+
+        # Add the 'whatif_analysis' exclusion clause if it exists
+        whatif_clause = apply_whatif_analysis_filter()
+        if whatif_clause:
+            # Insert the 'whatif_analysis' clause before the ORDER BY clause
+            query = query.replace('ORDER BY closed_at ASC', f"AND ( {whatif_clause} ) ORDER BY closed_at ASC")
+
+        # Replace the placeholder for the incident_ids
+        placeholder = ','.join(['?'] * len(incident_ids))
+        query = query.format(placeholder=placeholder)
+
+        # Execute the query with the incident_ids as parameters
+        cursor.execute(query, incident_ids)
 
         # Fetch all the results
         incidents = cursor.fetchall()

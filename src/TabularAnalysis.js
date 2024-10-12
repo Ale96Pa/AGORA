@@ -49,7 +49,7 @@ const TabularAnalysis = ({ refreshTrigger, globalFilterTrigger, selectionTabular
         width: '100%',
         layout: 'fixed',  // Auto layout for flexible column widths
         maxWidth: 600,
-        height: 180
+        height: 250
       });
 
       table.style.tableLayout = "fixed";  // Ensure fixed layout for consistent column widths

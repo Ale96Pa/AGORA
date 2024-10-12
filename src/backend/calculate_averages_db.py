@@ -1,7 +1,7 @@
 import sqlite3
 import eel
 
-from database_filter_variables import get_incident_ids_selection
+from database_filter_variables import *
 
 @eel.expose
 def calculate_column_average(column_name, db_path="../data/incidents.db", table_name="incident_alignment_table"):
@@ -44,6 +44,12 @@ def calculate_column_average(column_name, db_path="../data/incidents.db", table_
         FROM {table_name}
         WHERE incident_id IN ({formatted_incident_ids})
         """
+
+        # Add the 'whatif_analysis' exclusion clause
+        whatif_clause = apply_whatif_analysis_filter()
+        if whatif_clause:
+            query += f" AND ( {whatif_clause} )"
+
         cursor.execute(query)
         average_value = cursor.fetchone()[0]
 

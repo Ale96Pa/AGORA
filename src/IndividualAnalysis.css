@@ -67,3 +67,37 @@
     /* Adjust space between label and value */
     font-size: 1em;
 }
+
+.form-section-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* Adds space between the form elements */
+    margin-bottom: 5px;
+}
+
+.form-input {
+    flex: 1;
+    /* Make input take up available space */
+
+    font-size: 16px;
+}
+
+.form-select {
+    font-size: 10px;
+    height: 20px;
+    padding: 0rem 0rem .0rem .25rem;
+}
+
+.form-button {
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.form-button:hover {
+    background-color: #0056b3;
+}

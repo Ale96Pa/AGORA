@@ -2,7 +2,7 @@ import sqlite3
 import pandas as pd
 import json
 import eel
-from database_filter_variables import get_filter_value
+from database_filter_variables import *
 
 # Function to count deviations from JSON-like strings
 def count_deviations(deviation_str):
@@ -42,20 +42,27 @@ def get_compliance_per_state_per_incident(db_path="../data/incidents.db"):
         min_date = date_range['min_date']
         max_date = date_range['max_date']
 
-        # Query to fetch incidents within the date range
+        # Build the base query to fetch incidents within the date range
         query = """
-        SELECT 
-            incident_id,
-            fitness,
-            missing_deviation,
-            repetition_deviation,
-            mismatch_deviation,
-            closed_at
-        FROM incidents_fa_values_table 
-        WHERE closed_at BETWEEN ? AND ?
-        ORDER BY closed_at ASC
+            SELECT 
+                incident_id,
+                fitness,
+                missing_deviation,
+                repetition_deviation,
+                mismatch_deviation,
+                closed_at
+            FROM incidents_fa_values_table 
+            WHERE closed_at BETWEEN ? AND ?
         """
 
+        # Add the 'whatif_analysis' exclusion clause if applicable
+        whatif_clause = apply_whatif_analysis_filter()
+        if whatif_clause:
+            query += f" AND ( {whatif_clause} )"
+
+        # Add the ORDER BY clause at the end
+        query += " ORDER BY closed_at ASC"
+                
         # Load data into a DataFrame
         df = pd.read_sql_query(query, conn, params=(min_date, max_date))
 
@@ -136,7 +143,6 @@ def calculate_compliance_per_state(deviations_per_state, total_deviations):
     for state, deviations in deviations_per_state.items():
         # Compliance calculation: 1/5 * (1 - (total_deviations_state / total_deviations))
         compliance_score = 0.2 * (1 - (deviations / total_deviations))  if total_deviations != 0 else 0.2
-        print(compliance_score)
         compliance_scores[state] = compliance_score
         total_compliance += compliance_score
 
@@ -146,7 +152,6 @@ def calculate_compliance_per_state(deviations_per_state, total_deviations):
     # Normalize compliance scores
     for state in compliance_scores:
         compliance_scores[state] *= normalization_factor
-    print(compliance_scores)
     return compliance_scores
 
 @eel.expose

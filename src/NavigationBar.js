@@ -5,7 +5,7 @@ import ThresholdSlider from './ThresholdSlider';
 import TimeThresholds from './TimeThresholds.js';
 import IncidentSelection from './incident_selection.js';
 
-function NavigationBar({ refreshTrigger, onSelectionChange }) {
+function NavigationBar({ refreshTrigger, onSelectionChange, toggleView }) {
   const [showSettings, setShowSettings] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState('Fitness');
   const [notCoveredCount, setNotCoveredCount] = useState(0);
@@ -13,12 +13,14 @@ function NavigationBar({ refreshTrigger, onSelectionChange }) {
   const [coveredCount, setCoveredCount] = useState(0);
   const [thresholds, setThresholds] = useState([0.25, 0.5, 0.75]);
 
+  // State to track the active button (either "Process Analysis" or "Reporting")
+  const [activeTab, setActiveTab] = useState('processAnalysis');  // Default active tab
+
   const handleThresholdChange = (newThresholds) => {
     setThresholds(newThresholds);
     console.log("Updated thresholds: ", newThresholds);
-    // You can pass this data to your backend or use it elsewhere in your app
   };
-  
+
   const handleSettingsClick = () => {
     setShowSettings(!showSettings);
   };
@@ -32,6 +34,11 @@ function NavigationBar({ refreshTrigger, onSelectionChange }) {
   const handleSelectionChange = () => {
     onSelectionChange();
     console.log("Here works");
+  };
+
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);  // Set the clicked tab as active
+    toggleView();  // Toggle between views when a tab is clicked
   };
 
   useEffect(() => {
@@ -68,11 +75,17 @@ function NavigationBar({ refreshTrigger, onSelectionChange }) {
           <div className="count-label">Covered SecControls</div>
         </div>
       </div>
+
       <div className='section-container'>
         <IncidentSelection onSelectionChange={handleSelectionChange} />
       </div>
+
       <div className="section-container">
-        <div className="section-content">
+        {/* Process Analysis Button */}
+        <div
+          className={`section-content ${activeTab === 'processAnalysis' ? 'active-tab' : ''}`}  // Apply active class if processAnalysis is active
+          onClick={() => handleTabClick('processAnalysis')}
+        >
           <img
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/a0101106d9a7a8f8a3f962ef55b73d7ed82213c2a2e2060c8819adc6c98b8dda?"
@@ -80,17 +93,12 @@ function NavigationBar({ refreshTrigger, onSelectionChange }) {
           />
           <div className="label">Process Analysis</div>
         </div>
-        {selectedMetric === 'Non-Compliance Cost' && (
-          <div className="section-content">
-            <img
-              loading="lazy"
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/f55b8ec5e2018e1c09c718b738209d508d25cf7828184d0449292be8bf35eecb?"
-              className="icon"
-            />
-            <div className="label">Cost Model Analysis</div>
-          </div>
-        )}
-        <div className="section-content">
+
+        {/* Reporting Button */}
+        <div
+          className={`section-content ${activeTab === 'reporting' ? 'active-tab' : ''}`}  // Apply active class if reporting is active
+          onClick={() => handleTabClick('reporting')}
+        >
           <img
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/c9a8d4b2ef37e2b2802b332e933fa26d144caf98f5b1bc9450d1ae093dc83243?"
@@ -99,6 +107,7 @@ function NavigationBar({ refreshTrigger, onSelectionChange }) {
           <div className="label">Reporting</div>
         </div>
       </div>
+
       <div className="settings-section">
         <div className="settings-icon" onClick={handleSettingsClick}>
           <img
@@ -107,6 +116,7 @@ function NavigationBar({ refreshTrigger, onSelectionChange }) {
             className="icon"
           />
         </div>
+
         {showSettings && (
           <div className="settings-dropdown">
             <div className="settings-name">COMPLIANCE METRIC</div>
@@ -126,6 +136,7 @@ function NavigationBar({ refreshTrigger, onSelectionChange }) {
             <TimeThresholds />
           </div>
         )}
+
         <div className="settings-icon">
           <img
             loading="lazy"
@@ -133,6 +144,7 @@ function NavigationBar({ refreshTrigger, onSelectionChange }) {
             className="icon"
           />
         </div>
+
         <div className="profile-section">
           <div className="profile-icon">
             <img

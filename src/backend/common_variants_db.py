@@ -45,6 +45,12 @@ def get_sorted_variants_from_db():
         FROM incident_alignment_table
         WHERE incident_id IN ({formatted_incident_ids})
         """
+
+        # Add the 'whatif_analysis' exclusion clause
+        whatif_clause = apply_whatif_analysis_filter()
+        if whatif_clause:
+            query += f" AND ( {whatif_clause} )"
+
         df = pd.read_sql(query, conn)
         conn.close()
         return analyze_alignments(df)

@@ -4,6 +4,7 @@ import json
 from database_filter_variables import *
 import eel
 import ast
+import re  # Import re for regex operations
 
 def build_filter_query(filters):
     """
@@ -13,10 +14,12 @@ def build_filter_query(filters):
         filters (dict): The filters dictionary returned from get_filter_value().
 
     Returns:
-        str: A SQL query fragment representing the active filters.
+        tuple: A tuple containing the SQL query fragment representing the active filters and the list of parameters.
     """
     # Initialize an empty list to hold all filter conditions
     conditions = []
+    # Initialize a list for parameters
+    parameters = []
 
     filters = filters.get('filters', {})
 
@@ -67,11 +70,12 @@ def build_filter_query(filters):
                 else:
                     conditions.append("opened_at != closed_at")
 
-   # Handle common variants filters
+    # Handle common variants filters
     common_variants_filters = filters.get('common_variants', {})
     if common_variants_filters:  # Check if it's not None and not empty
-        variant_values = ', '.join(f"'{variant}'" for variant in common_variants_filters)
-        conditions.append(f"variant IN ({variant_values})")
+        placeholders = ', '.join('?' for _ in common_variants_filters)
+        conditions.append(f"variant IN ({placeholders})")
+        parameters.extend(common_variants_filters)
 
     # Handle deviation filters
     deviation_filters = filters.get('deviations_distribution', {})
@@ -82,24 +86,97 @@ def build_filter_query(filters):
                 # Build condition to check if the value for a state is not zero
                 conditions.append(f"CAST(json_extract({deviation_column}, '$.{state}') AS INTEGER) > 0")
 
+    # Map filter fields to database column names
+    field_column_mapping = {
+        'symptom': 'u_symptom',
+        'impact': 'impact',
+        'urgency': 'urgency',
+        'priority': 'priority',
+        'location': 'location',
+        'category': 'category',
+    }
+
     # Handle technical analysis filters
     technical_analysis_filters = filters.get('technical_analysis', {})
     for field, values in technical_analysis_filters.items():
         # Only add the filter if values is not empty or False
         if values and values is not False:
-            # Extract the numeric part for comparison
-            # Using SQLite syntax for substr and instr to extract the numeric part before ' - '
-            values_list = ', '.join(str(v) for v in values)
-            conditions.append(f"CAST(substr({field}, 1, instr({field}, ' ') - 1) AS INTEGER) IN ({values_list})")
+            # Map the field to the correct column name
+            column_name = field_column_mapping.get(field, field)
+            
+            if field in ['impact', 'urgency', 'priority']:
+                # Separate numeric and non-numeric values
+                numeric_values = [v for v in values if v != '?']
+                non_numeric_values = [v for v in values if v == '?']
+                conditions_sub = []
+                params_sub = []
+                if numeric_values:
+                    # Extract numeric part from the values
+                    numeric_ids = []
+                    for v in numeric_values:
+                        match = re.match(r'^(\d+)', v)
+                        if match:
+                            numeric_ids.append(int(match.group(1)))
+                        else:
+                            # Handle values that don't start with a number
+                            continue
+                    if numeric_ids:
+                        placeholders = ', '.join('?' for _ in numeric_ids)
+                        conditions_sub.append(
+                            f"CAST(substr({column_name}, 1, instr({column_name}, ' ') - 1) AS INTEGER) IN ({placeholders})"
+                        )
+                        params_sub.extend(numeric_ids)
+                if non_numeric_values:
+                    # Handle '?' value
+                    conditions_sub.append(f"{column_name} IS NULL OR {column_name} = '?'")
+                if conditions_sub:
+                    conditions.append('(' + ' OR '.join(conditions_sub) + ')')
+                    parameters.extend(params_sub)
+            elif field in ['category', 'location', 'symptom']:
+                numeric_values = []
+                non_numeric_values = []
+                for v in values:
+                    if v == '?':
+                        non_numeric_values.append(v)
+                    else:
+                        # Extract numeric part from the value
+                        match = re.search(r'(\d+)$', v)
+                        if match:
+                            numeric_values.append(int(match.group(1)))
+                        else:
+                            # Handle values that don't have numeric part
+                            non_numeric_values.append(v)
+                conditions_sub = []
+                params_sub = []
+                if numeric_values:
+                    placeholders = ', '.join('?' for _ in numeric_values)
+                    conditions_sub.append(
+                        f"extract_numeric_end({column_name}) IN ({placeholders})"
+                    )
+                    params_sub.extend(numeric_values)
+                if non_numeric_values:
+                    # Handle '?' or other non-numeric values
+                    placeholders = ', '.join('?' for _ in non_numeric_values)
+                    conditions_sub.append(f"{column_name} IN ({placeholders})")
+                    params_sub.extend(non_numeric_values)
+                if conditions_sub:
+                    conditions.append('(' + ' OR '.join(conditions_sub) + ')')
+                    parameters.extend(params_sub)
+            else:
+                # For other fields, compare directly
+                placeholders = ', '.join('?' for _ in values)
+                conditions.append(f"{column_name} IN ({placeholders})")
+                parameters.extend(values)
 
     # Handle date range filters
     date_range = filters.get('overview_metrics', {}).get('date_range', {})
     if date_range.get('min_date') and date_range.get('max_date'):
-        conditions.append(f"closed_at BETWEEN '{date_range['min_date']}' AND '{date_range['max_date']}'")
+        conditions.append(f"closed_at BETWEEN ? AND ?")
+        parameters.extend([date_range['min_date'], date_range['max_date']])
 
     print(' AND '.join(conditions))
     # Join all conditions with AND
-    return ' AND '.join(conditions)
+    return ' AND '.join(conditions), parameters
 
 @eel.expose
 def get_tabular_incidents_entries(db_path="../data/incidents.db"):
@@ -117,12 +194,31 @@ def get_tabular_incidents_entries(db_path="../data/incidents.db"):
         # Connect to the SQLite database
         conn = sqlite3.connect(db_path)
         
+        # Register the extract_numeric_end function
+        def extract_numeric_end(s):
+            import re
+            if s is None:
+                return None
+            m = re.search(r'(\d+)$', s)
+            if m:
+                return int(m.group(1))
+            else:
+                return None
+        conn.create_function("extract_numeric_end", 1, extract_numeric_end)
+        
         # Get all the filters
         filters = get_filter_value()
 
+        # Get incident IDs selection
+        incident_ids_selection = get_incident_ids_selection()
+
+        if not incident_ids_selection:
+            return json.dumps([])  # Return empty JSON array if no incident IDs
+
         # Format the incident IDs for SQL query
-        formatted_incident_ids = ', '.join(f"'{incident_id}'" for incident_id in get_incident_ids_selection())
+        formatted_incident_ids = ', '.join('?' for _ in incident_ids_selection)
         compliance_metric = get_incident_compliance_metric()
+        incident_id_params = incident_ids_selection
 
         # Build the base SQL query to select the desired columns
         query = f"""
@@ -131,13 +227,21 @@ def get_tabular_incidents_entries(db_path="../data/incidents.db"):
         WHERE incident_id IN ({formatted_incident_ids})
         """
 
+        # Add the 'whatif_analysis' exclusion clause
+        whatif_clause = apply_whatif_analysis_filter()
+        if whatif_clause:
+            query += f" AND ( {whatif_clause} )"
+
         # Add the dynamically constructed filter conditions
-        filter_clause = build_filter_query(filters)
+        filter_clause, parameters = build_filter_query(filters)
         if filter_clause:
             query += f" AND ( {filter_clause} )"
 
+        # Combine parameters
+        all_params = incident_id_params + parameters
+
         # Execute the query and load the result into a DataFrame
-        df = pd.read_sql_query(query, conn)
+        df = pd.read_sql_query(query, conn, params=all_params)
 
         # Convert the DataFrame to a JSON string
         json_result = df.to_json(orient='records')
@@ -147,7 +251,7 @@ def get_tabular_incidents_entries(db_path="../data/incidents.db"):
     except Exception as e:
         print(f"An error occurred: {e}")
         return json.dumps([])  # Return an empty JSON array on error
-    
+        
     finally:
         # Close the database connection
         conn.close()
@@ -156,4 +260,6 @@ def get_tabular_incidents_entries(db_path="../data/incidents.db"):
 if __name__ == "__main__":
     # Query the incident compliance data and print the JSON result
     filters = get_filter_value()
-    print(build_filter_query(filters))
+    filter_clause, parameters = build_filter_query(filters)
+    print(filter_clause)
+    print(parameters)

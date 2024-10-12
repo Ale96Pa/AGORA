@@ -21,11 +21,18 @@ def get_incidents_open_and_closed_over_time(db_path="../data/incidents.db"):
         conn = sqlite3.connect(db_path)
         
         # Query to get opened_at and closed_at for incidents
-        query = """
+        query = f"""
         SELECT incident_id, opened_at, closed_at
         FROM incidents_fa_values_table
+        WHERE 1=1
         """
 
+        # Add the 'whatif_analysis' exclusion clause
+        whatif_clause = apply_whatif_analysis_filter()
+        if whatif_clause:
+            query += f" AND ( {whatif_clause} )"
+
+        
         # Execute the query and load the result into a DataFrame
         df = pd.read_sql_query(query, conn)
         
@@ -52,6 +59,11 @@ def get_incidents_open_and_closed_over_time(db_path="../data/incidents.db"):
         FROM incidents_fa_values_table
         WHERE incident_id IN ({formatted_incident_ids})
         """
+
+        # Add the 'whatif_analysis' exclusion clause
+        whatif_clause = apply_whatif_analysis_filter()
+        if whatif_clause:
+            query_selected += f" AND ( {whatif_clause} )"
 
         # Load the selected incidents' closed_at dates and compliance metric
         df_selected = pd.read_sql_query(query_selected, conn)

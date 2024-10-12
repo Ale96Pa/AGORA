@@ -1,0 +1,15 @@
+/* Reporting.css */
+.reporting-container {
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+
+.reporting-container h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.reporting-container p {
+    font-size: 16px;
+    color: #6c757d;
+}

@@ -2,7 +2,7 @@ import sqlite3
 import json
 import pandas as pd
 import eel
-from database_filter_variables import get_incident_ids_selection
+from database_filter_variables import *
 
 @eel.expose
 def get_statistical_analysis_data(db_path="../data/incidents.db"):
@@ -37,6 +37,11 @@ def get_statistical_analysis_data(db_path="../data/incidents.db"):
         WHERE incident_id IN ({','.join(['?'] * len(incident_ids))})
         """
         
+        # Add the 'whatif_analysis' exclusion clause
+        whatif_clause = apply_whatif_analysis_filter()
+        if whatif_clause:
+            query += f" AND ( {whatif_clause} )"
+
         # Load data into pandas DataFrame
         df = pd.read_sql_query(query, conn, params=incident_ids)
         

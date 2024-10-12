@@ -3,7 +3,7 @@ import sqlite3
 import ast
 import eel
 
-from database_filter_variables import get_incident_ids_selection
+from database_filter_variables import *
 
 
 def parse_dict_column(column):
@@ -31,6 +31,13 @@ def count_frequencies():
         FROM incident_alignment_table 
         WHERE incident_id IN ({formatted_incident_ids})
         """
+
+        # Add the 'whatif_analysis' exclusion clause
+        whatif_clause = apply_whatif_analysis_filter()
+        if whatif_clause:
+            query += f" AND ( {whatif_clause} )"
+
+
         df = pd.read_sql_query(query, conn)
 
         # Initialize counters

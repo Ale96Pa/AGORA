@@ -23,7 +23,14 @@ def get_compliance_metric_distribution(db_path="../data/incidents.db"):
         incident_ids_placeholder = ",".join("?" * len(incident_ids))
 
         # Fetch the desired compliance metric values for the selected incidents
-        query = f"SELECT incident_id, {metric_column} FROM incidents_fa_values_table WHERE incident_id IN ({incident_ids_placeholder})"
+        query = f"""SELECT incident_id, {metric_column} FROM incidents_fa_values_table WHERE incident_id IN ({incident_ids_placeholder})"""
+
+        # Add the 'whatif_analysis' exclusion clause
+        whatif_clause = apply_whatif_analysis_filter()
+        if whatif_clause:
+            query += f" AND ( {whatif_clause} )"
+
+
         cursor.execute(query, incident_ids)
         metric_values = cursor.fetchall()
 

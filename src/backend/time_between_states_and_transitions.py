@@ -130,11 +130,25 @@ def get_average_state_times(db_path="../data/incidents.db"):
         incident_ids = tuple(get_incident_ids_selection())
 
         # Fetch state times as JSON and convert them to minutes
-        cursor.execute(f"""
+        query = """
             SELECT event_interval_minutes 
             FROM incidents_fa_values_table 
-            WHERE incident_id IN ({','.join(['?']*len(incident_ids))})
-        """, incident_ids)
+            WHERE incident_id IN ({placeholders})
+        """
+
+        # Add the 'whatif_analysis' exclusion clause if it exists
+        whatif_clause = apply_whatif_analysis_filter()
+        if whatif_clause:
+            query += f" AND ( {whatif_clause} )"
+
+        # Now finalize the query by replacing the placeholders for incident IDs
+        placeholders = ','.join(['?'] * len(incident_ids))
+        query = query.format(placeholders=placeholders)
+
+
+        # Execute the query with the incident_ids as parameters
+        cursor.execute(query, incident_ids)
+
         state_times_list = cursor.fetchall()
 
         total_time_in_states = {}
@@ -189,12 +203,24 @@ def get_average_transition_times(db_path="../data/incidents.db"):
         # Fetch incident IDs selection
         incident_ids = tuple(get_incident_ids_selection())
 
-        # Fetch transition times as JSON and convert them to minutes
-        cursor.execute(f"""
+        query = """
             SELECT transition_interval_minutes 
             FROM incidents_fa_values_table 
-            WHERE incident_id IN ({','.join(['?']*len(incident_ids))})
-        """, incident_ids)
+            WHERE incident_id IN ({placeholders})
+        """
+
+        # Add the 'whatif_analysis' exclusion clause if it exists
+        whatif_clause = apply_whatif_analysis_filter()
+        if whatif_clause:
+            query += f" AND ( {whatif_clause} )"
+
+        # Now finalize the query by replacing the placeholders for incident IDs
+        placeholders = ','.join(['?'] * len(incident_ids))
+        query = query.format(placeholders=placeholders)
+
+        # Execute the query with the incident_ids as parameters
+        cursor.execute(query, incident_ids)
+
         transition_times_list = cursor.fetchall()
 
         total_transition_times = {}
@@ -303,10 +329,6 @@ def calculate_time_to_last_occurrence(db_path="../data/incidents.db"):
 if __name__ == "__main__":
     state_intervals = get_event_state_intervals('INC0000084')
     print(state_intervals)
-
-    print(calculate_time_in_all_states(state_intervals))
-
-    print(calculate_transition_times(state_intervals))
 
     print(get_average_state_times())
     print(get_average_transition_times())

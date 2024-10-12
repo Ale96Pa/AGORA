@@ -102,6 +102,7 @@ assessment_filters = {
             "max_date": False
         },
         "tabular_incident_selection": False,
+        "whatIf_Analyis": []
     }
 }
 
@@ -160,6 +161,27 @@ def set_filter_value(path, new_value):
     except KeyError:
         print(f"Failed to set filter: {path} is an invalid path.")
         return False
+
+
+def apply_whatif_analysis_filter():
+    """
+    Retrieves the 'whatif_analysis' filter and crafts a SQL condition to exclude the specified incident IDs.
+    
+    Args:
+        filters (dict): The filters dictionary returned from get_filter_value().
+
+    Returns:
+        str: A SQL fragment to exclude specific incident IDs.
+    """
+
+    whatif_analysis_ids = get_filter_value("filters.whatIf_analysis")
+    
+    if whatif_analysis_ids:
+        # Format the incident IDs to exclude for SQL query
+        formatted_ids = ', '.join(f"'{incident_id}'" for incident_id in whatif_analysis_ids)
+        return f"incident_id NOT IN ({formatted_ids})"
+    
+    return ""
 
 
 #incident_ids_from_time_period = ['INC0121064']
@@ -236,27 +258,6 @@ def set_filter_compliance_metric_thresholds(metric_name, range_start, range_end)
     # Optionally, return the current filters as a string or any format you need
     return filter_compliance_metric_thresholds
 
-
-def build_filter_query():
-    """
-    Build the SQL WHERE clause based on the current filters.
-    
-    Returns:
-        str: The SQL WHERE clause.
-    """
-    global filter_compliance_metric_thresholds
-
-    if not filter_compliance_metric_thresholds:
-        return ""  # No filters applied
-
-    conditions = []
-    for metric_name, range_start, range_end in filter_compliance_metric_thresholds.values():
-        condition = f"{metric_name} BETWEEN {range_start} AND {range_end}"
-        conditions.append(condition)
-
-    # Combine all conditions with AND (you can change this to OR if needed)
-    where_clause = " OR ".join(conditions)
-    return f"{where_clause}"
 
 @eel.expose
 def get_incident_ids_from_tabular_selection():

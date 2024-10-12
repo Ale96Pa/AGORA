@@ -138,6 +138,7 @@
 .div-90 {
     font-family: Inter, sans-serif;
     align-items: center;
+    align-self: center;
 }
 
 .total-number-security-controls {

@@ -27,6 +27,8 @@ from individual_incident_metrics import calculate_individual_averages, get_incid
 from technical_analysis import get_incident_technical_attributes
 from statistical_analysis import get_statistical_analysis_data
 from compliance_metric_per_state import get_compliance_per_state_per_incident, get_average_compliance_per_state
+from add_assessment_result import insert_assessment_result, apply_what_if_analysis
+from link_view_to_security_control import save_screenshot_and_link_to_control
 from database_filter_variables import *
 
 filter_conditions = {}

@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { eel } from './App';  // Import eel to fetch data from the backend
 import './IndividualAnalysis.css';
 
-const IndividualAnalysis = ({ height, selectionTrigger }) => {
+const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResultsTrigger }) => {
     const [complianceMetric, setComplianceMetric] = useState('');  // Store compliance metric from the backend
     const [individualMetricAverages, setIndividualMetricAverages] = useState({
         average_ttr: '',
@@ -12,6 +12,8 @@ const IndividualAnalysis = ({ height, selectionTrigger }) => {
     }); // Store fetched averages from the backend
     const [incidentData, setIncidentData] = useState([]);  // Store incident data
 
+    const [name, setName] = useState('');  // For storing input name
+    const [type, setType] = useState('finding');  // For storing selected type
     const svgRef = useRef();
 
     // Fetch compliance metric from backend once on mount
@@ -34,7 +36,6 @@ const IndividualAnalysis = ({ height, selectionTrigger }) => {
             try {
                 const result = await eel.calculate_individual_averages()();  // Fetch selected incidents from backend
                 setIndividualMetricAverages(result);
-                console.log(result);
 
                 const incidentDetails = await eel.get_incident_event_intervals()();  // Fetch event intervals
                 const parsedData = incidentDetails.map(item => ({
@@ -42,7 +43,6 @@ const IndividualAnalysis = ({ height, selectionTrigger }) => {
                     event_intervals: JSON.parse(item.event_interval_minutes),  // Parse event intervals JSON
                 }));
                 setIncidentData(parsedData);
-                console.log(parsedData);
             } catch (error) {
                 console.error('Failed to fetch selected incidents:', error);
             }
@@ -50,6 +50,20 @@ const IndividualAnalysis = ({ height, selectionTrigger }) => {
 
         fetchSelectedIncidents();  // Run when `selectionTrigger` changes
     }, [selectionTrigger]);  // Only run when `selectionTrigger` changes
+
+    // Handle form submission
+    const handleSubmit = async () => {
+        const incidentIdsList = incidentData.map(incident => incident.incident_id).join(',');
+        try {
+            // Call the Python function to insert the result
+            await eel.insert_assessment_result(name, type, incidentIdsList)();
+            updateAssessmentsResultsTrigger();
+            alert('Assessment result successfully inserted!');
+        } catch (error) {
+            console.error('Failed to insert assessment result:', error);
+            alert('Failed to insert assessment result');
+        }
+    };
 
     // Create the D3 chart
     useEffect(() => {
@@ -121,7 +135,6 @@ const IndividualAnalysis = ({ height, selectionTrigger }) => {
         });
     }, [incidentData]);  // Re-run effect when incidentData changes
 
-
     // Helper function to get color for each event code, including W
     const getColorForEvent = (eventCode) => {
         const eventColorMap = {
@@ -135,7 +148,26 @@ const IndividualAnalysis = ({ height, selectionTrigger }) => {
     };
 
     return (
-        <div className="individual-analysis" style={{ height }}>
+         <div className="individual-analysis" style={{ height }}>
+            {/* Form Section for name and type */}
+            <div className="form-section-row">
+                <input
+                    type="text"
+                    placeholder="Enter name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="form-input"
+                />
+            </div>
+            <div className="form-section-row">
+                <select value={type} onChange={(e) => setType(e.target.value)} className="form-select">
+                    <option value="finding">Finding</option>
+                    <option value="area of concern">Area of Concern</option>
+                    <option value="non-conformaty">Non-Conformaty</option>
+                </select>
+                <button onClick={handleSubmit} className="form-button">Submit</button>
+            </div>
+
             {/* Averages Section */}
             <div className="averages-section">
                 <div className="average-item">

@@ -2,7 +2,7 @@ import sqlite3
 import json
 import re  # To handle extracting numbers from string
 import eel
-from database_filter_variables import get_incident_ids_selection
+from database_filter_variables import *
 
 def extract_numeric_value(value):
     """
@@ -46,6 +46,11 @@ def get_incident_technical_attributes(db_path="../data/incidents.db"):
         FROM incidents_fa_values_table
         WHERE incident_id IN ({','.join(['?'] * len(incident_ids))})
         """
+
+        # Add the 'whatif_analysis' exclusion clause
+        whatif_clause = apply_whatif_analysis_filter()
+        if whatif_clause:
+            query += f" AND ( {whatif_clause} )"
 
         # Execute the query
         cursor = conn.cursor()

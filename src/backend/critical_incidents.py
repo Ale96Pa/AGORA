@@ -2,8 +2,7 @@ import sqlite3
 import pandas as pd
 import json
 import eel
-from database_filter_variables import get_incident_compliance_metric, get_compliance_metric_thresholds, get_incident_ids_selection
-
+from database_filter_variables import *
 @eel.expose
 def get_critical_incidents(db_path="../data/incidents.db"):
     """
@@ -46,12 +45,19 @@ def get_critical_incidents(db_path="../data/incidents.db"):
 
         # Build the SQL query to get incidents that fall in the critical range
         query = f"""
-        SELECT incident_id, {compliance_metric}
-        FROM incident_alignment_table
-        WHERE incident_id IN ({formatted_incident_ids})
-        AND {compliance_metric} BETWEEN {critical_min} AND {critical_max}
-        ORDER BY {compliance_metric} {sort_order}
+            SELECT incident_id, {compliance_metric}
+            FROM incident_alignment_table
+            WHERE incident_id IN ({formatted_incident_ids})
+            AND {compliance_metric} BETWEEN {critical_min} AND {critical_max}
         """
+
+        # Add the 'whatif_analysis' exclusion clause if applicable
+        whatif_clause = apply_whatif_analysis_filter()
+        if whatif_clause:
+            query += f" AND ({whatif_clause})"
+
+        # Add the ORDER BY clause
+        query += f" ORDER BY {compliance_metric} {sort_order}"
 
         # Execute the query and load the result into a DataFrame
         df = pd.read_sql_query(query, conn)
