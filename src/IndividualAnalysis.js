@@ -139,7 +139,7 @@ const IndividualAnalysis = ({ height, selectionTrigger }) => {
             {/* Averages Section */}
             <div className="averages-section">
                 <div className="average-item">
-                    <div className="average-item-label">AVG TIME TO RESOLVE</div>
+                    <div className="average-item-label">AVG TTR</div>
                     <div className="average-item-value">{individualMetricAverages.average_ttr}</div>
                 </div>
                 <div className="average-item">

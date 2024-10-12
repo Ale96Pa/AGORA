@@ -19,7 +19,7 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
       const containerWidth = svgElement.node().parentNode.clientWidth;
 
       const width = containerWidth;
-      const margin = { top: 50, right: 5, bottom: 30, left: 60 };
+      const margin = { top: 10, right: 5, bottom: 30, left: 60 };
       const innerWidth = width - margin.left - margin.right;
       const innerHeight = height - margin.top - margin.bottom;
 
@@ -152,7 +152,7 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
       const legendSpacing = 4;
 
       // Append legend items
-      legend.selectAll('rect')
+      /*legend.selectAll('rect')
         .data(orderedStates)
         .enter()
         .append('rect')
@@ -172,7 +172,7 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
         .attr('dy', '0.35em')
         .style('font-size', '12px')
         .attr('fill', 'white')
-        .text(d => d);
+        .text(d => d);*/
 
       // Apply zoom behavior
       const zoom = d3.zoom()

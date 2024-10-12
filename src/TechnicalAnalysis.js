@@ -26,6 +26,8 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
 
   const [traces, setTraces] = useState([]);
   const [categoryDistribution, setCategoryDistribution] = useState([]);
+  const [symptomDistribution, setSymptomDistribution] = useState([]);
+  const [locationDistribution, setLocationDistribution] = useState([]);
 
   // Fetch incident technical attributes from the backend using eel
   useEffect(() => {
@@ -33,22 +35,41 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
       try {
         // Call the eel function to get the technical attributes for selected incidents
         const result = await eel.get_incident_technical_attributes()();
-        
-        // Convert the fetched result to JSON
         const incidentData = JSON.parse(result);
-        
-        console.log(incidentData);
-        // Set the traces with the actual data
         setTraces(incidentData);
 
-        // Build the category distribution based on the fetched data
+        // Build the category, symptom, and location distributions
         const categoryCountMap = {};
+        const symptomCountMap = {};
+        const locationCountMap = {};
+
         incidentData.forEach(trace => {
+          // Category Distribution
           const category = trace.category;
           if (categoryCountMap[category]) {
             categoryCountMap[category] += 1;
           } else {
             categoryCountMap[category] = 1;
+          }
+
+          // Symptom Distribution
+          const symptom = trace.symptom;
+          if (symptom !== null) {
+            if (symptomCountMap[symptom]) {
+              symptomCountMap[symptom] += 1;
+            } else {
+              symptomCountMap[symptom] = 1;
+            }
+          }
+
+          // Location Distribution
+          const location = trace.location;
+          if (location !== null) {
+            if (locationCountMap[location]) {
+              locationCountMap[location] += 1;
+            } else {
+              locationCountMap[location] = 1;
+            }
           }
         });
 
@@ -57,8 +78,20 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
           count: categoryCountMap[category],
         }));
 
-        // Sort categoryDistribution by count in descending order
+        const symptomDistributionData = Object.keys(symptomCountMap).map(symptom => ({
+          symptom: parseInt(symptom, 10),
+          count: symptomCountMap[symptom],
+        }));
+
+        const locationDistributionData = Object.keys(locationCountMap).map(location => ({
+          location: parseInt(location, 10),
+          count: locationCountMap[location],
+        }));
+
+        // Sort distributions by count in descending order
         setCategoryDistribution(categoryDistributionData.sort((a, b) => b.count - a.count));
+        setSymptomDistribution(symptomDistributionData.sort((a, b) => b.count - a.count));
+        setLocationDistribution(locationDistributionData.sort((a, b) => b.count - a.count));
       } catch (error) {
         console.error('Failed to fetch technical attributes:', error);
       }
@@ -79,11 +112,11 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
     const innerHeight = height - margin.top - margin.bottom;
 
     const scales = {
-      symptom: [1],
-      impact: d3.range(1, 11),
-      urgency: d3.range(1, 11),
-      priority: d3.range(1, 11),
-      location: [1],
+      symptom: symptomDistribution.map(d => d.symptom),
+      impact: d3.range(1, 5),
+      urgency: d3.range(1, 5),
+      priority: d3.range(1, 5),
+      location: locationDistribution.map(d => d.location),
       category: categoryDistribution.map(d => d.category),
     };
 
@@ -97,7 +130,7 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
 
     // Draw scales
     enabledKeys.forEach((scale, index) => {
-      const xPosition = index * scaleWidth + scaleWidth / 2; // Center the axis and title
+      const xPosition = index * scaleWidth + scaleWidth / 2;
       const scaleGroup = g.append('g')
         .attr('transform', `translate(${xPosition}, 0)`);
 
@@ -125,10 +158,8 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
             const selectedForScale = newSelectedValues[scale];
             
             if (selectedForScale.includes(d)) {
-              // If the value is already selected, remove it
               newSelectedValues[scale] = selectedForScale.filter(value => value !== d);
             } else {
-              // Otherwise, add it to the selected values
               newSelectedValues[scale] = [...selectedForScale, d];
             }
             // Update the backend with the new selected values
@@ -137,7 +168,6 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
           });
         });
 
-      // Add scale title, highlight in red if any value on this axis is selected
       scaleGroup.append('text')
         .attr('x', 0)
         .attr('y', -20)
@@ -147,143 +177,81 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
         .text(scale.charAt(0).toUpperCase() + scale.slice(1));
     });
 
-    // Adjust the yScale for Category to ensure correct alignment
-    const yCategoryScale = d3.scaleBand()
-      .domain(scales.category)
-      .range([0, innerHeight]); // Reverse the range to start from the top
-
-    // Create a map to count the number of occurrences of each link
-    const linkCountMap = {};
-
-    traces.forEach((trace) => {
-      enabledKeys.forEach((key, index) => {
-        if (index < enabledKeys.length - 1) {
-          const nextKey = enabledKeys[index + 1];
-          const linkKey = `${key}-${trace[key]}-${nextKey}-${trace[nextKey]}`;
-
-          if (linkCountMap[linkKey]) {
-            linkCountMap[linkKey] += 1;
-          } else {
-            linkCountMap[linkKey] = 1;
-          }
-        }
-      });
-    });
-
     // Function to determine the color of the trace based on selected values
     const getTraceColor = (trace) => {
-      // Check if there are any selected values
       const hasSelectedValues = Object.values(selectedValues).some(values => values.length > 0);
-
-      // If there are selected values, return red if the trace matches all selected values, else white
       if (hasSelectedValues) {
         return enabledKeys.every(key =>
           selectedValues[key].length === 0 || selectedValues[key].includes(trace[key])
         ) ? 'red' : 'white';
       }
-
-      // If no values are selected, return white
       return 'white';
     };
 
-    // Draw white traces first
+    // Draw traces (white first, then red on top)
     traces.forEach((sampleData, traceIndex) => {
       const trace = enabledKeys.map((key, index) => ({
         x: index * scaleWidth + scaleWidth / 2,
-        y: key === 'category' ? yCategoryScale(sampleData[key]) + yCategoryScale.bandwidth() / 2 : yScales[key](sampleData[key]),
+        y: key === 'category' ? yScales[key](sampleData[key]) : yScales[key](sampleData[key]),
       }));
 
-      const traceColor = getTraceColor(sampleData); // Get the color based on selected values
+      const traceColor = getTraceColor(sampleData);
 
-      // Only draw white traces in this loop
       if (traceColor === 'white') {
         trace.forEach((point, index) => {
           if (index < trace.length - 1) {
             const nextPoint = trace[index + 1];
-            const linkKey = `${enabledKeys[index]}-${sampleData[enabledKeys[index]]}-${enabledKeys[index + 1]}-${sampleData[enabledKeys[index + 1]]}`;
-            const strokeWidth = Math.log10(1 + linkCountMap[linkKey]);
-
             g.append('line')
               .attr('x1', point.x)
               .attr('y1', point.y)
               .attr('x2', nextPoint.x)
               .attr('y2', nextPoint.y)
-              .attr('stroke', traceColor) // Use the determined trace color
-              .attr('stroke-width', strokeWidth)
+              .attr('stroke', traceColor)
+              .attr('stroke-width', 1)
               .attr('opacity', 0.5);
           }
         });
-
-        // Draw trace points for better visibility for each trace
-        g.selectAll(`.trace-point-white-${traceIndex}`)
-          .data(trace)
-          .enter()
-          .append('circle')
-          .attr('class', `trace-point-white-${traceIndex}`)
-          .attr('cx', d => d.x)
-          .attr('cy', d => d.y)
-          .attr('r', 4)
-          .attr('fill', traceColor) // Use the determined trace color
-          .attr('opacity', 0.5);
       }
     });
 
-    // Draw red traces on top of white traces
     traces.forEach((sampleData, traceIndex) => {
       const trace = enabledKeys.map((key, index) => ({
         x: index * scaleWidth + scaleWidth / 2,
-        y: key === 'category' ? yCategoryScale(sampleData[key]) + yCategoryScale.bandwidth() / 2 : yScales[key](sampleData[key]),
+        y: key === 'category' ? yScales[key](sampleData[key]) : yScales[key](sampleData[key]),
       }));
 
-      const traceColor = getTraceColor(sampleData); // Get the color based on selected values
+      const traceColor = getTraceColor(sampleData);
 
-      // Only draw red traces in this loop
       if (traceColor === 'red') {
         trace.forEach((point, index) => {
           if (index < trace.length - 1) {
             const nextPoint = trace[index + 1];
-            const linkKey = `${enabledKeys[index]}-${sampleData[enabledKeys[index]]}-${enabledKeys[index + 1]}-${sampleData[enabledKeys[index + 1]]}`;
-            const strokeWidth = Math.log10(1 + linkCountMap[linkKey]);
-
             g.append('line')
               .attr('x1', point.x)
               .attr('y1', point.y)
               .attr('x2', nextPoint.x)
               .attr('y2', nextPoint.y)
-              .attr('stroke', traceColor) // Use the determined trace color
-              .attr('stroke-width', strokeWidth)
+              .attr('stroke', traceColor)
+              .attr('stroke-width', 1)
               .attr('opacity', 0.5);
           }
         });
-
-        // Draw trace points for better visibility for each trace
-        g.selectAll(`.trace-point-red-${traceIndex}`)
-          .data(trace)
-          .enter()
-          .append('circle')
-          .attr('class', `trace-point-red-${traceIndex}`)
-          .attr('cx', d => d.x)
-          .attr('cy', d => d.y)
-          .attr('r', 4)
-          .attr('fill', traceColor) // Use the determined trace color
-          .attr('opacity', 0.5);
       }
     });
 
-    // Draw the histogram for the Category distribution as a horizontal bar chart
-    const histogramXPosition = enabledKeys.length * scaleWidth + scaleWidth / 2; // Position the histogram to the right
-
+    // Draw histogram for the Category distribution
+    const histogramXPosition = enabledKeys.length * scaleWidth + scaleWidth / 2;
     const xHistogramScale = d3.scaleLinear()
       .domain([0, d3.max(categoryDistribution, d => d.count)])
       .range([0, scaleWidth]);
 
     const yHistogramScale = d3.scaleBand()
       .domain(categoryDistribution.map(d => d.category))
-      .range([0, innerHeight]) // Match the category axis, starting from the top
+      .range([0, innerHeight])
       .padding(0.1);
 
     const histogramGroup = g.append('g')
-      .attr('transform', `translate(${histogramXPosition - scaleWidth / 2}, 0)`); // Align histogram with category axis
+      .attr('transform', `translate(${histogramXPosition - scaleWidth / 2}, 0)`);
 
     histogramGroup.selectAll('.bar')
       .data(categoryDistribution.filter(d => d.count > 0))
@@ -295,53 +263,33 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
       .attr('height', yHistogramScale.bandwidth())
       .attr('fill', 'steelblue');
 
-    // Align the histogram's y-axis with the Category axis
     g.select(`.${enabledKeys[enabledKeys.length - 1]}-axis`).call(d3.axisLeft(yHistogramScale))
       .selectAll('text')
-      .attr('fill', 'white'); // Make the axis text white
+      .attr('fill', 'white');
 
-    // Add the histogram's x-axis for the counts
     histogramGroup.append('g')
       .attr('transform', `translate(0,${innerHeight})`)
       .call(d3.axisBottom(xHistogramScale).ticks(5))
       .selectAll('text')
-      .attr('fill', 'white'); // Make the axis text white
-
-    // Calculate total count for the category
-    const totalCount = categoryDistribution.reduce((acc, cur) => acc + cur.count, 0);
-
-    // Add total count text between category axis and the bar chart
-    histogramGroup.selectAll('.total-count')
-      .data(categoryDistribution.filter(d => d.count > 0))
-      .enter()
-      .append('text')
-      .attr('x', d => -scaleWidth / 4)
-      .attr('y', d => yHistogramScale(d.category) + yHistogramScale.bandwidth() / 2)
-      .attr('dy', '0.35em')
-      .attr('fill', 'white')
-      .attr('text-anchor', 'middle')
-      .style('font-size', '14px')
-      .text(d => `${d.count}`);
-  }, [enabledScales, selectedValues, width, height, categoryDistribution, traces, refreshTrigger]);
+      .attr('fill', 'white');
+  }, [enabledScales, selectedValues, width, height, categoryDistribution, symptomDistribution, locationDistribution, traces, refreshTrigger]);
 
   // Function to update the backend filters
   const updateBackendFilter = async (attribute, values) => {
     const filterPath = `filters.technical_analysis.${attribute}`;
     try {
       if (values.length === 0) {
-        await eel.set_filter_value(filterPath, [])(); // Set to None if no value is selected
+        await eel.set_filter_value(filterPath, [])();
       } else {
-        await eel.set_filter_value(filterPath, values)(); // Update the backend with the selected values
+        await eel.set_filter_value(filterPath, values)();
       }
       globalFilterTrigger();
-      console.log(`Updated filter ${filterPath} to ${values.length === 0 ? 'None' : values}`);
     } catch (error) {
       console.error(`Failed to update filter for ${filterPath}:`, error);
     }
   };
 
   const toggleScale = scale => {
-    // Prevent disabling the Category scale and remove it from the checkbox list
     if (scale !== 'category') {
       setEnabledScales({
         ...enabledScales,

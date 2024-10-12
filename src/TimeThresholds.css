@@ -1,28 +1,53 @@
 .time-thresholds-container {
-    width: 80%;
+    width: 100%;
     margin: 0 auto;
-    background-color: #f5f5f5;
+    background-color: #2c2c2c;
+    /* Dark background */
     padding: 20px;
     border-radius: 10px;
+    color: #fff;
+    /* White text for dark mode */
 }
 
 .settings-name {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     margin-bottom: 10px;
-    color: #333;
+    color: #fff;
+    /* White text */
 }
 
 .state-settings {
-    margin-bottom: 20px;
-    padding: 15px;
-    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #555;
+    /* Lighter dark border */
     border-radius: 8px;
-    background-color: #fff;
+    background-color: #3a3a3a;
+    /* Slightly lighter dark background */
 }
 
 .slider-container {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+}
+
+.rc-slider {
+    height: 4px;
+    /* Reduce the height of the slider */
+}
+
+.rc-slider-handle {
+    width: 14px;
+    height: 14px;
+    background-color: #fff;
+    /* White handle for contrast */
+    border: solid 2px #007bff;
+    /* Blue border for the handle */
+}
+
+.rc-slider-track {
+    background-color: green;
+    /* Adjust track color */
 }
 
 .deviation-settings {
@@ -42,13 +67,20 @@
 
 .deviation-item label {
     font-size: 14px;
-    color: #333;
+    color: #fff;
+    /* White text */
 }
 
 .deviation-item input {
     width: 60px;
     padding: 5px;
     margin-top: 5px;
+    background-color: #2c2c2c;
+    /* Dark input background */
+    color: #fff;
+    /* White text for input */
+    border: 1px solid #555;
+    /* Light border */
 }
 
 .save-button {
@@ -64,4 +96,22 @@
 
 .save-button:hover {
     background-color: #0056b3;
+}
+
+.rc-slider-mark-text {
+    color: #fff;
+    /* White text for marks */
+}
+
+.rc-slider-rail {
+    background-color: #555;
+    /* Adjust rail color for dark mode */
+}
+
+.rc-slider-track {
+    background-color: green;
+}
+
+.rc-slider-dot {
+    border-color: #fff;
 }

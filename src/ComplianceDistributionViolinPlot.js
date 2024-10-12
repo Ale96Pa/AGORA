@@ -13,7 +13,7 @@ const DistributionViolinPlot = ({ height = 500, refreshTrigger }) => {
 
       const width = containerWidth;
       const marginTop = 20;
-      const marginRight = 40;
+      const marginRight = 50;
       const marginBottom = 30;
       const marginLeft = 20;
 

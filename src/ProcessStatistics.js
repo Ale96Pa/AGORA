@@ -143,7 +143,7 @@ const ProcessStatistics = ({ globalFilterTrigger, graphCursorTrigger, refreshTri
                 </div>
               ))}
             </div>]}>
-          <ProcessStateTimes height={150} graphCursorTrigger={graphCursorTrigger} refreshTrigger={refreshTrigger} />
+          <ProcessStateTimes height={120} graphCursorTrigger={graphCursorTrigger} refreshTrigger={refreshTrigger} />
         </Collapsible>
       </div>
     </div>

@@ -96,7 +96,7 @@ const DeviationsBarChart = ({ height, globalFilterTrigger, refreshTrigger }) => 
     // Color scale for deviation types
     const colorScale = d3.scaleOrdinal()
       .domain(['MISSING', 'REPETITION', 'MISMATCH'])
-      .range(['green', 'lime', 'yellow']);
+      .range(['orange', 'red', 'yellow']);
 
     // Create bars
     svg.selectAll('rect')

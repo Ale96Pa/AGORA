@@ -182,7 +182,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                 />
               </div>
             </div>
-            <LinearizedPnmlVisualization height={130} refreshTrigger={refreshTrigger} />
+            <LinearizedPnmlVisualization height={160} refreshTrigger={refreshTrigger} />
           </div>
 
           {/* Common Variants */}
@@ -386,7 +386,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                 />
               </div>
             </div>
-            <IndividualAnalysis height={250} selectionTrigger={selectionTabularTrigger}/>
+            <IndividualAnalysis height={180} selectionTrigger={selectionTabularTrigger}/>
           </div>
           <div className="view" style={{ flex: '0.5'}} ref={individualAnalysisRef}>
             <div className="div-258">

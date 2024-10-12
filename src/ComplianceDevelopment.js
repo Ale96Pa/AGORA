@@ -49,11 +49,11 @@ const ComplianceDevelopment = ({ refreshTrigger }) => {
             <div className="layer-row full-width-trigger">
               {statesData.map((state, i) => (
                 <div className="state-column" key={`comp-${i}`}>
-                  AVG {state.state}<br></br>{state.compliance_metric} {state.comp}
+                  AVG {state.compliance_metric} {state.comp}
                 </div>
               ))}
             </div>]}>
-          <ProcessComplianceBarChart height={150} refreshTrigger={refreshTrigger} />
+          <ProcessComplianceBarChart height={130} refreshTrigger={refreshTrigger} />
         </Collapsible>
       </div>
     </div>

@@ -48,7 +48,8 @@ const TabularAnalysis = ({ refreshTrigger, globalFilterTrigger, selectionTabular
         multiple: true,  // Allow multiple row selection
         width: '100%',
         layout: 'fixed',  // Auto layout for flexible column widths
-        maxWidth: 600
+        maxWidth: 600,
+        height: 180
       });
 
       table.style.tableLayout = "fixed";  // Ensure fixed layout for consistent column widths
