@@ -96,16 +96,14 @@ def fetch_all_security_controls():
         cursor = conn.cursor()
         
         sql_query = """
-        SELECT sc.id, sc.title, sc.description, sc.operator_id, sc.status, GROUP_CONCAT(t.name) AS tags
+        SELECT sc.id, sc.title, sc.description, sc.operator_id, sc.status, sc.evidence, sc.comments
         FROM security_controls sc
-        LEFT JOIN control_tags ct ON sc.id = ct.control_id
-        LEFT JOIN tags t ON ct.tag_id = t.id
         GROUP BY sc.id;
         """
         
         cursor.execute(sql_query)
         controls = cursor.fetchall()
-        controls_list = [{'id': row[0], 'title': row[1], 'description': row[2], 'operator_id': row[3], 'status': row[4], 'tags': row[5] if row[5] else ''} for row in controls]
+        controls_list = [{'id': row[0], 'title': row[1], 'description': row[2], 'operator_id': row[3], 'status': row[4], 'evidence': row[5], 'comments': row[6]} for row in controls]
         
         conn.close()
         return json.dumps(controls_list)

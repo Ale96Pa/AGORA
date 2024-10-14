@@ -6,11 +6,13 @@ import { eel } from './App';
 const EvidenceModal = ({ isVisible, onClose, containerRef }) => {
   const [securityControls, setSecurityControls] = useState([]);
   const [selectedControl, setSelectedControl] = useState('');
+  const [name, setName] = useState('');  // Input for the screenshot name
+  const [comments, setComments] = useState('');  // Input for comments
   const [resultMessage, setResultMessage] = useState('');  // To display the result message
 
   // Handle screenshot capture and save
   const handleLinkViewtoSecurityControl = async () => {
-    if (containerRef && containerRef.current && selectedControl) {
+    if (containerRef && containerRef.current && selectedControl && name) {
       try {
         // Capture the screenshot
         const canvas = await html2canvas(containerRef.current);
@@ -19,13 +21,15 @@ const EvidenceModal = ({ isVisible, onClose, containerRef }) => {
 
         // Call Python function to save screenshot and link to security control
         const result = await eel.save_screenshot_and_link_to_control(
-          base64Screenshot,                 // Screenshot data               
-          selectedControl                   // Security control ID selected from the dropdown
+          base64Screenshot,  // Screenshot data
+          name,              // Name input
+          comments,          // Comments input
+          selectedControl    // Security control ID selected from the dropdown
         )();
 
         // Show the result in the modal
-        if (result && result.assessment_result_id && result.view_id) {
-          setResultMessage(`Screenshot saved and linked to control ID ${selectedControl}. View ID: ${result.view_id}`);
+        if (result && result.assessment_view_id) {
+          setResultMessage(`Screenshot saved and linked to control ID ${selectedControl}. Filename: ${result.filename}`);
         } else {
           setResultMessage('Failed to save screenshot and link to security control.');
         }
@@ -34,7 +38,7 @@ const EvidenceModal = ({ isVisible, onClose, containerRef }) => {
         setResultMessage('An error occurred while saving the screenshot.');
       }
     } else {
-      setResultMessage('Please select a security control before capturing the screenshot.');
+      setResultMessage('Please select a security control and provide a name before capturing the screenshot.');
     }
   };
 
@@ -59,6 +63,16 @@ const EvidenceModal = ({ isVisible, onClose, containerRef }) => {
     setSelectedControl(event.target.value);
   };
 
+  // Handle name input change
+  const handleNameChange = (event) => {
+    setName(event.target.value);
+  };
+
+  // Handle comments input change
+  const handleCommentsChange = (event) => {
+    setComments(event.target.value);
+  };
+
   if (!isVisible) {
     return null;
   }
@@ -79,6 +93,21 @@ const EvidenceModal = ({ isVisible, onClose, containerRef }) => {
             </option>
           ))}
         </select>
+
+        <h2>Provide Screenshot Details</h2>
+        <input
+          type="text"
+          value={name}
+          onChange={handleNameChange}
+          placeholder="Enter screenshot name"
+          className="name-input"
+        />
+        <textarea
+          value={comments}
+          onChange={handleCommentsChange}
+          placeholder="Enter comments"
+          className="comments-input"
+        />
 
         <h2>Capture Screenshot</h2>
         <div className="modal-actions">

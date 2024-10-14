@@ -14,6 +14,8 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
 
     const [name, setName] = useState('');  // For storing input name
     const [type, setType] = useState('finding');  // For storing selected type
+    const [securityControls, setSecurityControls] = useState([]);  // Store fetched security controls
+    const [selectedControl, setSelectedControl] = useState('');  // For storing selected control
     const svgRef = useRef();
 
     // Fetch compliance metric from backend once on mount
@@ -29,6 +31,20 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
 
         fetchComplianceMetric();  // Only run on mount
     }, []);  // Empty dependency array to only fetch once on mount
+
+    // Fetch security controls on component mount
+    useEffect(() => {
+        const fetchControls = async () => {
+            try {
+                const result = await eel.fetch_all_security_controls()();  // Fetch security controls
+                setSecurityControls(JSON.parse(result));  // Parse the result and set the state
+            } catch (error) {
+                console.error('Failed to fetch security controls:', error);
+            }
+        };
+
+        fetchControls();  // Only run once when component mounts
+    }, []);
 
     // Fetch selected incidents whenever `selectionTrigger` changes
     useEffect(() => {
@@ -53,10 +69,15 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
 
     // Handle form submission
     const handleSubmit = async () => {
+        if (!name || !selectedControl) {
+            alert('Please provide a name and select a security control.');
+            return;
+        }
+
         const incidentIdsList = incidentData.map(incident => incident.incident_id).join(',');
         try {
             // Call the Python function to insert the result
-            await eel.insert_assessment_result(name, type, incidentIdsList)();
+            await eel.insert_assessment_result(name, type, incidentIdsList, selectedControl)();  // Pass control ID as well
             updateAssessmentsResultsTrigger();
             alert('Assessment result successfully inserted!');
         } catch (error) {
@@ -148,17 +169,30 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
     };
 
     return (
-         <div className="individual-analysis" style={{ height }}>
-            {/* Form Section for name and type */}
+        <div className="individual-analysis" style={{ height }}>
+            {/* Form Section for name, type, and security control */}
             <div className="form-section-row">
                 <input
                     type="text"
-                    placeholder="Enter name"
+                    placeholder="Enter tag name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="form-input"
                 />
             </div>
+            <div className="form-section-row">
+                <select value={selectedControl} onChange={(e) => setSelectedControl(e.target.value)} className="form-select">
+                    <option value="" disabled>Select a Security Control</option>
+                    {securityControls.map((control) => (
+                        <option key={control.id} value={control.id}>
+                            {control.title}
+                        </option>
+                    ))}
+                </select>
+                
+            </div>
+
+            {/* Security Control Dropdown */}
             <div className="form-section-row">
                 <select value={type} onChange={(e) => setType(e.target.value)} className="form-select">
                     <option value="finding">Finding</option>
@@ -167,6 +201,7 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
                 </select>
                 <button onClick={handleSubmit} className="form-button">Submit</button>
             </div>
+            
 
             {/* Averages Section */}
             <div className="averages-section">

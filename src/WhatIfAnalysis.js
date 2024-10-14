@@ -4,7 +4,7 @@ import './WhatIfAnalysis.css';
 
 const WhatIfAnalysis = ({ height, refreshTrigger, updateTrigger }) => {
   const [assessments, setAssessments] = useState([]);  // Store assessment data (id and name)
-  const [selectedAssessment, setSelectedAssessment] = useState(null);  // Store the selected assessment
+  const [selectedAssessments, setSelectedAssessments] = useState([]);  // Store the selected assessments
   const [isActive, setIsActive] = useState(false);  // Track whether the assessment is active
   const svgRef = useRef();  // Reference for the container element
   const [containerWidth, setContainerWidth] = useState(0);  // Store the container width
@@ -46,22 +46,29 @@ const WhatIfAnalysis = ({ height, refreshTrigger, updateTrigger }) => {
 
   // Handle assessment selection
   const handleAssessmentChange = (event) => {
-    setSelectedAssessment(event.target.value);
+    const options = event.target.options;
+    const selectedValues = [];
+    for (let i = 0, l = options.length; i < l; i++) {
+      if (options[i].selected) {
+        selectedValues.push(options[i].value);
+      }
+    }
+    setSelectedAssessments(selectedValues);  // Update selected assessments
     setIsActive(false);  // Reset the active state when a new assessment is selected
   };
 
   // Handle the "Activate" button click
   const handleActivateClick = async () => {
-    if (selectedAssessment) {
+    if (selectedAssessments.length > 0) {
       try {
         if (!isActive) {
-          // Activate the assessment
-          await eel.apply_what_if_analysis(selectedAssessment)();  
-          console.log(`Applied what-if analysis for assessment ID: ${selectedAssessment}`);
+          // Activate the what-if analysis for all selected assessments
+          await eel.apply_what_if_analysis_multiple(selectedAssessments)();  
+          console.log(`Applied what-if analysis for assessment IDs: ${selectedAssessments.join(', ')}`);
           setIsActive(true);  // Set the state to active
         } else {
-          // Deactivate the assessment
-          await eel.set_filter_value("filters.whatIf_analysis", [])();  // New eel function to clear filters.whatif_analysis
+          // Deactivate the what-if analysis
+          await eel.set_filter_value("filters.whatIf_analysis", [])();  // Clear the filter
           console.log('Cleared what-if analysis');
           setIsActive(false);  // Set the state to inactive
         }
@@ -79,15 +86,15 @@ const WhatIfAnalysis = ({ height, refreshTrigger, updateTrigger }) => {
       ref={svgRef}
       style={{ width: `100%`, height: `${height}px` }}  // Dynamically set width, height is passed as a prop
     >
-      <label htmlFor="assessmentDropdown" className="name">Select Tag:</label>
+      <label htmlFor="assessmentDropdown" className="name">Select Tags:</label>
       <select
         id="assessmentDropdown"
-        value={selectedAssessment || ""}
+        multiple  // Enable multiple selection
+        value={selectedAssessments}
         onChange={handleAssessmentChange}
         className="assessment-dropdown"
         disabled={isActive}  // Disable dropdown when assessment is active
       >
-        <option value="" disabled>Select an assessment</option>
         {assessments.map((assessment) => (
           <option key={assessment.id} value={assessment.id}>
             {assessment.name}
@@ -98,7 +105,7 @@ const WhatIfAnalysis = ({ height, refreshTrigger, updateTrigger }) => {
       <button
         className={`activate-button ${isActive ? 'deactivate' : ''}`}  // Apply 'deactivate' class when active
         onClick={handleActivateClick}
-        disabled={!selectedAssessment}  // Disable button if no assessment is selected
+        disabled={selectedAssessments.length === 0}  // Disable button if no assessment is selected
       >
         {isActive ? 'Deactivate' : 'Activate'}
       </button>

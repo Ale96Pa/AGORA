@@ -63,16 +63,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
     setModalVisible(true);  // Show the modal
   };
 
-  const fetchData = async () => {
-    try {
-      const pnmlData = await getPNML();
-    } catch (error) {
-      console.error('An error occurred:', error);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
     setRefreshTrigger(prev => !prev);
     console.log("works?");
   }, [analysisTrigger]);
@@ -168,7 +159,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/b8802bce4b2328afc3828723fb3f6019547d9405c4147e72d184d0ccb80e867c?"
                   className="img-40"
-                  onClick={() => handleScreenshot(statisticalAnalysisRef)}  // Capture commonVariantsRef
+                  onClick={() => openModalWithRef(statisticalAnalysisRef)}  // Capture commonVariantsRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
@@ -195,7 +186,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
                   className="img-40"
-                  onClick={() => handleScreenshot(referenceModelRef)}  // Capture referenceModelRef
+                  onClick={() => openModalWithRef(referenceModelRef)}  // Capture referenceModelRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
@@ -205,7 +196,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                 />
               </div>
             </div>
-            <LinearizedPnmlVisualization height={160} refreshTrigger={refreshTrigger} />
+            <LinearizedPnmlVisualization height={180} refreshTrigger={refreshTrigger} />
           </div>
 
           {/* Common Variants */}
@@ -220,7 +211,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/b8802bce4b2328afc3828723fb3f6019547d9405c4147e72d184d0ccb80e867c?"
                   className="img-40"
-                  onClick={() => handleScreenshot(commonVariantsRef)}  // Capture commonVariantsRef
+                  onClick={() => openModalWithRef(commonVariantsRef)}  // Capture commonVariantsRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
@@ -246,7 +237,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
                   className="img-40"
-                  onClick={() => handleScreenshot(processStatisticsRef)}  // Capture referenceModelRef
+                  onClick={() => openModalWithRef(processStatisticsRef)}  // Capture referenceModelRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
@@ -269,7 +260,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
                   className="img-40"
-                  onClick={() => handleScreenshot(criticalIncidentsRef)}  // Capture criticalIncidentsRef
+                  onClick={() => openModalWithRef(criticalIncidentsRef)}  // Capture criticalIncidentsRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
@@ -295,7 +286,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
                   className="img-40"
-                  onClick={() => handleScreenshot(complianceDevelopmentRef)}  // Capture referenceModelRef
+                  onClick={() => openModalWithRef(complianceDevelopmentRef)}  // Capture referenceModelRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
@@ -320,7 +311,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
                   className="img-40"
-                  onClick={() => handleScreenshot(complianceDistributionRef)}  // Capture complianceDistributionRef
+                  onClick={() => openModalWithRef(complianceDistributionRef)}  // Capture complianceDistributionRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
@@ -347,7 +338,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/247bed24a7d4f2c3c91739144cd671e38774320b936ec7e542e65ce70b7fb329?"
                   className="img-40"
-                  onClick={() => handleScreenshot(technicalAnalysisRef)}  // Capture technicalAnalysisRef
+                  onClick={() => openModalWithRef(technicalAnalysisRef)}  // Capture technicalAnalysisRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
@@ -372,7 +363,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/247bed24a7d4f2c3c91739144cd671e38774320b936ec7e542e65ce70b7fb329?"
                   className="img-40"
-                  onClick={() => handleScreenshot(tabularAnalysisRef)}  // Capture tabularAnalysisRef
+                  onClick={() => openModalWithRef(tabularAnalysisRef)}  // Capture tabularAnalysisRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
@@ -397,7 +388,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/247bed24a7d4f2c3c91739144cd671e38774320b936ec7e542e65ce70b7fb329?"
                   className="img-40"
-                  onClick={() => handleScreenshot(individualAnalysisRef)}  // Capture individualAnalysisRef
+                  onClick={() => openModalWithRef(individualAnalysisRef)}  // Capture individualAnalysisRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
@@ -420,7 +411,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/247bed24a7d4f2c3c91739144cd671e38774320b936ec7e542e65ce70b7fb329?"
                   className="img-40"
-                  onClick={() => handleScreenshot(whatIfAnalysisRef)}  // Capture individualAnalysisRef
+                  onClick={() => openModalWithRef(whatIfAnalysisRef)}  // Capture individualAnalysisRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
