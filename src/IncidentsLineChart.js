@@ -12,7 +12,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
       const containerWidth = svgElement.node().parentNode.clientWidth;
 
       const width = containerWidth;
-      const margin = { top: 10, right: 5, bottom: 30, left: 30 };
+      const margin = { top: 10, right: 30, bottom: 25, left: 30 };
       const innerWidth = width - margin.left - margin.right;
       const innerHeight = height - margin.top - margin.bottom;
 
@@ -29,7 +29,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
         moderate: d.moderate || 0,
         high: d.high || 0,
         critical: d.critical || 0,
-        total: d.low + d.moderate + d.high + d.critical
+        total: (d.low || 0) + (d.moderate || 0) + (d.high || 0) + (d.critical || 0)
       }));
 
       // Create time scale based on both active and closed incidents' time range
@@ -62,7 +62,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
         .curve(d3.curveMonotoneX);
 
       // Area generator for different severity levels
-      const areaGenerator = (y0Accessor, y1Accessor, color, opacity = 0.5) => d3.area()
+      const areaGenerator = (y0Accessor, y1Accessor) => d3.area()
         .x(d => xScale(new Date(d.time)))
         .y0(y0Accessor)
         .y1(y1Accessor)
@@ -71,36 +71,23 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
       // Area paths for each severity level
       const areaLow = areaGenerator(
         () => innerHeight,
-        d => yScale(d.low),
-        'green'
+        d => yScale(d.low)
       );
 
-      const areamoderate = areaGenerator(
+      const areaModerate = areaGenerator(
         d => yScale(d.low),
-        d => yScale(d.low + d.moderate),
-        'orange'
+        d => yScale(d.low + d.moderate)
       );
 
       const areaHigh = areaGenerator(
         d => yScale(d.low + d.moderate),
-        d => yScale(d.low + d.moderate + d.high),
-        'red'
+        d => yScale(d.low + d.moderate + d.high)
       );
 
       const areaCritical = areaGenerator(
         d => yScale(d.low + d.moderate + d.high),
-        d => yScale(d.total),
-        'purple'
+        d => yScale(d.total)
       );
-
-      // Append active incidents line
-      g.append('path')
-        .datum(parsedData.active_incidents)
-        .attr('fill', 'none')
-        .attr('stroke', 'steelblue')
-        .attr('stroke-width', 2)
-        .attr('class', 'line-active')
-        .attr('d', lineActive);
 
       // Append areas for different severity levels
       g.append('path')
@@ -115,7 +102,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
         .attr('fill', 'orange')
         .attr('opacity', 0.5)
         .attr('class', 'area-moderate')
-        .attr('d', areamoderate);
+        .attr('d', areaModerate);
 
       g.append('path')
         .datum(closedIncidents)
@@ -131,6 +118,15 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
         .attr('class', 'area-critical')
         .attr('d', areaCritical);
 
+      // Append active incidents line
+      g.append('path')
+        .datum(parsedData.active_incidents)
+        .attr('fill', 'none')
+        .attr('stroke', 'steelblue')
+        .attr('stroke-width', 2)
+        .attr('class', 'line-active')
+        .attr('d', lineActive);
+
       // Append the x-axis
       g.append('g')
         .attr('transform', `translate(0,${innerHeight})`)
@@ -142,10 +138,13 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
       g.select('.x-axis path').style('stroke', 'white'); // Set x-axis line color to white
       g.select('.x-axis line').style('stroke', 'white'); // Set x-axis ticks color to white
 
-      // Append the y-axis
+      // Append the y-axis with 5 ticks
       g.append("g")
         .attr("class", "y-axis")
-        .call(d3.axisLeft(yScale).tickSize(-innerWidth).tickPadding(10))
+        .call(d3.axisLeft(yScale)
+          .ticks(5) // Specify 5 ticks on the y-axis
+          .tickSize(-innerWidth)
+          .tickPadding(10))
         .selectAll("text")
         .attr("fill", 'white'); // Set y-axis text color to white
 
@@ -165,7 +164,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
         { color: 'purple', label: 'Closed critical\nseverity' }
       ];
 
-      const legendItemWidth = containerWidth / 5 - 80 ; // Adjust spacing as needed
+      const legendItemWidth = containerWidth / 5 - 80; // Adjust spacing as needed
 
       // Append legend items
       const legendItem = legend.selectAll('.legend-item')
@@ -206,16 +205,21 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
         .on('zoom', (event) => {
           // Rescale x-axis
           const newXScale = event.transform.rescaleX(xScale);
-          g.select('.x-axis').call(d3.axisBottom(newXScale));
+          g.select('.x-axis').call(d3.axisBottom(newXScale).tickPadding(10));
 
           // Update line paths with new x-scale
           g.select('.line-active').attr('d', lineActive.x(d => newXScale(new Date(d.time))));
 
           // Update areas with new x-scale
           g.select('.area-low').attr('d', areaLow.x(d => newXScale(new Date(d.time))));
-          g.select('.area-moderate').attr('d', areamoderate.x(d => newXScale(new Date(d.time))));
+          g.select('.area-moderate').attr('d', areaModerate.x(d => newXScale(new Date(d.time))));
           g.select('.area-high').attr('d', areaHigh.x(d => newXScale(new Date(d.time))));
           g.select('.area-critical').attr('d', areaCritical.x(d => newXScale(new Date(d.time))));
+
+          // Reapply styles to x-axis elements after zoom
+          g.select('.x-axis').selectAll('text').attr('fill', 'white');
+          g.select('.x-axis path').style('stroke', 'white');
+          g.select('.x-axis line').style('stroke', 'white');
         });
 
       // Apply zoom behavior to the SVG
@@ -227,13 +231,13 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
         .on("end", (event) => {
           if (!event.selection) return; // If no selection, ignore
           const [start, end] = event.selection.map(xScale.invert); // Convert pixel values to dates
-          
+
           // Extract date without time
           const startDate = d3.timeFormat("%Y-%m-%d")(start);
           const endDate = d3.timeFormat("%Y-%m-%d")(end);
-          
+
           console.log(`Selected range: ${startDate} to ${endDate}`);
-          
+
           // Store the date without time
           eel.set_filter_value("filters.graph_x-axis-sliders.min_date", startDate)();
           eel.set_filter_value("filters.graph_x-axis-sliders.max_date", endDate)();

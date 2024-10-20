@@ -31,10 +31,7 @@ function DefineSecurityControl({ refreshControls }) {
                     Operator
                     <input type="text" placeholder="Enter assigned operator" className="input-field" value={operatorName} onChange={e => setOperator(e.target.value)} />
                 </label>
-                <div className="tags-container">
-                    <button type="button" className="tag-button" onClick={() => setTags([...tags, 'AV tag'])}>AV tag</button>
-                    <button type="button" className="tag-button" onClick={() => setTags([...tags, 'View tag'])}>View tag</button>
-                </div>
+                
                 <button type="submit" className="save-button">Save</button>
             </form>
         </div>

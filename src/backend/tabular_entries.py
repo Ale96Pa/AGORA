@@ -217,7 +217,7 @@ def get_tabular_incidents_entries(db_path="../data/incidents.db"):
 
         # Format the incident IDs for SQL query
         formatted_incident_ids = ', '.join('?' for _ in incident_ids_selection)
-        compliance_metric = get_incident_compliance_metric()
+        compliance_metric = get_filter_value("filters.compliance_metric")
         incident_id_params = incident_ids_selection
 
         # Build the base SQL query to select the desired columns

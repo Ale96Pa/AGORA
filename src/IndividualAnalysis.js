@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
+import Collapsible from 'react-collapsible';
 import { eel } from './App';  // Import eel to fetch data from the backend
 import './IndividualAnalysis.css';
 
-const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResultsTrigger }) => {
+const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResultsTrigger, updateProgress }) => {
     const [complianceMetric, setComplianceMetric] = useState('');  // Store compliance metric from the backend
     const [individualMetricAverages, setIndividualMetricAverages] = useState({
         average_ttr: '',
@@ -11,11 +12,13 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
         average_compliance_metric: '',
     }); // Store fetched averages from the backend
     const [incidentData, setIncidentData] = useState([]);  // Store incident data
+    const [graphHeight, setGraphHeight] = useState(0);  // State to store graphHeight
 
     const [name, setName] = useState('');  // For storing input name
     const [type, setType] = useState('finding');  // For storing selected type
     const [securityControls, setSecurityControls] = useState([]);  // Store fetched security controls
     const [selectedControl, setSelectedControl] = useState('');  // For storing selected control
+    const [status, setStatus] = useState('');  // For storing selected status
     const svgRef = useRef();
 
     // Fetch compliance metric from backend once on mount
@@ -69,17 +72,18 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
 
     // Handle form submission
     const handleSubmit = async () => {
-        if (!name || !selectedControl) {
-            alert('Please provide a name and select a security control.');
+        if (!name || !selectedControl || !status) {
+            alert('Please provide a name, select a security control, and choose a status.');
             return;
         }
 
         const incidentIdsList = incidentData.map(incident => incident.incident_id).join(',');
         try {
             // Call the Python function to insert the result
-            await eel.insert_assessment_result(name, type, incidentIdsList, selectedControl)();  // Pass control ID as well
+            await eel.insert_assessment_result(name, type, incidentIdsList, selectedControl, status)();  // Pass control ID and status
             updateAssessmentsResultsTrigger();
-            alert('Assessment result successfully inserted!');
+            updateProgress();
+            alert('Assessment result successfully inserted and status updated!');
         } catch (error) {
             console.error('Failed to insert assessment result:', error);
             alert('Failed to insert assessment result');
@@ -91,14 +95,10 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
         const svg = d3.select(svgRef.current);
         svg.selectAll('*').remove();  // Clear previous content
 
+        const margin = { top: 30, right: 30, bottom: 10, left: 65 };
+        const fixedBarHeight = 30;  // Fixed height for each incident row
         const width = 800;  // Total width for the graph
-        const rowHeight = 40;  // Fixed height for each incident row
-        const numRows = Math.max(incidentData.length, 5);  // Ensure at least 5 rows are displayed even if fewer incidents
-        const graphHeight = numRows * rowHeight; // Height based on number of incidents or fixed number of rows
-        const margin = { top: 30, right: 30, bottom: 10, left: 60 };
-
         const innerWidth = width - margin.left - margin.right;
-        const innerHeight = graphHeight - margin.top - margin.bottom;
 
         // Calculate total duration for each incident (sum of event intervals)
         const calculateTotalDuration = (eventIntervals) =>
@@ -116,11 +116,19 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
         // Y-axis based on incident ids
         const yScale = d3.scaleBand()
             .domain(incidentData.map(incident => incident.incident_id))
-            .range([0, innerHeight])
-            .padding(0.2);
+            .range([0, incidentData.length * fixedBarHeight])
+            .paddingInner(0.1)
+            .paddingOuter(0);
 
-        // Create an x-axis generator for time
-        const xAxis = d3.axisTop(xScale).ticks(10).tickFormat(d => `${d} min`);
+        // Calculate the graph height and set it in state
+        const calculatedGraphHeight = yScale.range()[1] + margin.top + margin.bottom;
+        setGraphHeight(calculatedGraphHeight);
+
+        // Create an x-axis generator for time in days
+        const xAxis = d3.axisTop(xScale).ticks(10).tickFormat(d => {
+            const days = d / (60 * 24);  // Convert minutes to days
+            return `${days.toFixed(1)} d`;
+        });
 
         // Create a y-axis generator for incident IDs
         const yAxis = d3.axisLeft(yScale);
@@ -133,6 +141,10 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
             .selectAll('text')
             .style('fill', 'white');  // White text for visibility on dark backgrounds
 
+        // Apply stroke styling directly to x-axis path
+        svg.select('.x-axis').select('path')
+            .attr('stroke', 'white');
+
         // Append the y-axis to the svg
         svg.append('g')
             .attr('class', 'y-axis')
@@ -140,7 +152,11 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
             .call(yAxis)
             .selectAll('text')
             .style('fill', 'white');  // White text for visibility on dark backgrounds
-            
+
+        // Apply stroke styling directly to y-axis path
+        svg.select('.y-axis').select('path')
+            .attr('stroke', 'white');
+
         // Draw the event intervals as horizontal bars
         incidentData.forEach((incident) => {
             let cumulativeDuration = 0;
@@ -170,39 +186,6 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
 
     return (
         <div className="individual-analysis" style={{ height }}>
-            {/* Form Section for name, type, and security control */}
-            <div className="form-section-row">
-                <input
-                    type="text"
-                    placeholder="Enter tag name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="form-input"
-                />
-            </div>
-            <div className="form-section-row">
-                <select value={selectedControl} onChange={(e) => setSelectedControl(e.target.value)} className="form-select">
-                    <option value="" disabled>Select a Security Control</option>
-                    {securityControls.map((control) => (
-                        <option key={control.id} value={control.id}>
-                            {control.title}
-                        </option>
-                    ))}
-                </select>
-                
-            </div>
-
-            {/* Security Control Dropdown */}
-            <div className="form-section-row">
-                <select value={type} onChange={(e) => setType(e.target.value)} className="form-select">
-                    <option value="finding">Finding</option>
-                    <option value="area of concern">Area of Concern</option>
-                    <option value="non-conformaty">Non-Conformaty</option>
-                </select>
-                <button onClick={handleSubmit} className="form-button">Submit</button>
-            </div>
-            
-
             {/* Averages Section */}
             <div className="averages-section">
                 <div className="average-item">
@@ -224,9 +207,64 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
             </div>
 
             {/* Scrollable Incident Details Section */}
-            <div className="details-section-scrollable" style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '400px' }}>
-                <svg ref={svgRef} className="incident-sequence-svg" width="100%" height={incidentData.length * 50 + 50} />
+            <div className="details-section-scrollable">
+                {graphHeight > 0 && (
+                    <svg ref={svgRef} className="incident-sequence-svg" width="100%" height={graphHeight} />
+                )}
             </div>
+
+            <Collapsible
+                trigger={[
+                    <div className="name" key="name">Collect Tag</div>,
+                    <img
+                        key="img"
+                        loading="lazy"
+                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/c9992667147f295b32eec0696cb0fef65388fa9af146ce7034e2a192b713c079?"
+                        className="img-30"
+                        alt="Toggle"
+                    />
+                ]}>
+                {/* Form Section for name, type, security control, and status */}
+                <div className="form-section-row">
+                    <input
+                        type="text"
+                        placeholder="Enter tag name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="form-input"
+                    />
+                </div>
+                <div className="form-section-row">
+                    <select value={selectedControl} onChange={(e) => setSelectedControl(e.target.value)} className="form-select">
+                        <option value="" disabled>Select a Security Control</option>
+                        {securityControls.map((control) => (
+                            <option key={control.id} value={control.id}>
+                                {control.title}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Type Dropdown */}
+                <div className="form-section-row">
+                    <select value={type} onChange={(e) => setType(e.target.value)} className="form-select">
+                        <option value="finding">Finding</option>
+                        <option value="area of concern">Area of Concern</option>
+                        <option value="non-conformity">Non-Conformity</option>
+                    </select>
+                </div>
+
+                {/* Status Dropdown */}
+                <div className="form-section-row">
+                    <select value={status} onChange={(e) => setStatus(e.target.value)} className="form-select">
+                        <option value="" disabled>Select Status</option>
+                        <option value="covered">Covered</option>
+                        <option value="partially covered">Partially Covered</option>
+                        <option value="not covered">Not Covered</option>
+                    </select>
+                    <button onClick={handleSubmit} className="form-button">Submit</button>
+                </div>
+            </Collapsible>
         </div>
     );
 };

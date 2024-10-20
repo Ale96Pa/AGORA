@@ -41,6 +41,9 @@ function App() {
     console.log("here too");
   };
 
+  const handleUpdateProgress = () => {
+    setRefreshTrigger(!refreshTrigger);
+  }
   // Function to toggle between ProcessAnalysis and Reporting views
   const toggleView = () => {
     setShowProcessAnalysis(prevState => !prevState);  // Toggle between true and false
@@ -55,7 +58,7 @@ function App() {
             <SideBar refreshTrigger={refreshTrigger} refreshControls={refreshSecurityControls} />
             {/* Conditionally render ProcessAnalysis or Reporting based on the showProcessAnalysis state */}
             {showProcessAnalysis ? (
-              <ProcessAnalysis analysisTrigger={refreshTrigger} />
+              <ProcessAnalysis analysisTrigger={refreshTrigger} updateProgress={refreshSecurityControls} />
             ) : (
               <Reporting />  // Render Reporting component when showProcessAnalysis is false
             )}

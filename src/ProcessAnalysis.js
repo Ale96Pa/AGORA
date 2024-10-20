@@ -17,6 +17,7 @@ import ProcessStatistics from './ProcessStatistics.js';
 import ComplianceDevelopment from './ComplianceDevelopment.js';
 import WhatIfAnalysis from './WhatIfAnalysis.js';
 import EvidenceModal from './EvidenceModal.js';
+import TimeStatistics from './TimeStatistics.js';
 import html2canvas from 'html2canvas';  // Import html2canvas for screenshot functionality
 
 async function getPNML() {
@@ -33,7 +34,7 @@ async function getPNML() {
   }
 }
 
-const ProcessAnalysis = ({ analysisTrigger}) => {
+const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
   const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [selectionTabularTrigger, setTabularSelectionTrigger] = useState(false);
   const [globalFilterTrigger, setGlobalFilterTrigger] = useState(false);
@@ -96,6 +97,10 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
     setModalVisible(false);
   };
 
+  const handleUpdateProgress = () => {
+    updateProgress();
+  };
+
   // Function to handle the screenshot capture
   const handleScreenshot = async (ref) => {
     if (ref.current) {
@@ -119,6 +124,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
             isVisible={isModalVisible}
             onClose={handleModalClose}
             containerRef={currentRef}  // Pass the correct ref to the modal
+            updateProgress={handleUpdateProgress}
           />
       <div className="div-114">
         <div className="aggregated-view">
@@ -127,7 +133,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
             <div className="view-header">
               <div className="view-title">
                 <div className="view-color" />
-                <div className="view-name">Active & (compliantly) closed incidents</div>
+                <div className="view-name">Incidents Development</div>
               </div>
               <div className="view-options">
                 <img
@@ -144,7 +150,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                 />
               </div>
             </div>
-            <IncidentsLineChart height={150} graphCursorTrigger={handleGraphCursorChange} refreshTrigger={refreshTrigger} />
+            <IncidentsLineChart height={110} graphCursorTrigger={handleGraphCursorChange} refreshTrigger={refreshTrigger} />
           </div>
 
           {/* Statistical Analysis */}
@@ -196,7 +202,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                 />
               </div>
             </div>
-            <LinearizedPnmlVisualization height={180} refreshTrigger={refreshTrigger} />
+            <LinearizedPnmlVisualization height={110} refreshTrigger={refreshTrigger} />
           </div>
 
           {/* Common Variants */}
@@ -226,18 +232,22 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
         </div>
         <div className="aggregated-view">
           {/* Process Statistics */}
-          <div className="view" style={{ flex: '3'}} ref={processStatisticsRef}>
+          <div
+            className="view"
+            style={{ flex: '3', display: 'flex', flexDirection: 'column' , height: 'fixed'}}
+            ref={processStatisticsRef}
+          >
             <div className="view-header">
               <div className="view-title">
                 <div className="view-color" />
-                <div className="view-name">Process Statistics</div>
+                <div className="view-name">Process Activities Analysis</div>
               </div>
               <div className="view-options">
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
                   className="img-40"
-                  onClick={() => openModalWithRef(processStatisticsRef)}  // Capture referenceModelRef
+                  onClick={() => openModalWithRef(processStatisticsRef)} // Capture referenceModelRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
@@ -247,13 +257,42 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                 />
               </div>
             </div>
-            <ProcessStatistics globalFilterTrigger={handleTabularFilterChange} graphCursorTrigger={handleGraphCursorChange} refreshTrigger={refreshTrigger} />
+
+            {/* Content Container */}
+            <div className="view-content" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              {/* ComplianceDevelopment Component */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                <ComplianceDevelopment refreshTrigger={refreshTrigger} />
+              </div>
+
+              <div className="divider" style={{ flex: '0 0 auto' }}></div>
+
+              {/* ProcessStatistics Component */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <ProcessStatistics
+                  globalFilterTrigger={handleTabularFilterChange}
+                  graphCursorTrigger={handleGraphCursorChange}
+                  refreshTrigger={refreshTrigger}
+                />
+              </div>
+
+              <div className="divider" style={{ flex: '0 0 auto' }}></div>
+
+              {/* TimeStatistics Component */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <TimeStatistics
+                  globalFilterTrigger={handleTabularFilterChange}
+                  graphCursorTrigger={handleGraphCursorChange}
+                  refreshTrigger={refreshTrigger}
+                />
+              </div>
+            </div>
           </div>
           <div className="view" style={{ flex: '1'}} ref={criticalIncidentsRef}>
             <div className="view-header">
               <div className="view-title">
                 <div className="view-color"/>
-                <div className="view-name">Most critical Incidents</div>
+                <div className="view-name">Compliance Distribution</div>
               </div>
               <div className="view-options">
                 <img
@@ -270,48 +309,18 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                 />
               </div>
             </div>
-            <CriticalIncidents refreshTrigger={refreshTrigger} height={200} />
-          </div>
-        </div>
-        <div className="aggregated-view">
-          {/* Complaince Development */}
-          <div className="view" style={{ flex: '3'}} ref={complianceDevelopmentRef}>
-            <div className="view-header">
-              <div className="view-title">
-                <div className="view-color" />
-                <div className="view-name">Compliance Development</div>
-              </div>
-              <div className="view-options">
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
-                  className="img-40"
-                  onClick={() => openModalWithRef(complianceDevelopmentRef)}  // Capture referenceModelRef
-                  style={{ cursor: 'pointer' }}
-                />
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/8895bd9f8d97cf1ce797fbfd735df7d6f317969a72619e5b468bb33460611015?"
-                  className="img-41"
-                />
-              </div>
-            </div>
-            <ComplianceDevelopment refreshTrigger={refreshTrigger} />
-          </div>
-
-          {/* Compliance Distribution */}
-          <div className="view" style={{ flex: '1'}} ref={complianceDistributionRef}>
+            <DistributionViolinPlot height={150} refreshTrigger={refreshTrigger} />
             <div className="view-header">
               <div className="view-title">
                 <div className="view-color"/>
-                <div className="view-name">Compliance Distribution</div>
+                <div className="view-name">Critical Incidents</div>
               </div>
               <div className="view-options">
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
                   className="img-40"
-                  onClick={() => openModalWithRef(complianceDistributionRef)}  // Capture complianceDistributionRef
+                  onClick={() => openModalWithRef(criticalIncidentsRef)}  // Capture criticalIncidentsRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
@@ -321,7 +330,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                 />
               </div>
             </div>
-            <DistributionViolinPlot height={150} refreshTrigger={refreshTrigger} />
+            <CriticalIncidents refreshTrigger={refreshTrigger} height={250} />
           </div>
         </div>
         {/* Third row of views */}
@@ -348,7 +357,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                 />
               </div>
             </div>
-            <TechnicalAnalysis height={250} globalFilterTrigger={handleTabularFilterChange} refreshTrigger={refreshTrigger}/>
+            <TechnicalAnalysis height={210} globalFilterTrigger={handleTabularFilterChange} refreshTrigger={refreshTrigger}/>
           </div>
 
           {/* Tabular Analysis */}
@@ -373,7 +382,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                 />
               </div>
             </div>
-            <TabularAnalysis refreshTrigger={refreshTrigger} globalFilterTrigger={handleTabularFilterChange} selectionTabularChange={handleTabularSelectionChange}/>
+            <TabularAnalysis refreshTrigger={refreshTrigger} globalFilterTrigger={globalFilterTrigger} selectionTabularChange={handleTabularSelectionChange}/>
           </div>
 
           {/* Individual Analysis */}
@@ -398,7 +407,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                 />
               </div>
             </div>
-            <IndividualAnalysis height={250} selectionTrigger={selectionTabularTrigger} updateAssessmentsResultsTrigger={handleWhatIfAnalysisUpdate}/>
+            <IndividualAnalysis height={210} selectionTrigger={selectionTabularTrigger} updateAssessmentsResultsTrigger={handleWhatIfAnalysisUpdate} updateProgress={handleUpdateProgress}/>
           </div>
           <div className="view" style={{ flex: '0.5'}} ref={whatIfAnalysisRef}>
             <div className="div-258">
@@ -421,7 +430,7 @@ const ProcessAnalysis = ({ analysisTrigger}) => {
                 />
               </div>
             </div>
-            <WhatIfAnalysis height={250} refreshTrigger={handleSelectionChange} updateTrigger={whatIfAnalysisTrigger}/>
+            <WhatIfAnalysis height={210} refreshTrigger={handleSelectionChange} updateTrigger={whatIfAnalysisTrigger}/>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 /* Set the reporting container and its parents to full height */
 .reporting-container {
     width: 84%;
-    height: 100vh;
+    height: 100%;
     /* Full height of the viewport */
     display: flex;
     flex-direction: column;

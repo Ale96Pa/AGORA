@@ -4,9 +4,10 @@ import 'rc-slider/assets/index.css';
 import './ThresholdSlider.css';
 import { eel } from './App.js';
 
-const ThresholdSlider = ({ onThresholdChange }) => {
+const ThresholdSlider = ({ onSettingsChange }) => {
   // Initialize thresholds with default values
   const [thresholds, setThresholds] = useState([0, 0.25, 0.5, 0.75, 1]);
+  const [selectedMetric, setSelectedMetric] = useState('fitness');
 
   // Use useEffect to asynchronously fetch the initial thresholds
   useEffect(() => {
@@ -29,7 +30,16 @@ const ThresholdSlider = ({ onThresholdChange }) => {
 
   const handleSliderChange = (newThresholds) => {
     setThresholds(newThresholds);
-    onThresholdChange(newThresholds); // Pass the new values back to the parent component
+    onSettingsChange(); // Pass the new values back to the parent component
+  };
+
+  const handleMetricChange = (e) => {
+    const metric = e.target.value;
+    setSelectedMetric(metric);
+    eel.set_incident_compliance_metric(metric)();
+    eel.set_filter_value('filters.compliance_metric', metric);
+    onSettingsChange();
+    console.log(`Selected metric: ${metric}`);
   };
 
   // Send thresholds to backend when the user is done moving the slider
@@ -55,38 +65,56 @@ const ThresholdSlider = ({ onThresholdChange }) => {
   };
 
   return (
-    <div className="threshold-slider-container">
-      <div className="threshold-labels">
-        <div>Critical</div>
-        <div>High</div>
-        <div>Moderate</div>
-        <div>Low</div>
+    <div>
+      <div className="settings-name">COMPLIANCE METRIC</div>
+      {/* Dropdown for metric selection */}
+      <div className="metric-container">
+        <label htmlFor="metric-select" className="metric-label">Select Metric:</label>
+        <select
+          id="metric-select"
+          value={selectedMetric}
+          onChange={handleMetricChange}
+          className="metric-dropdown"
+        >
+          <option value="fitness">Fitness</option>
+          <option value="cost">Non-Compliance Cost</option>
+        </select>
       </div>
 
-      <div className="slider-row">
-        <Slider
-          range
-          min={0}
-          max={1}
-          step={0.01}
-          value={thresholds}
-          onChange={handleSliderChange}    // Update the state during dragging
-          onAfterChange={handleAfterChange} // Save to backend after user stops adjusting
-          marks={{
-            [thresholds[0]]: thresholds[0].toFixed(2),
-            [thresholds[1]]: thresholds[1].toFixed(2),
-            [thresholds[2]]: thresholds[2].toFixed(2), 
-            [thresholds[3]]: thresholds[3].toFixed(2),
-            [thresholds[4]]: thresholds[4].toFixed(2)
-          }}
-          trackStyle={[
-            { backgroundColor: 'purple' },  // Critical range
-            { backgroundColor: 'red' }, // High range
-            { backgroundColor: 'orange' },    // Moderate range
-            { backgroundColor: 'green' } // Low range
-          ]}
-          railStyle={{ backgroundColor: 'lightgrey' }} // Style the rail
-        />
+      {/* Slider for thresholds */}
+      <div className="threshold-slider-container">
+        <div className="threshold-labels">
+          <div>Critical</div>
+          <div>High</div>
+          <div>Moderate</div>
+          <div>Low</div>
+        </div>
+
+        <div className="slider-row">
+          <Slider
+            range
+            min={0}
+            max={1}
+            step={0.01}
+            value={thresholds}
+            onChange={handleSliderChange}    // Update the state during dragging
+            onAfterChange={handleAfterChange} // Save to backend after user stops adjusting
+            marks={{
+              [thresholds[0]]: thresholds[0].toFixed(2),
+              [thresholds[1]]: thresholds[1].toFixed(2),
+              [thresholds[2]]: thresholds[2].toFixed(2), 
+              [thresholds[3]]: thresholds[3].toFixed(2),
+              [thresholds[4]]: thresholds[4].toFixed(2)
+            }}
+            trackStyle={[
+              { backgroundColor: 'purple' },  // Critical range
+              { backgroundColor: 'red' }, // High range
+              { backgroundColor: 'orange' },    // Moderate range
+              { backgroundColor: 'green' } // Low range
+            ]}
+            railStyle={{ backgroundColor: 'lightgrey' }} // Style the rail
+          />
+        </div>
       </div>
     </div>
   );

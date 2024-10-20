@@ -12,9 +12,9 @@ const DistributionViolinPlot = ({ height = 500, refreshTrigger }) => {
       const containerWidth = svgElement.node().parentNode.clientWidth;
 
       const width = containerWidth;
-      const marginTop = 20;
-      const marginRight = 50;
-      const marginBottom = 30;
+      const marginTop = 10;
+      const marginRight = 30;
+      const marginBottom = 20;
       const marginLeft = 20;
 
       // Clear previous SVG content if any
@@ -23,31 +23,33 @@ const DistributionViolinPlot = ({ height = 500, refreshTrigger }) => {
       // Parse the data
       const parsedData = JSON.parse(data).map(d => d.value);
 
-      // Create the vertical scale (y-axis)
-      const y = d3.scaleLinear()
-        .domain([0, d3.max(parsedData)]).nice()
-        .range([height - marginBottom, marginTop]);
+      // Create the horizontal scale (x-axis) for data values
+      const x = d3.scaleLinear()
+        .domain([0, 1]).nice()
+        .range([marginLeft, width - marginRight]);
 
-      const yAxis = d3.axisRight(y);
+      const xAxis = d3.axisBottom(x);
 
       // Create a histogram to get the distribution of data
       const histogram = d3.bin()
-        .domain(y.domain())
-        .thresholds(y.ticks(20)) // Adjust the number of thresholds as needed
+        .domain(x.domain())
+        .thresholds(x.ticks(20)) // Adjust the number of thresholds as needed
         .value(d => d);
 
       const bins = histogram(parsedData);
 
-      // Create the horizontal scale (x-axis) for the density
-      const x = d3.scaleLinear()
-        .range([width - marginRight, marginLeft])
+      // Create the vertical scale (y-axis) for density
+      const y = d3.scaleLinear()
+        .range([height - marginBottom, marginTop])
         .domain([0, d3.max(bins, d => d.length)]);
+
+      const yAxis = d3.axisLeft(y);
 
       // Create the area for the violin plot
       const area = d3.area()
-        .x0(d => x(0))
-        .x1(d => x(d.length))
-        .y(d => y(d.x0))
+        .x(d => x(d.x0))
+        .y0(y(0))
+        .y1(d => y(d.length))
         .curve(d3.curveCatmullRom); // Smooth the curve
 
       // Append the violin plot
@@ -58,30 +60,27 @@ const DistributionViolinPlot = ({ height = 500, refreshTrigger }) => {
         .attr("stroke", "#fff")
         .attr("d", area);
 
-      // Append the y-axis and set its color to white
-      svgElement.append("g")
-        .attr("class", "y-axis")
-        .attr("transform", `translate(${width - marginRight},0)`)
-        .call(yAxis)
-        .selectAll("text")
-        .style("fill", "white"); // Set y-axis text color to white
-
-      svgElement.select(".y-axis path").style("stroke", "white"); // Set y-axis line color to white
-      svgElement.select(".y-axis line").style("stroke", "white"); // Set y-axis ticks color to white
-
-      // Create the x-axis for the top of the y-axis
-      const xAxis = d3.axisTop(x).ticks(5);
-
       // Append the x-axis and set its color to white
       svgElement.append("g")
         .attr("class", "x-axis")
-        .attr("transform", `translate(0,${marginTop})`)
+        .attr("transform", `translate(0,${height - marginBottom})`)
         .call(xAxis)
         .selectAll("text")
-        .style("fill", "white"); // Set x-axis text color to white
+        .style("fill", "white");
 
-      svgElement.select(".x-axis path").style("stroke", "white"); // Set x-axis line color to white
-      svgElement.select(".x-axis line").style("stroke", "white"); // Set x-axis ticks color to white
+      svgElement.select(".x-axis path").style("stroke", "white");
+      svgElement.selectAll(".x-axis line").style("stroke", "white");
+
+      // Append the y-axis and set its color to white
+      svgElement.append("g")
+        .attr("class", "y-axis")
+        .attr("transform", `translate(${marginLeft},0)`)
+        .call(yAxis)
+        .selectAll("text")
+        .style("fill", "white");
+
+      svgElement.select(".y-axis path").style("stroke", "white");
+      svgElement.selectAll(".y-axis line").style("stroke", "white");
 
       // Apply zoom behavior
       svgElement.call(zoom);
@@ -97,8 +96,8 @@ const DistributionViolinPlot = ({ height = 500, refreshTrigger }) => {
 
         function zoomed(event) {
           const newX = event.transform.rescaleX(x);
-          svg.selectAll("path").attr("d", area.x1(d => newX(d.length)));
-          svg.selectAll(".x-axis").call(xAxis.scale(newX)); // Update x-axis with the new scale
+          svg.selectAll("path").attr("d", area.x(d => newX(d.x0)));
+          svg.selectAll(".x-axis").call(xAxis.scale(newX));
           svg.selectAll(".y-axis").call(yAxis);
         }
       }

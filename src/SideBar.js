@@ -7,6 +7,7 @@ import DefineReferenceModelModal from './reference_model_modal.js';
 import DefineLogModal from './log_modal.js';
 import SecurityControlList from './SecurityControlList.js';
 import DefineMapping from './mapping_modal.js';
+import GlobalProgress from './GlobalProgress.js';
 
 function SideBar({ refreshTrigger, refreshControls }) {
     const [showReferenceModelModal, setShowReferenceModelModal] = useState(false);
@@ -72,62 +73,11 @@ function SideBar({ refreshTrigger, refreshControls }) {
                             <div className="div-46" />
                             <div className="div-47">Global Progress</div>
                         </div>
-                        <div className="div-48">
-                            <img
-                                loading="lazy"
-                                src="https://cdn.builder.io/api/v1/image/assets/TEMP/beb1a305b95baf947f21a3c888e57eb1377d900ae2789d0ff3e2a79dc6161017?"
-                                className="img-10"
-                            />
-                            <img
-                                loading="lazy"
-                                src="https://cdn.builder.io/api/v1/image/assets/TEMP/8895bd9f8d97cf1ce797fbfd735df7d6f317969a72619e5b468bb33460611015?"
-                                className="img-11"
-                            />
-                        </div>
+                        
                     </div>
-                    <div className="div-49">
-                        <div className="div-50">Findings</div>
-                        <div className="div-51">Findings</div>
-                        <div className="div-52">...</div>
-                        <img
-                            loading="lazy"
-                            src="https://cdn.builder.io/api/v1/image/assets/TEMP/96e324bffd3186716b48ddd8317790c83b6fb981fc546699e5f0103568d6330e?"
-                            className="img-12"
-                        />
-                        <div className="div-53">
-                            <div className="div-54">
-                                <div className="div-55">
-                                    <img
-                                        loading="lazy"
-                                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/fe66aee1e69c3f4941d3b2cc9048c1d24e77528bae4d81db01266c1799f1a303?"
-                                        className="img-13"
-                                    />
-                                    <div className="div-56">2</div>
-                                </div>
-                                <div className="div-57">
-                                    <img
-                                        loading="lazy"
-                                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/42041b1f88c45ba5845bf847491db1b901a569832d4e3a17ff9b804a384e3ec7?"
-                                        className="img-14"
-                                    />
-                                    <div className="div-58">4</div>
-                                </div>
-                                <div className="div-59">
-                                    <img
-                                        loading="lazy"
-                                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/b93145e73c5b9857de3b957da5dd79a17b758f6a86aa035deef6883b1880ad35?"
-                                        className="img-15"
-                                    />
-                                    <div className="div-60">1/5</div>
-                                </div>
-                            </div>
-                            <img
-                                loading="lazy"
-                                srcSet="..."
-                                className="img-16"
-                            />
-                        </div>
-                    </div>
+                    
+                        <GlobalProgress updateProgress={refreshTrigger}/>
+                    
                 </div>
             </div>
             <SecurityControlList refreshTrigger={refreshTrigger} refreshControls={refreshControls} />

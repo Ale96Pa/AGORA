@@ -1,7 +1,6 @@
 import './progress_bar.css';
 import * as d3 from 'd3';
 import { eel } from './App';
-import tabular from './tabular.js';  // Import tabular function
 
 async function createProgressBar(containerId, metricName, limits = [0, 1], height = 30) {
     // Fetch the severity levels from the backend in the new JSON format

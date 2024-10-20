@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as d3 from 'd3';
 import { eel } from './App';
+import './ProcessComplianceBarChart.css'; // Import the CSS file
 
 const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
   const svgRef = useRef();
@@ -12,6 +13,27 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
     C: true,
   });
 
+  // Mapping from state codes to state names
+  const stateNames = {
+    N: 'detection',
+    A: 'activation',
+    W: 'awaiting',
+    R: 'resolution',
+    C: 'closure',
+  };
+
+  const [complianceMetric, setComplianceMetric] = useState(''); // Add state for complianceMetric
+
+  useEffect(() => {
+    // Fetch compliance metric
+    const fetchComplianceMetric = async () => {
+      const metric = await eel.get_filter_value('filters.compliance_metric')();
+      setComplianceMetric(metric.toUpperCase());
+    };
+
+    fetchComplianceMetric();
+  }, []);
+
   useEffect(() => {
     // Fetch data from the exposed Python function
     eel.get_compliance_per_state_per_incident()().then(data => {
@@ -19,7 +41,7 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
       const containerWidth = svgElement.node().parentNode.clientWidth;
 
       const width = containerWidth;
-      const margin = { top: 10, right: 5, bottom: 30, left: 60 };
+      const margin = { top: 10, right: 10, bottom: 30, left: 30 };
       const innerWidth = width - margin.left - margin.right;
       const innerHeight = height - margin.top - margin.bottom;
 
@@ -29,17 +51,17 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
       // Parse the JSON data
       const parsedData = JSON.parse(data);
 
-      // Process data to calculate compliance scores multiplied by fitness for each state
+      // Process data to calculate compliance scores per state
       const complianceData = parsedData.map(d => {
         const complianceMetric = Object.entries(d.compliance_per_state || {}).reduce((acc, [state, score]) => {
-          acc[state] = score * d.fitness; // Multiply each compliance score by fitness
+          acc[state] = score;
           return acc;
         }, {});
         return {
           incidentId: d.incident_id,
           closedAt: new Date(d.closed_at),
           complianceMetric, // Object with compliance scores per state
-          totalDeviations: d.total_deviations
+          totalDeviations: d.total_deviations,
         };
       });
 
@@ -63,7 +85,7 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
               closedAt: d.closedAt,
               state,
               score,
-              offset: d.offset  // Add offset to each bar
+              offset: d.offset, // Add offset to each bar
             });
           }
         });
@@ -75,8 +97,8 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
       // Set up scales
       const xScale = d3.scaleTime()
         .domain([
-          d3.timeDay.floor(d3.min(flattenedData, d => d.closedAt)),  // Start at the beginning of the first date
-          d3.timeDay.ceil(d3.max(flattenedData, d => d.closedAt))    // End at the end of the last date
+          d3.timeDay.floor(d3.min(flattenedData, d => d.closedAt)), // Start at the beginning of the first date
+          d3.timeDay.ceil(d3.max(flattenedData, d => d.closedAt)), // End at the end of the last date
         ])
         .range([0, innerWidth]);
 
@@ -106,21 +128,21 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
       const stackedData = stack(complianceData);
 
       // Append the bars
-      g.append("g")
-        .attr("class", "bars")
-        .selectAll("g")
+      g.append('g')
+        .attr('class', 'bars')
+        .selectAll('g')
         .data(stackedData)
-        .join("g")
-        .attr("fill", d => colorScale(d.key))
-        .selectAll("rect")
+        .join('g')
+        .attr('fill', d => colorScale(d.key))
+        .selectAll('rect')
         .data(d => d)
-        .join("rect")
-        .attr("x", d => xScale(d.data.closedAt) + (d.data.offset * (barWidth + maxOffset))) // Adjust position based on offset
-        .attr("y", d => yScale(d[1]))
-        .attr("height", d => yScale(d[0]) - yScale(d[1]))
-        .attr("width", barWidth) // Adjust width of bars as needed
-        .append("title") // Add tooltip on hover
-        .text(d => `Incident: ${d.data.incidentId}\nState: ${d.key}\nScore: ${(d[1] - d[0]).toFixed(2)}`);
+        .join('rect')
+        .attr('x', d => xScale(d.data.closedAt) + (d.data.offset * (barWidth + maxOffset))) // Adjust position based on offset
+        .attr('y', d => yScale(d[1]))
+        .attr('height', d => yScale(d[0]) - yScale(d[1]))
+        .attr('width', barWidth) // Adjust width of bars as needed
+        .append('title') // Add tooltip on hover
+        .text(d => `Incident: ${d.data.incidentId}\nState: ${stateNames[d.key]}\nScore: ${(d[1] - d[0]).toFixed(2)}`); // Updated tooltip to show state name
 
       // Append the x-axis
       g.append('g')
@@ -128,89 +150,70 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
         .attr('class', 'x-axis')
         .call(d3.axisBottom(xScale).tickPadding(10))
         .selectAll('text')
-        .attr('fill', 'white');  // Make the axis text white
+        .attr('fill', 'white'); // Make the axis text white
 
       g.select('.x-axis path').style('stroke', 'white'); // Set x-axis line color to white
       g.select('.x-axis line').style('stroke', 'white'); // Set x-axis ticks color to white
 
-      // Append the y-axis
-      g.append("g")
-        .attr("class", "y-axis")
-        .call(d3.axisLeft(yScale).tickSize(-innerWidth).tickPadding(10))
-        .selectAll("text")
-        .attr("fill", 'white'); // Set y-axis text color to white
+      // Append the y-axis with 5 ticks
+      g.append('g')
+        .attr('class', 'y-axis')
+        .call(d3.axisLeft(yScale)
+          .ticks(5) // Specify 5 ticks on the y-axis
+          .tickSize(-innerWidth)
+          .tickPadding(10))
+        .selectAll('text')
+        .attr('fill', 'white'); // Set y-axis text color to white
 
       g.select('.y-axis path').style('stroke', 'white'); // Set y-axis line color to white
       g.select('.y-axis line').style('stroke', 'white'); // Set y-axis ticks color to white
-
-      // Create the legend
-      const legend = svgElement.append('g')
-        .attr('transform', `translate(${margin.left}, ${margin.top - 30})`) // Position legend above the chart
-        .attr('class', 'legend');
-
-      const legendItemSize = 10;
-      const legendSpacing = 4;
-
-      // Append legend items
-      /*legend.selectAll('rect')
-        .data(orderedStates)
-        .enter()
-        .append('rect')
-        .attr('x', (d, i) => i * (legendItemSize + legendSpacing) * 6) // Adjust the x-position for spacing between legend items
-        .attr('y', 0)
-        .attr('width', legendItemSize)
-        .attr('height', legendItemSize)
-        .attr('fill', d => colorScale(d));
-
-      // Append legend text
-      legend.selectAll('text')
-        .data(orderedStates)
-        .enter()
-        .append('text')
-        .attr('x', (d, i) => i * (legendItemSize + legendSpacing) * 6 + legendItemSize + 2)
-        .attr('y', legendItemSize / 2)
-        .attr('dy', '0.35em')
-        .style('font-size', '12px')
-        .attr('fill', 'white')
-        .text(d => d);*/
 
       // Apply zoom behavior
       const zoom = d3.zoom()
         .scaleExtent([1, 1000])
         .translateExtent([[margin.left, margin.top], [containerWidth - margin.right, height - margin.top]])
         .extent([[margin.left, margin.top], [containerWidth - margin.right, height - margin.top]])
-        .on("zoom", (event) => {
+        .on('zoom', (event) => {
           const newXScale = event.transform.rescaleX(xScale);
-          g.selectAll(".bars rect").attr("x", d => newXScale(d.data.closedAt) + (d.data.offset * (barWidth + maxOffset))); // Adjust position on zoom
+          g.selectAll('.bars rect').attr('x', d => newXScale(d.data.closedAt) + (d.data.offset * (barWidth + maxOffset))); // Adjust position on zoom
           g.select('.x-axis').call(d3.axisBottom(newXScale).tickPadding(10));
+
+          // Reapply styles to x-axis elements after zoom
+          g.select('.x-axis').selectAll('text').attr('fill', 'white');
+          g.select('.x-axis path').style('stroke', 'white');
+          g.select('.x-axis line').style('stroke', 'white');
         });
 
       svgElement.call(zoom);
+
     }).catch(error => {
       console.error('Error fetching data:', error);
     });
   }, [height, refreshTrigger, enabledStates]);
 
-  const toggleState = state => {
+  const toggleState = stateCode => {
     setEnabledStates({
       ...enabledStates,
-      [state]: !enabledStates[state],
+      [stateCode]: !enabledStates[stateCode],
     });
   };
 
   return (
     <div>
-      <div className="controls">
-        {Object.keys(enabledStates).map(state => (
-          <label key={state} style={{ color: 'white' }}>
-            <input
-              type="checkbox"
-              checked={enabledStates[state]}
-              onChange={() => toggleState(state)}
-            />
-            {state}
-          </label>
-        ))}
+      <div className="header-row">
+        <div className="name">{complianceMetric} OVER TIME</div>
+        <div className="controls">
+          {Object.keys(enabledStates).map(stateCode => (
+            <label key={stateCode} style={{ color: 'white', marginLeft: '10px' }}>
+              <input
+                type="checkbox"
+                checked={enabledStates[stateCode]}
+                onChange={() => toggleState(stateCode)}
+              />
+              {stateNames[stateCode].toUpperCase()} {/* Display the state name instead of code */}
+            </label>
+          ))}
+        </div>
       </div>
       <svg ref={svgRef} style={{ width: '100%', height: height }} />
     </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { eel } from './App'; // Assuming eel is set up in your App
-import './ProcessIndicatorsVisualization.css'; // Custom CSS for layout and styling
+import './ProcessStatistics.css'; // Custom CSS for layout and styling
 import Collapsible from 'react-collapsible';
 import ProcessStateTimes from './ProcessStateTimes';
 import DeviationsBarChart from './DeviationsBarChart';
@@ -122,28 +122,11 @@ const ProcessStatistics = ({ globalFilterTrigger, graphCursorTrigger, refreshTri
                 key={`deviations-${i}`}
                 style={{ color: state.exceedsThreshold ? 'red' : 'green' }} // Color based on threshold comparison
               >
-                DEV {state.deviations} 
+                TOT DEV {state.deviations} 
               </div>
             ))}
           </div>]}>
           <DeviationsBarChart height={40} globalFilterTrigger={globalFilterTrigger} refreshTrigger={refreshTrigger} />
-        </Collapsible>
-
-        {/* DURATIONS Row */}
-        <Collapsible
-          trigger={[
-            <div className="layer-row full-width-trigger">
-              {statesData.map((state, i) => (
-                <div
-                  className="state-column"
-                  key={`durations-${i}`}
-                  style={{ color: state.durationColor }} // Color based on time thresholds
-                >
-                  AVGt {state.durations}
-                </div>
-              ))}
-            </div>]}>
-          <ProcessStateTimes height={120} graphCursorTrigger={graphCursorTrigger} refreshTrigger={refreshTrigger} />
         </Collapsible>
       </div>
     </div>

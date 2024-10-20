@@ -47,6 +47,8 @@ def get_compliance_per_state_per_incident(db_path="../data/incidents.db"):
             SELECT 
                 incident_id,
                 fitness,
+                cost,
+                variant,
                 missing_deviation,
                 repetition_deviation,
                 mismatch_deviation,
@@ -79,11 +81,14 @@ def get_compliance_per_state_per_incident(db_path="../data/incidents.db"):
 
             # Store the fitness value
             fitness = round(row['fitness'], 2)  # Round fitness to 2 decimal places
+            cost = round(row['cost'], 2)
 
             # Aggregate deviations from missing, repetition, and mismatch deviations
             missing_deviations = count_deviations(row['missing_deviation'])
             repetition_deviations = count_deviations(row['repetition_deviation'])
             mismatch_deviations = count_deviations(row['mismatch_deviation'])
+
+            total_deviations_per_type_per_state = {"missing": missing_deviations, "repetition": repetition_deviations, "mismatch": mismatch_deviations}
 
             # Sum up all deviations per state
             for state, count in missing_deviations.items():
@@ -98,18 +103,33 @@ def get_compliance_per_state_per_incident(db_path="../data/incidents.db"):
             # Calculate the total number of deviations across all states
             total_deviations = sum(total_deviations_per_state.values())
 
+            # Calculate the total number of events from the variant column
+            variant = row['variant']
+            # Count the total events without separating between states
+            total_events = len(variant.split())
+
+            compliance_metric = get_filter_value("filters.compliance_metric")
             # Calculate compliance per state
-            compliance_per_state = calculate_compliance_per_state(total_deviations_per_state, total_deviations)
+            if (compliance_metric == "fitness"):
+                compliance_per_state = calculate_compliance_per_state(total_deviations_per_state, total_deviations)
+                for state in compliance_per_state:    
+                    compliance_per_state[state] *=  fitness
+            else:
+                compliance_per_state = calculate_cost_per_state(total_deviations_per_type_per_state, total_events, get_filter_value("filters.cost_function"))
+
 
             # Prepare the result dictionary for the current incident
             incident_result = {
                 'incident_id': row['incident_id'],
                 'fitness': fitness,
+                'cost': cost,
                 'closed_at': row['closed_at'],
                 'total_deviations_per_state': {state: round(count, 2) for state, count in total_deviations_per_state.items()},
                 'total_deviations': round(total_deviations, 2),
                 'compliance_per_state': {state: round(score, 2) for state, score in compliance_per_state.items()}
             }
+
+            print(incident_result)
 
             # Append the result for the current incident to the results list
             results.append(incident_result)
@@ -153,6 +173,54 @@ def calculate_compliance_per_state(deviations_per_state, total_deviations):
     for state in compliance_scores:
         compliance_scores[state] *= normalization_factor
     return compliance_scores
+
+def calculate_cost_per_state(deviations_per_type_per_state, total_events, cost_function):
+    # Initialize total cost for the process
+    non_compliance_cost_per_state = {}
+
+    print(total_events)
+
+    thresholds = {"missing": False, "repetition": False, "mismatch": False}
+
+    # Loop through all process states of the reference process
+    for state in cost_function["missing"]:
+        # Set of missing deviations
+        deviations_missing = deviations_per_type_per_state["missing"][state]
+        # Set of repetition deviations
+        deviations_repetition = deviations_per_type_per_state["repetition"][state]
+        # Set of mismatch deviations
+        deviations_mismatch = deviations_per_type_per_state["mismatch"][state]
+        
+        # Initialize the non-compliance cost for the current state
+        state_non_compliance_cost = 0
+        
+        # Calculate cost for missing deviations
+        if deviations_missing * cost_function["missing"][state] > 1:
+            state_non_compliance_cost += 1 * cost_function["cost"]["missing"]
+        else:
+            state_non_compliance_cost += deviations_missing * cost_function["missing"][state] * cost_function["cost"]["missing"]
+        
+        # Calculate cost for repetition deviations (normalized by total_events)
+        if deviations_repetition * cost_function["repetition"][state] > 1:
+            state_non_compliance_cost += 1 * cost_function["cost"]["repetition"]
+        else:
+            state_non_compliance_cost += deviations_repetition * cost_function["repetition"][state] * cost_function["cost"]["repetition"] / total_events
+        
+        # Calculate cost for mismatch deviations (normalized by total_events)
+        if deviations_repetition * cost_function["mismatch"][state] > 1:
+            state_non_compliance_cost += 1 * cost_function["cost"]["mismatch"]
+        else:
+            state_non_compliance_cost += deviations_mismatch * cost_function["mismatch"][state] * cost_function["cost"]["mismatch"] / total_events
+        
+        # Add the non-compliance cost of this state to the dictionary
+        non_compliance_cost_per_state[state] = state_non_compliance_cost
+    
+    # Return non-compliance cost per state
+    return non_compliance_cost_per_state
+
+
+
+
 
 @eel.expose
 def get_average_compliance_per_state(db_path="../data/incidents.db"):

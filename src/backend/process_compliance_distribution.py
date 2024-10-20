@@ -14,7 +14,7 @@ def get_compliance_metric_distribution(db_path="../data/incidents.db"):
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 
-        metric_column = get_incident_compliance_metric()
+        metric_column = get_filter_value("filters.compliance_metric")
 
         # Get the selected incident IDs
         incident_ids = get_incident_ids_selection()

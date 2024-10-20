@@ -6,34 +6,40 @@ import json
 assessment_filters = {
     "filters": {
         "compliance_metric": "fitness",
+        "cost_function": {
+            "missing": {"N":0.25,"A":0.25, "W":0, "R":0.25,"C":0.25},
+            "repetition": {"N":0.25,"A":0.25,"W":0.2,"R":0.2,"C":0.1},
+            "mismatch": {"N":0.35,"A":0.35,"W":0.1,"R":0.1,"C":0.1},
+            "cost": {"missing":0.33,"repetition":0.34,"mismatch":0.33},
+        }, 
         "thresholds": {
             "compliance_metric_severity_levels": {
-                "low": ">= 0.75 AND <= 1",
-                "moderate": ">= 0.5 AND < 0.75",
-                "high": ">= 0.25 AND < 0.5",
-                "critical": ">= 0 AND <= 0.25"
+                "low": ">= 0.85 AND <= 1",
+                "moderate": ">= 0.65 AND < 0.85",
+                "high": ">= 0.5 AND < 0.65",
+                "critical": ">= 0 AND <= 0.5"
             },
             "detection": {
-                "acceptableTime": "<= 100",
-                "nonAcceptableTime": ">= 14440",
+                "acceptableTime": "<= 480",
+                "nonAcceptableTime": ">= 720",
                 "deviations": {
-                    "acceptableMissing": "<=100",
+                    "acceptableMissing": "<=20",
                     "acceptableRepetition": "<=50",
                     "acceptableMismatch": "<=5"
                 },
             },
             "activation": {
-                "acceptableTime": "<= 100",
-                "nonAcceptableTime": ">= 14440",
+                "acceptableTime": "<= 1080",
+                "nonAcceptableTime": ">= 1440",
                 "deviations": {
-                    "acceptableMissing": "<=100",
+                    "acceptableMissing": "<=20",
                     "acceptableRepetition": "<=50",
                     "acceptableMismatch": "<=5"
                 },
             },
             "awaiting": {
                 "acceptableTime": "<= 100",
-                "nonAcceptableTime": ">= 5760",
+                "nonAcceptableTime": ">= 2880",
                 "deviations": {
                     "acceptableMissing": "<=100",
                     "acceptableRepetition": "<=50",

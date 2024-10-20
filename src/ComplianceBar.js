@@ -18,7 +18,7 @@ const ComplianceBar = ({ height = 15, globalFilterTrigger, refreshTrigger }) => 
         setLimits([0, 1]);
 
         // Fetch the metric name
-        const fetchedMetricName = await eel.get_incident_compliance_metric()();
+        const fetchedMetricName = await eel.get_filter_value("filters.compliance_metric")();
         console.log("Fetched Metric Name: ", fetchedMetricName);
         setMetricName(fetchedMetricName);
 
@@ -95,10 +95,9 @@ const ComplianceBar = ({ height = 15, globalFilterTrigger, refreshTrigger }) => 
     // Add metric name above the progress bar
     container.append('div')
       .attr('class', 'metric-name')
-      .text(metricName)
+      .text(metricName.toUpperCase())
       .style('text-align', 'center')
-      .style('color', 'white')
-      .style('margin-bottom', '5px');
+      .style('color', 'white');
 
     const svg = container.append('svg')
       .attr('width', '100%')

@@ -35,6 +35,20 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
         }
     };
 
+    // Function to get the CSS class based on status
+    const getStatusClass = (status) => {
+        switch (status.toLowerCase()) {
+            case 'covered':
+                return 'status-covered';
+            case 'partially covered':
+                return 'status-partially-covered';
+            case 'not covered':
+                return 'status-not-covered';
+            default:
+                return '';
+        }
+    };
+
     return (
         <div>
             <div className="div-85">
@@ -62,12 +76,13 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                 <div className="div-103">
                     <div className="div-104">
                         <Collapsible
-                            trigger={[<div className="div-105">Define new Security Control</div>,
-                            <img
-                                loading="lazy"
-                                src="https://cdn.builder.io/api/v1/image/assets/TEMP/c9992667147f295b32eec0696cb0fef65388fa9af146ce7034e2a192b713c079?"
-                                className="img-30"
-                            />]}>
+                            trigger={[
+                                <div className="div-105">Define new Security Control</div>,
+                                <img
+                                    loading="lazy"
+                                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/c9992667147f295b32eec0696cb0fef65388fa9af146ce7034e2a192b713c079?"
+                                    className="img-30"
+                                />]}>
                             <DefineSecurityControl refreshControls={refreshControls} />
                         </Collapsible>
                     </div>
@@ -76,8 +91,10 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                     <div key={index} className="security-control-container">
                         <div className={`security-control-content ${showDeleteOption === control.id ? 'blurred' : ''}`}>
                             <div className="security-control-header">
-                                <div className="security-control-status">{control.status}</div>
-                                <div className="div-109">{control.date || 'Date N/A'}</div>
+                                <div className={`security-control-status ${getStatusClass(control.status)}`}>
+                                    {control.status}
+                                </div>
+                                <div className="div-109">{control.date || ''}</div>
                                 <img
                                     loading="lazy"
                                     src="https://cdn.builder.io/api/v1/image/assets/TEMP/8895bd9f8d97cf1ce797fbfd735df7d6f317969a72619e5b468bb33460611015?"

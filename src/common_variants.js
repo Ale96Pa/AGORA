@@ -1,60 +1,42 @@
-import React, { useEffect, useRef, useState } from 'react';
-import * as d3 from 'd3';
+import React, { useEffect, useState } from 'react';
 import { eel } from './App';
 
 const CommonVariants = ({ height = 500, globalFilterTrigger, refreshTrigger }) => {
-  const containerRef = useRef();
+  const [variantObjects, setVariantObjects] = useState([]);
   const [selectedVariants, setSelectedVariants] = useState([]);
 
   useEffect(() => {
-    // Create the visualization when the component mounts or when refreshTrigger changes
-    const createVisualization = () => {
-      const container = d3.select(containerRef.current);
-
-      // Clear the container first to ensure that old content is removed
-      container.selectAll('*').remove();
-
-      // Fetch the sorted variants from the backend
-      eel.get_sorted_variants_from_db()().then(variants => {
-        // Map the tuple structure to an object for easier manipulation
-        const variantObjects = variants.map(variant => ({
+    // Fetch the sorted variants from the backend
+    const fetchVariants = async () => {
+      try {
+        const variants = await eel.get_sorted_variants_from_db()();
+        const totalVariants = variants.reduce((sum, v) => sum + v[1], 0);
+        const variantObjs = variants.map(variant => ({
           sequence: variant[0],
           count: variant[1],
-          percentage: (variant[1] / variants.reduce((sum, v) => sum + v[1], 0) * 100).toFixed(1) + '%'
+          percentage: ((variant[1] / totalVariants) * 100).toFixed(1) + '%'
         }));
-
-        // Bind the data to the elements and create the variant visualization
-        container.selectAll('div.variant')
-          .data(variantObjects)
-          .enter()
-          .append('div')
-          .attr('class', 'variant')
-          .attr('style', 'padding: 5px; margin: 5px; border-bottom: 1px solid #ccc; cursor: pointer; color: white')
-          .text(d => `${d.count} (${d.percentage}) - ${d.sequence}`)
-          .on('click', function(event, d) {
-            // Toggle selection
-            let updatedSelection;
-            if (selectedVariants.includes(d.sequence)) {
-              // If the clicked variant is already selected, unselect it
-              updatedSelection = selectedVariants.filter(variant => variant !== d.sequence);
-              d3.select(this).style('background-color', null); // Remove highlight
-            } else {
-              // Add the selected variant to the list
-              updatedSelection = [...selectedVariants, d.sequence];
-            }
-            setSelectedVariants(updatedSelection);
-            saveSelectedVariantsToBackend(updatedSelection);
-          });
-
-        // Highlight the selected variants if they are already selected
-        container.selectAll('div.variant')
-          .filter(d => selectedVariants.includes(d.sequence))
-          .style('background-color', '#f0f0f0');
-      });
+        setVariantObjects(variantObjs);
+      } catch (error) {
+        console.error('Error fetching variants:', error);
+      }
     };
 
-    createVisualization();
-  }, [refreshTrigger, selectedVariants]); // The visualization will be recreated when the refreshTrigger or selectedVariants changes
+    fetchVariants();
+  }, [refreshTrigger]);
+
+  const handleVariantClick = async (sequence) => {
+    let updatedSelection;
+    if (selectedVariants.includes(sequence)) {
+      // Deselect the variant
+      updatedSelection = selectedVariants.filter(variant => variant !== sequence);
+    } else {
+      // Select the variant
+      updatedSelection = [...selectedVariants, sequence];
+    }
+    setSelectedVariants(updatedSelection);
+    await saveSelectedVariantsToBackend(updatedSelection);
+  };
 
   const saveSelectedVariantsToBackend = async (variants) => {
     try {
@@ -68,7 +50,25 @@ const CommonVariants = ({ height = 500, globalFilterTrigger, refreshTrigger }) =
   };
 
   return (
-    <div ref={containerRef} style={{ width: '100%', height: height, overflowY: 'auto' }} />
+    <div style={{ width: '100%', height: height, overflowY: 'auto' }}>
+      {variantObjects.map((variant) => (
+        <div
+          key={variant.sequence}
+          className="variant"
+          style={{
+            padding: '5px',
+            margin: '5px',
+            borderBottom: '1px solid #ccc',
+            cursor: 'pointer',
+            color: 'white',
+            backgroundColor: selectedVariants.includes(variant.sequence) ? '#f0f0f0' : null
+          }}
+          onClick={() => handleVariantClick(variant.sequence)}
+        >
+          {`${variant.count} (${variant.percentage}) - ${variant.sequence}`}
+        </div>
+      ))}
+    </div>
   );
 };
 

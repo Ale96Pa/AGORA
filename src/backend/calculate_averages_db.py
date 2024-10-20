@@ -4,7 +4,7 @@ import eel
 from database_filter_variables import *
 
 @eel.expose
-def calculate_column_average(column_name, db_path="../data/incidents.db", table_name="incident_alignment_table"):
+def calculate_column_average(column_name, db_path="../data/incidents.db", table_name="incidents_fa_values_table"):
     """
     Calculate the average value of a specified column in a given SQLite database table,
     only for incidents specified by the `get_incident_ids_selection()` function.
@@ -68,7 +68,7 @@ def calculate_column_average(column_name, db_path="../data/incidents.db", table_
 
 # Example usage
 if __name__ == "__main__":
-    column_name = "fitness"  # Replace with the desired column name
+    column_name = "cost"  # Replace with the desired column name
     average_value = calculate_column_average(column_name)
     
     if average_value is not None:

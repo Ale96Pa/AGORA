@@ -47,6 +47,32 @@ const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
     fetchStatisticalData();
   }, [refreshTrigger]);
 
+  // Helper function to convert minutes to XXd, XXh, XXm format
+  const convertMinutesToReadableFormat = (minutes) => {
+    const days = Math.floor(minutes / (60 * 24));
+    const hours = Math.floor((minutes % (60 * 24)) / 60);
+    const remainingMinutes = Math.floor(minutes % 60);
+
+    const dayText = days > 0 ? `${days}d ` : '';
+    const hourText = hours > 0 ? `${hours}h ` : '';
+    const minuteText = remainingMinutes > 0 ? `${remainingMinutes}m` : '';
+
+    return `${dayText}${hourText}${minuteText}`.trim() || '0m';
+  };
+
+  // Severity levels for TTR
+  const severityLevels = {
+    low: [0, 1440],          // 0-1 day in minutes
+    moderate: [1440, 4320],  // 1-3 days in minutes
+    high: [4320, 10080],     // 3-7 days in minutes
+  };
+
+  const severityColors = {
+    low: 'green',
+    moderate: 'orange',
+    high: 'red',
+  };
+
   // Function to handle bar click events
   const handleBarClick = async (metric, part) => {
     const isCoveredSelected = part === 'covered';
@@ -57,21 +83,17 @@ const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
       falsePositives: 'filters.statistical_analysis.perc_false_positives'
     };
 
-    // Check if the selected part is the same as the current selection
     const isSameSelection = selectedParts[metric] === part;
 
-    // If the same part is clicked again, deselect it
     const newSelectedPart = isSameSelection ? null : part;
 
-    // Update the selected parts in the state
     setSelectedParts((prevSelected) => ({
       ...prevSelected,
       [metric]: newSelectedPart,
     }));
 
     try {
-      // Update the backend filter value based on the click or deselection
-      const filterValue = newSelectedPart ? isCoveredSelected : null; // If deselected, set to None
+      const filterValue = newSelectedPart ? isCoveredSelected : null;
       await eel.set_filter_value(filterKey[metric], filterValue)();
       globalFilterTrigger();
       console.log(`Set filter ${filterKey[metric]} to ${filterValue}`);
@@ -80,12 +102,78 @@ const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
     }
   };
 
-  // Function to render the progress bars using D3
+  // Function to render the progress bar using D3 for TTR
+  const renderTTRProgressBar = (ref, valueInMinutes) => {
+    const container = d3.select(ref.current);
+    const width = container.node().getBoundingClientRect().width;
+    const height = 15;
+    const min = 0;
+    const max = severityLevels.high[1]; // Max time from high severity level
+    const scaledProgress = ((valueInMinutes - min) / (max - min)) * 100;
+    const cappedScaledProgress = Math.min(scaledProgress, 100); // Cap at 100%
+    const adjustedValue = Math.min(valueInMinutes, max); // Adjust value if it exceeds max
+
+    container.selectAll('*').remove(); // Clear previous content
+
+    const svg = container.append('svg')
+      .attr('width', width)
+      .attr('height', height);
+
+    // Create severity ranges
+    Object.keys(severityLevels).forEach(level => {
+      const [rangeStart, rangeEnd] = severityLevels[level];
+      const startPos = (width * (rangeStart - min)) / (max - min);
+      const endPos = (width * (rangeEnd - min)) / (max - min);
+      const severityWidth = endPos - startPos;
+
+      svg.append('rect')
+        .attr('x', startPos)
+        .attr('y', 0)
+        .attr('width', severityWidth > 0 ? severityWidth : 0) // Ensure no negative width
+        .attr('height', height)
+        .attr('fill', severityColors[level]);
+    });
+
+    // Add a dashed line for the actual value
+    const lineX = (cappedScaledProgress / 100) * width;
+    svg.append('line')
+      .attr('x1', lineX)
+      .attr('y1', 0)
+      .attr('x2', lineX)
+      .attr('y2', height)
+      .attr('stroke', 'black')
+      .attr('stroke-dasharray', '4,2')  // Dashed line
+      .attr('stroke-width', 2);
+
+    // Display the readable format of time (XXd, XXh, XXm) in the middle
+    svg.append('text')
+      .attr('x', width / 2)
+      .attr('y', height / 2)
+      .attr('dy', '.35em')
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#000')
+      .text(convertMinutesToReadableFormat(valueInMinutes))
+      .style('font-size', '14px');
+
+    // If value exceeds max, adjust the line and text
+    if (valueInMinutes > max) {
+      // Move dashed line to the right edge
+      svg.select('line')
+        .attr('x1', width)
+        .attr('x2', width);
+
+      // Indicate that the value exceeds the maximum
+      svg.select('text')
+        .text(`${convertMinutesToReadableFormat(valueInMinutes)}+`);
+    }
+  };
+
+  // Function to render the progress bars using D3 for percentage values
   const renderProgressBar = (ref, metric, value, isPercentage = true) => {
     const container = d3.select(ref.current);
     const width = container.node().getBoundingClientRect().width;
     const height = 15;
-    const coveredWidth = (value / (isPercentage ? 100 : 240)) * width; // Adjust max value for non-percentage metrics
+    const coveredWidth = (value / (isPercentage ? 100 : 240)) * width;
     const uncoveredWidth = width - coveredWidth;
 
     container.selectAll('*').remove(); // Clear previous content
@@ -94,7 +182,6 @@ const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
       .attr('width', width)
       .attr('height', height);
 
-    // Covered part of the progress bar
     svg.append('rect')
       .attr('x', 0)
       .attr('y', 0)
@@ -106,7 +193,6 @@ const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
       .style('cursor', 'pointer')
       .on('click', () => handleBarClick(metric, 'covered'));
 
-    // Uncovered part of the progress bar
     svg.append('rect')
       .attr('x', coveredWidth)
       .attr('y', 0)
@@ -118,23 +204,22 @@ const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
       .style('cursor', 'pointer')
       .on('click', () => handleBarClick(metric, 'uncovered'));
 
-    // Text label for progress value
     svg.append('text')
       .attr('x', width / 2)
       .attr('y', height / 2)
       .attr('dy', '.35em')
       .attr('text-anchor', 'middle')
       .attr('fill', '#000')
-      .text(`${value} ${isPercentage ? '%' : ''}`) // Adjust for non-percentage metrics
+      .text(`${value} ${isPercentage ? '%' : ''}`)
       .style('font-size', '14px');
   };
 
   // Use useEffect to render the progress bars whenever the data or selection changes
   useEffect(() => {
     renderProgressBar(slaRef, 'sla', percSLAMet);
-    renderProgressBar(resolveRef, 'resolve', avgToResolve, false); // Pass false for non-percentage metrics
-    renderProgressBar(assignedRef, 'assigned', percAssignedToResolved);
-    renderProgressBar(falsePositivesRef, 'falsePositives', percFalsePositives);
+    renderTTRProgressBar(resolveRef, avgToResolve); // Render TTR bar with severity levels
+    //renderProgressBar(assignedRef, 'assigned', percAssignedToResolved);
+    //renderProgressBar(falsePositivesRef, 'falsePositives', percFalsePositives);
   }, [percSLAMet, avgToResolve, percAssignedToResolved, percFalsePositives, selectedParts]);
 
   return (
@@ -147,6 +232,7 @@ const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
         <div className="name">AVG TTR</div>
         <div ref={resolveRef}></div>
       </div>
+      {/*
       <div className="progress-box">
         <div className="name">ASSIGN/RES.</div>
         <div ref={assignedRef}></div>
@@ -155,6 +241,7 @@ const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
         <div className="name">FALSE POS.</div>
         <div ref={falsePositivesRef}></div>
       </div>
+      */}
     </div>
   );
 };

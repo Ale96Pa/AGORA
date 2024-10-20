@@ -1,55 +1,38 @@
+/* IndividualAnalysis.css */
+
 .individual-analysis {
     display: flex;
     flex-direction: column;
     width: 100%;
-    /* Keep this at 100% of its parent */
 }
 
-
-
-.details-section {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    /* Fix the width to prevent the parent from stretching */
+.details-section-scrollable {
     overflow-x: auto;
-    /* Enable horizontal scrolling */
     overflow-y: auto;
-    max-width: 100%;
-    /* Ensure the container itself doesn't stretch */
-    max-width: 100;
+    max-height: 400px;
+    /* Ensure the container has a fixed max height for scrolling */
+    width: 100%;
 }
 
 .incident-sequence-svg {
     background-color: #1b1b1b;
     min-width: 100%;
-    /* Ensure the SVG can grow but not affect the parent container's width */
-}
-
-
-.x-axis path,
-.y-axis path {
-    stroke: white;
+    /* Ensure the SVG fills the container width */
 }
 
 
 .averages-section {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    /* 3 equal columns */
     grid-template-rows: auto auto;
-    /* 2 rows: one for labels and one for values */
-    gap: 10px;
-    /* Adjust gap as needed */
+    column-gap: 10px;
     text-align: center;
-    /* Center align the text */
     color: white;
 }
 
 .average-item {
     display: flex;
     flex-direction: column;
-    /* Stack label and value vertically */
     justify-content: center;
     align-items: center;
     font-size: 10px;
@@ -64,7 +47,6 @@
 }
 
 .average-item-value {
-    /* Adjust space between label and value */
     font-size: 1em;
 }
 
@@ -72,14 +54,11 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    /* Adds space between the form elements */
     margin-bottom: 5px;
 }
 
 .form-input {
     flex: 1;
-    /* Make input take up available space */
-
     font-size: 16px;
 }
 

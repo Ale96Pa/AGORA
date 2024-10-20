@@ -4,22 +4,29 @@ import json
 from database_filter_variables import *
 
 @eel.expose
-def insert_assessment_result(name, entry_type, incident_ids_list, control_id, db_path="../data/security_controls.db"):
+def insert_assessment_result(name, entry_type, incident_ids_list, control_id, status, db_path="../data/security_controls.db"):
     """
     Inserts a new record into the assessment_results table and links the assessment result to the 
     security control by appending the name to the evidence field.
+    Also updates the status of the security control.
 
     Parameters:
     name (str): The name of the assessment result.
     entry_type (str): The type of the assessment result ('finding', 'area of concern', 'non-conformaty').
     incident_ids_list (str): A comma-separated string of incident IDs.
     control_id (int): The ID of the security control to link the evidence to.
+    status (str): The new status for the security control ('covered', 'partially covered', 'not covered').
     db_path (str): Path to the SQLite database.
     """
     try:
         # Check if the entry_type is valid
-        if entry_type not in ('finding', 'area of concern', 'non-conformaty'):
-            raise ValueError("Invalid entry type. Must be one of: 'finding', 'area of concern', 'non-conformaty'.")
+        if entry_type not in ('finding', 'area of concern', 'non-conformity'):
+            raise ValueError("Invalid entry type. Must be one of: 'finding', 'area of concern', 'non-conformity'.")
+
+        # Validate the status
+        valid_statuses = ['covered', 'partially covered', 'not covered']
+        if status not in valid_statuses:
+            raise ValueError(f"Invalid status '{status}'. Valid statuses are: {valid_statuses}")
 
         # Connect to the SQLite database
         conn = sqlite3.connect(db_path)
@@ -45,19 +52,19 @@ def insert_assessment_result(name, entry_type, incident_ids_list, control_id, db
         else:
             updated_evidence = name
 
-        # Update the evidence field in the security_controls table
+        # Update the evidence and status fields in the security_controls table
         cursor.execute("""
             UPDATE security_controls 
-            SET evidence = ? 
+            SET evidence = ?, status = ? 
             WHERE id = ?
-        """, (updated_evidence, control_id))
+        """, (updated_evidence, status, control_id))
 
         # Commit the transaction and close the connection
         conn.commit()
         cursor.close()
         conn.close()
 
-        print(f"Successfully inserted {entry_type} with name {name} and incident IDs: {incident_ids_list}")
+        print(f"Successfully inserted {entry_type} with name {name}, incident IDs: {incident_ids_list}, and updated status to '{status}'")
         return {"assessment_result_id": assessment_result_id, "control_id": control_id, "updated_evidence": updated_evidence}
 
     except Exception as e:

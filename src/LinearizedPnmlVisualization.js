@@ -132,7 +132,7 @@ const LinearizedPnmlVisualization = ({ height, refreshTrigger }) => {
 
       const width = parent.node().getBoundingClientRect().width;
       const nodeRadius = 40;
-      const nodeYPosition = (height + nodeRadius / 2) / 2 - 35;
+      const nodeYPosition = (height + nodeRadius / 2) / 2 - 5;
 
       // Parse the PNML string
       const parsedPnml = await parsePnml(pnmlString);
@@ -375,7 +375,7 @@ const LinearizedPnmlVisualization = ({ height, refreshTrigger }) => {
             const h = r - Math.sqrt(r * r - (c / 2) * (c / 2));
 
             const labelX = midX;
-            const labelY = sourceNode.y + (arcDirection * (h + 10)); // Position label above the arc
+            const labelY = sourceNode.y + (arcDirection * (h + 0)); // Position label above the arc
 
             arc.labelX = labelX;
             arc.labelY = labelY;

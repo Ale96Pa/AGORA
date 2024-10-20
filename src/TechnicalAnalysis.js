@@ -124,7 +124,7 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
     // Clear previous SVG content
     svg.selectAll('*').remove();
 
-    const margin = { top: 40, right: 10, bottom: 20, left: 10 };
+    const margin = { top: 30, right: 10, bottom: 20, left: 10 };
     const innerWidth = containerWidth - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -439,7 +439,7 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
 
   return (
     <div>
-      <div className="controls" style={{ marginBottom: '20px' }}>
+      <div className="controls" style={{ marginBottom: '5px' }}>
         {Object.keys(enabledScales).filter(scale => scale !== 'category').map(scale => (
           <label key={scale} style={{ color: 'white', marginRight: '10px' }}>
             <input

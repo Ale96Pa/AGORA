@@ -7,16 +7,17 @@ import string
 import json
 
 @eel.expose
-def save_screenshot_and_link_to_control(screenshot_data, name, comments, control_id, db_path="../data/security_controls.db"):
+def save_screenshot_and_link_to_control(screenshot_data, name, comments, control_id, status, db_path="../data/security_controls.db"):
     """
     Saves the screenshot to the filesystem and links it to a security control by updating its evidence field.
-    If the evidence field already contains data, appends the new filename to the existing value separated by ';'.
+    Also updates the status of the security control.
 
     Args:
         screenshot_data (str): Base64 encoded image data of the screenshot.
         name (str): The name of the screenshot file (without extension).
         comments (str): Comments for the screenshot.
         control_id (int): The ID of the security control to link the evidence to.
+        status (str): The new status for the security control ('covered', 'partially covered', 'not covered').
         db_path (str): Path to the SQLite database.
 
     Returns:
@@ -40,6 +41,11 @@ def save_screenshot_and_link_to_control(screenshot_data, name, comments, control
 
         # Ensure control_id is an integer
         control_id = int(control_id)
+
+        # Validate the status
+        valid_statuses = ['covered', 'partially covered', 'not covered']
+        if status not in valid_statuses:
+            raise ValueError(f"Invalid status '{status}'. Valid statuses are: {valid_statuses}")
 
         # Connect to the SQLite database
         conn = sqlite3.connect(db_path)
@@ -65,12 +71,12 @@ def save_screenshot_and_link_to_control(screenshot_data, name, comments, control
         else:
             updated_evidence = filename
 
-        # Update the evidence field in the security_controls table
+        # Update the evidence and status fields in the security_controls table
         cursor.execute("""
             UPDATE security_controls 
-            SET evidence = ? 
+            SET evidence = ?, status = ?
             WHERE id = ?
-        """, (updated_evidence, control_id))
+        """, (updated_evidence, status, control_id))
 
         # Commit the transaction and close the connection
         conn.commit()
@@ -83,6 +89,7 @@ def save_screenshot_and_link_to_control(screenshot_data, name, comments, control
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+
     
 @eel.expose
 def fetch_all_assessment_views(db_path="../data/security_controls.db"):

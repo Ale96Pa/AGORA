@@ -54,7 +54,7 @@
 }
 
 .security-control-operator {
-    color: var(--Text-2-colour, #696969);
+    color: white;
     font-family: Inter, sans-serif;
 }
 
@@ -190,4 +190,21 @@
 
 .div-105 {
     font-family: Inter, sans-serif;
+}
+
+.security-control-status {
+    font-weight: bold;
+    /* Other existing styles */
+}
+
+.status-covered {
+    color: green;
+}
+
+.status-partially-covered {
+    color: orange;
+}
+
+.status-not-covered {
+    color: red;
 }

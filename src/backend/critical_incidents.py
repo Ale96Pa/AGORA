@@ -2,7 +2,9 @@ import sqlite3
 import pandas as pd
 import json
 import eel
+import re  # Import regular expressions module
 from database_filter_variables import *
+
 @eel.expose
 def get_critical_incidents(db_path="../data/incidents.db"):
     """
@@ -19,36 +21,41 @@ def get_critical_incidents(db_path="../data/incidents.db"):
         # Connect to the SQLite database
         conn = sqlite3.connect(db_path)
 
-        # Get the compliance metric column from the function
-        compliance_metric = get_incident_compliance_metric()
+        # Get the compliance metric from the filters
+        compliance_metric = get_filter_value("filters.compliance_metric")
 
-        # Fetch the thresholds for the compliance metric
-        thresholds = json.loads(get_compliance_metric_thresholds())
+        # Fetch the thresholds for the compliance metric using get_filter_value
+        thresholds = get_filter_value("filters.thresholds.compliance_metric_severity_levels")
 
         # Get selected incident IDs
-        formatted_incident_ids = ', '.join(f"'{incident_id}'" for incident_id in get_incident_ids_selection())
+        incident_ids = get_incident_ids_selection()
+        if not incident_ids:
+            return json.dumps([])  # No incidents to process
 
+        formatted_incident_ids = ', '.join(f"'{incident_id}'" for incident_id in incident_ids)
 
-        # Define critical thresholds based on the compliance metric
+        # Define severity level and sort order based on the compliance metric
         if compliance_metric == 'fitness':
-            # For fitness, use the "critical" range from the threshold JSON
-            critical_min = thresholds['critical'][0]  # 0
-            critical_max = thresholds['critical'][1]  # 0.25
-            sort_order = 'ASC'  # Lower values for fitness are more critical
-        elif compliance_metric == 'costTotal':
-            # For costTotal, use the "low" range as the critical range
-            critical_min = thresholds['low'][0]  # 0.75
-            critical_max = thresholds['low'][1]  # 1
-            sort_order = 'DESC'  # Higher values for costTotal are more critical
+            severity_level = 'critical'  # Lower fitness values are more critical
+            sort_order = 'ASC'  # Lower values first
+        elif compliance_metric == 'cost':
+            severity_level = 'low'  # Higher cost values are more critical
+            sort_order = 'DESC'  # Higher values first
         else:
             raise ValueError(f"Unknown compliance metric: {compliance_metric}")
+
+        # Get the threshold string for the severity level
+        threshold_str = thresholds[severity_level]  # e.g., '>= 0 AND <= 0.5'
+
+        # Build the threshold condition for the SQL query
+        threshold_condition = build_threshold_condition(compliance_metric, threshold_str)
 
         # Build the SQL query to get incidents that fall in the critical range
         query = f"""
             SELECT incident_id, {compliance_metric}
-            FROM incident_alignment_table
+            FROM incidents_fa_values_table
             WHERE incident_id IN ({formatted_incident_ids})
-            AND {compliance_metric} BETWEEN {critical_min} AND {critical_max}
+            AND {threshold_condition}
         """
 
         # Add the 'whatif_analysis' exclusion clause if applicable
@@ -74,6 +81,32 @@ def get_critical_incidents(db_path="../data/incidents.db"):
     finally:
         # Close the database connection
         conn.close()
+
+def build_threshold_condition(compliance_metric, threshold_str):
+    """
+    Builds a SQL condition string by embedding the compliance metric into the threshold expressions.
+
+    Args:
+        compliance_metric (str): The compliance metric column name.
+        threshold_str (str): The threshold expression string, e.g., '>= 0 AND <= 0.5'.
+
+    Returns:
+        str: A SQL condition string with the compliance metric applied to each condition.
+    """
+    # Split the threshold_str into tokens using 'AND' or 'OR' as delimiters
+    tokens = re.split(r'\s+(AND|OR)\s+', threshold_str)
+    conditions = []
+    for token in tokens:
+        token = token.strip()
+        if token in ('AND', 'OR'):
+            # Logical operators are added directly
+            conditions.append(token)
+        else:
+            # Prepend the compliance metric to each condition
+            conditions.append(f"{compliance_metric} {token}")
+    # Join the conditions back into a single string
+    condition_str = ' '.join(conditions)
+    return condition_str
 
 # Example usage
 if __name__ == "__main__":

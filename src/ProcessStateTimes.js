@@ -15,7 +15,7 @@ const ProcessStateTimes = ({ height = 500, graphCursorTrigger, refreshTrigger })
 
   const formatTimeForYAxis = (minutes) => {
     const days = Math.floor(minutes / 1440); // Convert minutes to days (1440 minutes in a day)
-    return `${days} d`;
+    return `${days}d`;
   };
 
   // Function to calculate the moving average
@@ -35,7 +35,7 @@ const ProcessStateTimes = ({ height = 500, graphCursorTrigger, refreshTrigger })
       const containerWidth = svgElement.node().parentNode.clientWidth;
 
       const width = containerWidth;
-      const margin = { top: 20, right: 5, bottom: 30, left: 60 };
+      const margin = { top: 10, right: 10, bottom: 25, left: 30 };
       const innerWidth = width - margin.left - margin.right;
       const innerHeight = height - margin.top - margin.bottom;
 
@@ -118,16 +118,6 @@ const ProcessStateTimes = ({ height = 500, graphCursorTrigger, refreshTrigger })
             .tickPadding(10)
             .tickFormat(format)
           );
-
-        // Remove the upper grid line on the max y value
-        g.select('.y-axis').selectAll('.tick line')
-          .filter(d => d === yDomain[1])
-          .remove();
-
-        // Style the y-axis text and lines
-        g.select('.y-axis').selectAll('text').attr('fill', 'white');
-        g.select('.y-axis path').style('stroke', 'white');
-        g.select('.y-axis line').style('stroke', 'white');
       };
 
       // Initial y-axis setup
@@ -135,20 +125,23 @@ const ProcessStateTimes = ({ height = 500, graphCursorTrigger, refreshTrigger })
         .attr('class', 'y-axis')
         .call(d3.axisLeft(yScale).tickSize(-innerWidth).tickPadding(10))
         .selectAll('text')
-        .attr('fill', 'white');  // Make the axis text white
+        .attr('fill', 'white') // Make the axis text white
+        .style('font-size', '9.5px'); // Make font size smaller
 
-      g.select('.y-axis path').style('stroke', 'white'); // Make y-axis line white
+      g.select('.y-axis path').style('stroke', 'white'); // Set y-axis line color to white
+      g.select('.y-axis line').style('stroke', 'white'); // Set y-axis ticks color to white
 
-      // Initial x-axis setup
+      // Append the x-axis
       g.append('g')
         .attr('transform', `translate(0,${innerHeight})`)
         .attr('class', 'x-axis')
         .call(d3.axisBottom(xScale).tickPadding(10))
         .selectAll('text')
-        .attr('fill', 'white');  // Make the axis text white
+        .attr('fill', 'white'); // Make the axis text white
 
-      g.select('.x-axis path').style('stroke', 'white'); // Make x-axis line white
-      
+      g.select('.x-axis path').style('stroke', 'white'); // Set x-axis line color to white
+      g.select('.x-axis line').style('stroke', 'white'); // Set x-axis ticks color to white
+
       // Draw connecting lines between points for each incident
       const lineSelection = g.selectAll('.line')
         .data(parsedData['_lines'])
@@ -224,7 +217,7 @@ const ProcessStateTimes = ({ height = 500, graphCursorTrigger, refreshTrigger })
           const endDate = d3.timeFormat("%Y-%m-%d")(end);
 
           console.log(`Selected range: ${startDate} to ${endDate}`);
-          
+
           // Store the date without time in filters
           eel.set_filter_value("filters.graph_x-axis-sliders.min_date", startDate)();
           eel.set_filter_value("filters.graph_x-axis-sliders.max_date", endDate)();
@@ -295,19 +288,22 @@ const ProcessStateTimes = ({ height = 500, graphCursorTrigger, refreshTrigger })
 
   return (
     <div>
-      <div className="controls">
-        {Object.keys(enabledStates).map(state => (
-          <label key={state} style={{ color: 'white' }}>
-            <input
-              type="checkbox"
-              checked={enabledStates[state]}
-              onChange={() => toggleState(state)}
-            />
-            {state.charAt(0).toUpperCase() + state.slice(1)}
-          </label>
-        ))}
+      <div className="header-row">
+        <div className='name'>ACTIVITY DURATIONS OVER TIME</div>
+        <div className="controls">
+          {Object.keys(enabledStates).map(state => (
+            <label key={state} style={{ color: 'white', marginLeft: '10px' }}>
+              <input
+                type="checkbox"
+                checked={enabledStates[state]}
+                onChange={() => toggleState(state)}
+              />
+              {state.toUpperCase()}
+            </label>
+          ))}
+        </div>
       </div>
-      <svg ref={svgRef} style={{ width: '100%', height: `${height}px`}} />
+      <svg ref={svgRef} style={{ width: '100%', height: `${height}px` }} />
     </div>
   );
 };

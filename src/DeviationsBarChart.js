@@ -10,13 +10,14 @@ const DeviationsBarChart = ({ height, globalFilterTrigger, refreshTrigger }) => 
     repetition: [],
     mismatch: [],
   }); // To track selected states for each deviation type
-  const [containerWidth, setContainerWidth] = useState(0);
 
-  // Function to fetch state mapping and deviations data
+  // Function to fetch state mapping, deviations data, and assessment filters
   const fetchStateMapping = async () => {
     try {
       const stateMapping = await eel.read_mapping_from_file()(); // Fetch state mapping
       const deviations = await eel.count_frequencies()(); // Fetch deviations data
+      const filters = await eel.get_filter_value('filters')();
+      const assessmentFilters = filters.thresholds;
 
       // Process the data to fit the required structure
       const statesArray = Object.keys(stateMapping).map((state) => {
@@ -24,7 +25,16 @@ const DeviationsBarChart = ({ height, globalFilterTrigger, refreshTrigger }) => 
         const missing = deviations.missing[stateId] || 0;
         const repetition = deviations.repetition[stateId] || 0;
         const mismatch = deviations.mismatch[stateId] || 0;
-        const totalDeviations = missing + repetition + mismatch;
+
+        // Get acceptable thresholds for the state and deviation type
+        const acceptableMissing = parseInt(assessmentFilters[state].deviations.acceptableMissing.replace('<=', ''), 10);
+        const acceptableRepetition = parseInt(assessmentFilters[state].deviations.acceptableRepetition.replace('<=', ''), 10);
+        const acceptableMismatch = parseInt(assessmentFilters[state].deviations.acceptableMismatch.replace('<=', ''), 10);
+
+        // Determine if deviations exceed thresholds
+        const missingExceeds = missing > acceptableMissing;
+        const repetitionExceeds = repetition > acceptableRepetition;
+        const mismatchExceeds = mismatch > acceptableMismatch;
 
         return {
           stateName: stateId,
@@ -33,14 +43,18 @@ const DeviationsBarChart = ({ height, globalFilterTrigger, refreshTrigger }) => 
             REPETITION: repetition,
             MISMATCH: mismatch,
           },
-          totalDeviations: totalDeviations, // Store the sum of deviations
+          exceedsThreshold: {
+            MISSING: missingExceeds,
+            REPETITION: repetitionExceeds,
+            MISMATCH: mismatchExceeds,
+          },
+          totalDeviations: missing + repetition + mismatch, // Store the sum of deviations
         };
       });
 
       setDeviationData(statesArray);
-
     } catch (error) {
-      console.error('Error fetching state mapping:', error);
+      console.error('Error fetching state mapping or assessment filters:', error);
     }
   };
 
@@ -52,14 +66,14 @@ const DeviationsBarChart = ({ height, globalFilterTrigger, refreshTrigger }) => 
 
     if (currentFilter.includes(stateName)) {
       // If state is already selected, remove it from the filter array
-      updatedFilter = currentFilter.filter(item => item !== stateName);
+      updatedFilter = currentFilter.filter((item) => item !== stateName);
     } else {
       // If state is not selected, add it to the filter array
       updatedFilter = [...currentFilter, stateName];
     }
 
     // Update the selected filters state
-    setSelectedFilters(prevState => ({
+    setSelectedFilters((prevState) => ({
       ...prevState,
       [deviationKey]: updatedFilter,
     }));
@@ -77,38 +91,36 @@ const DeviationsBarChart = ({ height, globalFilterTrigger, refreshTrigger }) => 
   // Function to render bar chart for a single state
   const renderBarChart = (data, width, height, container) => {
     const paddingTop = 20; // Padding above the chart for visibility of counts
-    const svgHeight = height + paddingTop; // Increase the total SVG height
+    const paddingBottom = 5;
+    const svgHeight = height + paddingTop + paddingBottom; // Increase the total SVG height
 
-    const svg = d3.select(container).append('svg')
-      .attr('width', width)
-      .attr('height', svgHeight); // Set the increased SVG height
+    const svg = d3.select(container).append('svg').attr('width', width).attr('height', svgHeight);
 
     // X and Y scales
-    const xScale = d3.scaleBand()
+    const xScale = d3
+      .scaleBand()
       .domain(['MISSING', 'REPETITION', 'MISMATCH'])
       .range([0, width])
       .paddingOuter(1);
 
-    const yScale = d3.scaleLinear()
-      .domain([0, data.totalDeviations])
-      .range([height, paddingTop]); // Adjust range to account for padding at the top
-
-    // Color scale for deviation types
-    const colorScale = d3.scaleOrdinal()
-      .domain(['MISSING', 'REPETITION', 'MISMATCH'])
-      .range(['orange', 'red', 'yellow']);
+    const yScale = d3.scaleLinear().domain([0, data.totalDeviations]).range([height, paddingTop]); // Adjust range
 
     // Create bars
-    svg.selectAll('rect')
+    svg
+      .selectAll('rect')
       .data(Object.entries(data.deviations))
       .enter()
       .append('rect')
-      .attr('x', d => xScale(d[0]))
-      .attr('y', d => yScale(d[1]))
+      .attr('x', (d) => xScale(d[0]))
+      .attr('y', (d) => yScale(d[1]))
       .attr('width', xScale.bandwidth())
-      .attr('height', d => height - yScale(d[1]))
-      .attr('fill', d => colorScale(d[0]))
-      .attr('stroke', d => selectedFilters[d[0].toLowerCase()].includes(data.stateName) ? 'blue' : 'none') // Add blue stroke if selected
+      .attr('height', (d) => height - yScale(d[1]))
+      .attr('fill', (d) => {
+        const deviationType = d[0];
+        const exceedsThreshold = data.exceedsThreshold[deviationType];
+        return exceedsThreshold ? 'red' : 'green'; // Set color based on threshold comparison
+      })
+      .attr('stroke', (d) => (selectedFilters[d[0].toLowerCase()].includes(data.stateName) ? 'blue' : 'none')) // Add blue stroke if selected
       .attr('stroke-width', 2)
       .style('cursor', 'pointer') // Indicate that bars are clickable
       .on('click', (event, d) => {
@@ -117,19 +129,21 @@ const DeviationsBarChart = ({ height, globalFilterTrigger, refreshTrigger }) => 
       });
 
     // Add text for each bar to show the number of deviations
-    svg.selectAll('text')
+    svg
+      .selectAll('text')
       .data(Object.entries(data.deviations))
       .enter()
       .append('text')
-      .attr('x', d => xScale(d[0]) + xScale.bandwidth() / 2)  // Center text in the bar
-      .attr('y', d => yScale(d[1]) - 5)  // Position above the bar
+      .attr('x', (d) => xScale(d[0]) + xScale.bandwidth() / 2) // Center text in the bar
+      .attr('y', (d) => yScale(d[1]) - 5) // Position above the bar
       .attr('text-anchor', 'middle')
-      .attr('fill', 'white')  // Text color
-      .style('font-size', '10px')  // Font size
-      .text(d => d[1]);  // Display the deviation value
+      .attr('fill', 'white') // Text color
+      .style('font-size', '10px') // Font size
+      .text((d) => d[1]); // Display the deviation value
 
     // Add X-axis with ticks and labels but hide the axis line
-    const xAxis = svg.append('g')
+    const xAxis = svg
+      .append('g')
       .attr('transform', `translate(0, ${height})`)
       .call(d3.axisBottom(xScale).tickSize(0));
 
@@ -137,7 +151,8 @@ const DeviationsBarChart = ({ height, globalFilterTrigger, refreshTrigger }) => 
     xAxis.select('path').remove();
 
     // Style and adjust the labels
-    xAxis.selectAll('.tick text')
+    xAxis
+      .selectAll('.tick text')
       .attr('fill', 'white')
       .style('font-size', '8px')
       .attr('dx', (d, i) => {
@@ -160,21 +175,21 @@ const DeviationsBarChart = ({ height, globalFilterTrigger, refreshTrigger }) => 
   useEffect(() => {
     if (deviationData.length > 0 && containerRef.current) {
       const containerWidth = containerRef.current.getBoundingClientRect().width;
-      setContainerWidth(containerWidth);
 
       d3.select(containerRef.current).selectAll('*').remove();
 
       const chartWidth = containerWidth / deviationData.length;
 
       // Render a chart for each state
-      deviationData.forEach((index) => {
-        const chartContainer = d3.select(containerRef.current)
+      deviationData.forEach((data) => {
+        const chartContainer = d3
+          .select(containerRef.current)
           .append('div')
           .attr('class', 'state-chart')
           .style('width', `${chartWidth}px`)
           .style('display', 'inline-block');
 
-        renderBarChart(index, chartWidth, height, chartContainer.node());
+        renderBarChart(data, chartWidth, height, chartContainer.node());
       });
     }
   }, [deviationData, selectedFilters]); // Re-render when selectedFilters changes

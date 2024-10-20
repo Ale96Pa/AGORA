@@ -187,6 +187,11 @@ const Reporting = () => {
                             src={`data:image/png;base64,${result.encoded_image}`}
                             alt="Assessment Screenshot"
                             className="assessment-screenshot"
+                            style={{
+                              maxHeight: '300px',
+                              maxWidth: '100%',
+                              objectFit: 'contain',
+                            }}
                           />
                         ) : (
                           <p>No image available</p>
