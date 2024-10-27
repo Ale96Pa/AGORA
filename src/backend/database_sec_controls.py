@@ -53,7 +53,7 @@ def create_tables(conn):
         print(e)
 
 @eel.expose
-def insert_security_control(title, description, operator_name, tags, status='not covered'):
+def insert_security_control(title, description, operator_name, status='not covered'):
     """Insert a security control and its associated tags into the database."""
     try:
         database = "../data/security_controls.db"  # Path to the database file
@@ -64,21 +64,6 @@ def insert_security_control(title, description, operator_name, tags, status='not
         cursor.execute("INSERT INTO security_controls (title, description, operator_id, status) VALUES (?, ?, ?, ?)",
                        (title, description, operator_name, status))
         control_id = cursor.lastrowid  # Fetch the last inserted id
-
-        # Inserting tags into tags table and linking them
-        for tag in tags:
-            # Check if the tag already exists
-            cursor.execute("SELECT id FROM tags WHERE name=?", (tag,))
-            tag_id = cursor.fetchone()
-            if tag_id:
-                tag_id = tag_id[0]
-            else:
-                # Insert the tag if it does not exist
-                cursor.execute("INSERT INTO tags (name) VALUES (?)", (tag,))
-                tag_id = cursor.lastrowid
-
-            # Insert into control_tags table
-            cursor.execute("INSERT INTO control_tags (control_id, tag_id) VALUES (?, ?)", (control_id, tag_id))
 
         conn.commit()
         print("Security control and tags inserted successfully.")
@@ -179,12 +164,10 @@ def main():
 
     # Example security control data
     example_data = [
-        ("Non-compliance cost", "check average NCC", "Manager", ["High Level Overview", "NCC Meter"], 'not covered'),
-        ("Security Audit", "Annual security audit", "Auditor", ["Audit", "Annual"], 'partially covered'),
-        ("Access Control", "Review access control measures", "Admin", ["Access", "Control"], 'partially covered'),
-        ("Data Encryption", "Encrypt sensitive data", "Security Team", ["Encryption", "Data"], 'covered'),
-        ("Firewall Management", "Regularly update firewall rules", "Network Admin", ["Firewall", "Update"], 'covered'),
-        ("Incident Response", "Incident response plan", "Security Officer", ["Incident", "Response"], 'covered')
+        ("Perform assessment for Q4 2016", "The assessment period shall be limited to 01/10/2016 - 01/01/2017", "Manager"),
+        ("Check process activities", "Perform activity-wise analysis and identify possible process errors", "Monitor"),
+        ("Check technical attributes", "Identify patterns in affected service categories and determine their KPIs", "Responder"),
+        ("Verify impact on service performance", "Perform What-if analysis excluding the identified incident ranges", "Analyst")
     ]
 
     for data in example_data:
@@ -193,13 +176,6 @@ def main():
     controls = fetch_all_security_controls()
     print("All security controls:", controls)
 
-    # Example: Delete a security control by ID
-    control_id = 1  # Specify the ID of the security control to be deleted
-    delete_security_control(control_id)
-
-    # Re-fetch all controls to verify deletion
-    controls = fetch_all_security_controls()
-    print("After deletion:", controls)
 
 if __name__ == '__main__':
     main()
