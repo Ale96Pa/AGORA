@@ -9,7 +9,9 @@ Frontend and backend are connected via eel. Data are stored inside /my_app/src/d
 
 ## Javascript
 
+npm
 react
+npm i d3
 
 ## Python
 
