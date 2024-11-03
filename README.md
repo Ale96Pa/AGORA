@@ -9,7 +9,7 @@ Frontend and backend are connected via eel. Data are stored inside /my_app/src/d
 
 Prior to running the application, run in root directory:
 
-### `pip install -r requirements. txt`
+### `pip install -r requirements.txt`
 
 To install necessary python dependencies.
 
