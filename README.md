@@ -7,25 +7,26 @@ Frontend and backend are connected via eel. Data are stored inside /my_app/src/d
 
 # Dependencies
 
-## Javascript
+Prior to running the application, run in root directory:
 
-npm
-react
-npm i d3
+### `pip install -r requirements. txt`
 
-## Python
+To install necessary python dependencies.
 
-eel
+### `npm install`
+
+To install necessary JavaScript dependencies.
+
 
 # Run the application
 
 Start backend:
-Run 'source venv/bin/activate' inside root directory to activate the virtual python environment
 Inside /src/backend directory run 'python3 server.py true'
 
 Afterwards in second terminal start the frontend from root directory by calling 'npm start'
 
-# README FROM REACT + EEL TEPMLATE
+
+# DEPRECATED: README FROM REACT + EEL TEPMLATE
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
