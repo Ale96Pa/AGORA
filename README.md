@@ -21,9 +21,13 @@ To install necessary JavaScript dependencies.
 # Run the application
 
 Start backend:
-Inside /src/backend directory run 'python3 server.py true'
+Inside /src/backend directory run:
 
-Afterwards in second terminal start the frontend from root directory by calling 'npm start'
+### `python3 server.py true`
+
+Afterwards in second terminal start the frontend from root directory by calling:
+
+### `npm start`
 
 
 # DEPRECATED: README FROM REACT + EEL TEPMLATE
