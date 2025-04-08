@@ -1,26 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import * as d3 from 'd3';
 import { eel } from './App.js';  // Adjust the path to where your eel is located
 import './TabularAnalysis.css';  // Import custom styles for the table
+import debounce from 'lodash.debounce'; // Install lodash.debounce if not already installed
 
 const TabularAnalysis = ({ refreshTrigger, globalFilterTrigger, selectionTabularChange }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Function to fetch tabular data from backend (Python via Eel)
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const result = await eel.get_tabular_incidents_entries()();  // Fetch the data from Python
-      const parsedData = JSON.parse(result);  // Assuming data is JSON stringified
-      setData(parsedData);
-    } catch (error) {
-      console.error("Failed to fetch data from Python:", error);
-      setData([]);  // Set an empty array if there's an error
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchData = useCallback(
+    debounce(async () => {
+      setLoading(true);
+      try {
+        const result = await eel.get_tabular_incidents_entries()();  // Fetch the data from Python
+        setData(result);  // Directly use the JavaScript object
+      } catch (error) {
+        console.error("Failed to fetch data from Python:", error);
+        setData([]);  // Set an empty array if there's an error
+      } finally {
+        setLoading(false);
+      }
+    }, 300), // Adjust debounce delay as needed
+    []
+  );
 
   // Run fetchData on component mount and when refreshTrigger changes
   useEffect(() => {

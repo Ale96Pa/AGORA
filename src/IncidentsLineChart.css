@@ -1,0 +1,39 @@
+.tile {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .active-tile {
+    background-color: steelblue;
+  }
+  
+  .low-tile {
+    background-color: green;
+  }
+  
+  .moderate-tile {
+    background-color: orange;
+  }
+  
+  .high-tile {
+    background-color: red;
+  }
+  
+  .critical-tile {
+    background-color: purple;
+  }
+  
+  .tile h4 {
+    margin: 0;
+    font-size: 14px;
+  }
+  
+  .tile p {
+    margin: 5px 0 0;
+    font-size: 18px;
+  }

@@ -51,6 +51,7 @@ def get_incidents_open_and_closed_over_time(db_path="../data/incidents.db"):
         compliance_metric = get_filter_value("filters.compliance_metric")
         compliance_metric_thresholds = get_filter_value("filters.thresholds.compliance_metric_severity_levels")
 
+        print("active_closed_incidents.py")
         print(compliance_metric_thresholds)
 
         # Query to get compliance metric values for the selected incidents
@@ -151,8 +152,6 @@ def get_incidents_open_and_closed_over_time(db_path="../data/incidents.db"):
                 'critical': closed_critical_severity_count
             })
 
-        print(previous_closed_count)
-
         # Filter the active and closed incidents lists based on the selected min and max closed_at dates
         opened_incidents = [entry for entry in opened_incidents if min_selected_date <= pd.to_datetime(entry['time']) <= max_selected_date]
         active_incidents = [entry for entry in active_incidents if min_selected_date <= pd.to_datetime(entry['time']) <= max_selected_date]
@@ -171,11 +170,12 @@ def get_incidents_open_and_closed_over_time(db_path="../data/incidents.db"):
             'closed_selected_incidents': closed_selected_incidents
         }
         # Return the result as a JSON string
-        return json.dumps(result)
+        return result
 
     except Exception as e:
+        print("active_closed_incidents.py")
         print(f"An error occurred: {e}")
-        return json.dumps({'active_incidents': [], 'closed_incidents': []})  # Return empty data on error
+        return {'active_incidents': [], 'closed_incidents': []}  # Return empty data on error
     
     finally:
         # Close the database connection
@@ -185,4 +185,5 @@ def get_incidents_open_and_closed_over_time(db_path="../data/incidents.db"):
 if __name__ == "__main__":
     # Query the active and closed incidents data and print the JSON result
     incidents_json = get_incidents_open_and_closed_over_time()
+    print("active_closed_incidents.py")
     print(incidents_json)

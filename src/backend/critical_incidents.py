@@ -9,13 +9,13 @@ from database_filter_variables import *
 def get_critical_incidents(db_path="../data/incidents.db"):
     """
     Queries the incident_alignment_table for incidents that fall into the critical range
-    based on a compliance metric and returns them.
+    based on a compliance metric and returns them as a JavaScript object.
 
     Args:
         db_path (str): Path to the SQLite database file.
 
     Returns:
-        str: A JSON string containing the most critical incidents based on the compliance metric.
+        list: A list of dictionaries containing the most critical incidents based on the compliance metric.
     """
     try:
         # Connect to the SQLite database
@@ -30,7 +30,7 @@ def get_critical_incidents(db_path="../data/incidents.db"):
         # Get selected incident IDs
         incident_ids = get_incident_ids_selection()
         if not incident_ids:
-            return json.dumps([])  # No incidents to process
+            return []  # No incidents to process
 
         formatted_incident_ids = ', '.join(f"'{incident_id}'" for incident_id in incident_ids)
 
@@ -69,14 +69,15 @@ def get_critical_incidents(db_path="../data/incidents.db"):
         # Execute the query and load the result into a DataFrame
         df = pd.read_sql_query(query, conn)
 
-        # Convert the DataFrame to a JSON string
-        json_result = df.to_json(orient='records')
+        # Convert the DataFrame to a list of dictionaries (JavaScript object equivalent)
+        result = df.to_dict(orient='records')
 
-        return json_result
+        return result  # Return the result as a list of dictionaries
 
     except Exception as e:
+        print("critical_incidents.py")
         print(f"An error occurred: {e}")
-        return json.dumps([])  # Return an empty JSON array on error
+        return []  # Return an empty list on error
 
     finally:
         # Close the database connection
@@ -111,4 +112,5 @@ def build_threshold_condition(compliance_metric, threshold_str):
 # Example usage
 if __name__ == "__main__":
     critical_incidents_json = get_critical_incidents()
+    print("critical_incidents.py")
     print(critical_incidents_json)

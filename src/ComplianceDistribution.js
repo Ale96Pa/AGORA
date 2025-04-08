@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 import { eel } from './App';
 
-const DistributionViolinPlot = ({ height = 500, refreshTrigger }) => {
+const DistributionPlot = ({ height = 500, refreshTrigger }) => {
   const svgRef = useRef();
 
   useEffect(() => {
@@ -111,4 +111,4 @@ const DistributionViolinPlot = ({ height = 500, refreshTrigger }) => {
   );
 };
 
-export default DistributionViolinPlot;
+export default DistributionPlot;

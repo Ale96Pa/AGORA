@@ -50,11 +50,16 @@ function SideBar({ refreshTrigger, refreshControls }) {
                         <div className="div-39">
                             <div className="div-40" />
                             <Collapsible
-                                trigger={["Init Assessment", <img
-                                loading="lazy"
-                                src="https://cdn.builder.io/api/v1/image/assets/TEMP/c9992667147f295b32eec0696cb0fef65388fa9af146ce7034e2a192b713c079?"
-                                className="img-30"
-                            />]}>
+                                trigger={[
+                                    "Init Assessment",
+                                    <img
+                                        key="init-assessment-icon" // Add a unique key here
+                                        loading="lazy"
+                                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/c9992667147f295b32eec0696cb0fef65388fa9af146ce7034e2a192b713c079?"
+                                        className="img-30"
+                                    />
+                                ]}
+                            >
                                 <div className="div-41">
                                     <Button onClick={handleDefineReferenceModel}>Define Reference Model</Button>
                                     <DefineReferenceModelModal show={showReferenceModelModal} handleClose={handleCloseReferenceModelModal} />

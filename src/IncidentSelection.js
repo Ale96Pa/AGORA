@@ -1,6 +1,6 @@
 import { eel } from './App';
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
-import './incident_selection.css';
+import './IncidentSelection.css';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import * as d3 from 'd3';
@@ -8,8 +8,8 @@ import * as d3 from 'd3';
 const IncidentSelection = ({ onSelectionChange }) => {
   const [minDate, setMinDate] = useState('09/01/2017'); // Set initial minDate
   const [maxDate, setMaxDate] = useState('18/02/2017'); // Set initial maxDate
-  const [startDate, setStartDate] = useState('01/10/2016'); // Set initial startDate
-  const [endDate, setEndDate] = useState('01/01/2017'); // Set initial endDate
+  const [startDate, setStartDate] = useState('29/02/2016'); // Set initial startDate
+  const [endDate, setEndDate] = useState('07/03/2016'); // Set initial endDate
   const [incidentCount, setIncidentCount] = useState(null);
   const [totalIncidents, setTotalIncidents] = useState(null);
 

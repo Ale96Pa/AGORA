@@ -87,6 +87,7 @@ def save_screenshot_and_link_to_control(screenshot_data, name, comments, control
         return {"assessment_view_id": assessment_view_id, "filename": filename}
 
     except Exception as e:
+        print("link_view_to_security_control.py")
         print(f"An error occurred: {e}")
         return None
 
@@ -146,5 +147,6 @@ def fetch_all_assessment_views(db_path="../data/security_controls.db"):
         return json.dumps(assessment_views_list)
 
     except sqlite3.Error as e:
+        print("link_view_to_security_control.py")
         print(f"An error occurred while fetching assessment views: {e}")
         return json.dumps([])

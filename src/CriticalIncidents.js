@@ -12,7 +12,7 @@ const CriticalIncidents = ({ refreshTrigger, height = 400 }) => {
     setLoading(true);
     try {
       const incidents = await eel.get_critical_incidents()(); // Fetch data from the backend
-      setCriticalIncidents(JSON.parse(incidents)); // Parse the returned JSON
+      setCriticalIncidents(incidents); // Parse the returned JSON
     } catch (error) {
       console.error('Error fetching critical incidents:', error);
       setCriticalIncidents([]); // Handle errors by setting an empty array
@@ -54,7 +54,11 @@ const CriticalIncidents = ({ refreshTrigger, height = 400 }) => {
             {criticalIncidents.map((incident, index) => (
               <tr key={index}>
                 <td>{incident.incident_id}</td>
-                <td>{incident[complianceMetric].toFixed(3)}</td> {/* Use the fetched compliance metric */}
+                <td>
+                  {incident[complianceMetric] !== undefined
+                    ? incident[complianceMetric].toFixed(3) // Format the value if it exists
+                    : 'N/A'} {/* Fallback value if the property is undefined */}
+                </td>
               </tr>
             ))}
           </tbody>

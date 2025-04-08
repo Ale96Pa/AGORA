@@ -2,6 +2,7 @@ import pandas as pd
 import sqlite3
 import ast
 import eel
+import json
 
 from database_filter_variables import *
 
@@ -22,7 +23,6 @@ def count_frequencies():
     conn = sqlite3.connect(db_path)
     try:
         # Prepare the incident IDs for SQL query
-        
         formatted_incident_ids = ', '.join(f"'{incident_id}'" for incident_id in get_incident_ids_selection())
 
         # Query the necessary data from the database
@@ -36,7 +36,6 @@ def count_frequencies():
         whatif_clause = apply_whatif_analysis_filter()
         if whatif_clause:
             query += f" AND ( {whatif_clause} )"
-
 
         df = pd.read_sql_query(query, conn)
 
@@ -53,7 +52,8 @@ def count_frequencies():
             for state in frequencies[column].keys():
                 frequencies[column][state] = int(parsed_column.apply(lambda x: x[state]).sum())
 
-        return frequencies
+        return frequencies  # Return the Python dictionary directly
+
     finally:
         conn.close()
 
@@ -63,14 +63,19 @@ def main():
         frequencies = count_frequencies()
 
         # Print results in a cleaned format
+        print("count_deviations_db.py")
         print("Frequencies of each state for missing, repetition, and mismatch activities:")
         for activity_type, counts in frequencies.items():
+            print("count_deviations_db.py")
             print(f"{activity_type.capitalize()}:")
             for state, count in counts.items():
+                print("count_deviations_db.py")
                 print(f"  {state}: {count}")
+            print("count_deviations_db.py")
             print()  # Add a blank line for readability
 
     except Exception as e:
+        print("count_deviations_db.py")
         print(f"An error occurred: {e}")
 
 if __name__ == "__main__":

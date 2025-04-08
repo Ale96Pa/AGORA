@@ -4,7 +4,6 @@ import './ComplianceDevelopment.css'; // Custom CSS for layout and styling
 import Collapsible from 'react-collapsible';
 import ProcessComplianceBarChart from './ProcessComplianceBarChart';
 
-
 const ComplianceDevelopment = ({ refreshTrigger }) => {
   const [statesData, setStatesData] = useState([]);
 
@@ -13,9 +12,9 @@ const ComplianceDevelopment = ({ refreshTrigger }) => {
     const fetchData = async () => {
       try {
         // Fetch state mapping from eel
-        const states = await eel.read_mapping_from_file()();
-        const compliance = JSON.parse(await eel.get_average_compliance_per_state()());
-        const compliance_metric = await eel.get_filter_value('filters.compliance_metric')();
+        const states = await eel.read_mapping_from_file()(); // Directly use the returned JavaScript object
+        const compliance = await eel.get_average_compliance_per_state()(); // Directly use the returned JavaScript object
+        const compliance_metric = await eel.get_filter_value('filters.compliance_metric')(); // Directly use the returned value
 
         // Process data for each state
         const statesArray = Object.keys(states).map((state) => {

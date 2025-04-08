@@ -59,9 +59,10 @@ def get_ordered_time_to_states_last_occurrence(db_name='../data/incidents.db'):
                 'time_to_states': time_to_states
             })
 
-        return result
+        return json.dumps(result)
 
     except sqlite3.Error as e:
+        print("process_timedeltas.py")
         print(f"An error occurred: {e}")
         return None
     
@@ -75,10 +76,12 @@ def main():
     ordered_incidents = get_ordered_time_to_states_last_occurrence()
 
     if ordered_incidents:
+        print("process_timedeltas.py")
         print("Ordered Incidents:")
         for incident in ordered_incidents:
+            print("process_timedeltas.py")
             print(f"ID: {incident['incident_id']}, Closed At: {incident['closed_at']}, Time to States: {incident['time_to_states']}")
-
+    print("process_timedeltas.py")
     print(ordered_incidents)
 
 if __name__ == "__main__":

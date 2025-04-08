@@ -52,16 +52,6 @@ def communicate_pnml_validation_py(pnml_input):
     return validation_result
 
 @eel.expose
-def communicate_pnml_data_py():
-    try:
-        pnmlData = get_pnml_data()
-        return pnmlData
-    except Exception as e:
-        print(f"Error receiving PNML: {e}")
-        return "Error receiving PNML"
-
-
-@eel.expose
 def communicate_log_py(log_input):
     try:
         # Define the path for the data directory and file
@@ -77,6 +67,7 @@ def communicate_log_py(log_input):
 
         return "File saved successfully"
     except Exception as e:
+        print("server.py")
         print(f"Error saving file: {e}")
         return "Error saving file"
 
@@ -92,15 +83,19 @@ def filter_condition(metric_name, condition):
     if key in filter_conditions:
         # Remove the existing condition if toggling off
         del filter_conditions[key]
+        print("server.py")
         print(f"Removed filter condition for {key}")
     else:
         # Add or update the condition
         filter_conditions[key] = lambda df, mn=metric_name, low=low, high=high: (df[mn] >= low) & (df[mn] <= high)
+        print("server.py")
         print(f"Added filter condition for {key}")
 
     # Print current active filters for debugging
+    print("server.py")
     print("Current active filters:")
     for k, v in filter_conditions.items():
+        print("server.py")
         print(f"{k}: {v.__name__ if hasattr(v, '__name__') else 'anonymous function'}")
 
 
@@ -115,41 +110,15 @@ def communicate_csv_data():
         csv_data = get_csv_data(active_filters)
         return csv_data
     except Exception as e:
+        print("server.py")
         print(f"Error receiving CSV data: {e}")
         return "Error receiving CSV data"
-    
-@eel.expose
-def communicate_average_fitness_py():
-    try:
-        fitness_avg, _ = calculate_averages()
-        return fitness_avg
-    except Exception as e:
-        print(f"Error calculating fitness average: {e}")
-        return "Error calculating fitness average"
-
-@eel.expose
-def communicate_average_ncc_py():
-    try:
-        _, ncc_avg = calculate_averages()
-        return ncc_avg
-    except Exception as e:
-        print(f"Error calculating NCC average: {e}")
-        return "Error calculating NCC average"
-    
-@eel.expose
-def communicate_common_variants():
-    try:
-        # Getget common variants
-        common_variants = get_sorted_variants_from_csv()
-        return common_variants   # Return the sorted variants to the JavaScript side
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return []
 
 
 @eel.expose  # Expose function to JavaScript
 def say_hello_py(x):
     """Print message from JavaScript on app initialization, then call a JS function."""
+    print("server.py")
     print('Hello from %s' % x)  # noqa T001
     eel.say_hello_js('Python {from within say_hello_py()}!')
 

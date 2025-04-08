@@ -30,5 +30,6 @@ def get_csv_data(filters=None):
 
         return df.to_csv(index=False)
     except Exception as e:
+        print("csv_reader.py")
         print(f"Error reading file: {e}")
         return "Error reading file"

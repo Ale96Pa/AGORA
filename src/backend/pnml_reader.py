@@ -1,5 +1,6 @@
 import os
 import eel
+import json
 import xml.etree.ElementTree as ET
 
 @eel.expose
@@ -15,6 +16,7 @@ def get_pnml_data():
         
         return pnml_data
     except Exception as e:
+        print("pnml_reader.py")
         print(f"Error reading file: {e}")
         return "Error reading file"
 
@@ -31,6 +33,7 @@ def get_pnml_states():
 
         # Check if the file exists
         if not os.path.exists(file_path):
+            print("pnml_reader.py")
             print(f"File not found: {file_path}")
             return "Error: File not found"
 
@@ -39,24 +42,29 @@ def get_pnml_states():
         root = tree.getroot()
 
         # Debug: print root element and its children
+        print("pnml_reader.py")
         print(f"Root element: {root.tag}")
         for child in root:
+            print("pnml_reader.py")
             print(f"Child element: {child.tag}")
 
         # Try to find the net element without namespace
         nets = root.findall(".//net")
+        print("pnml_reader.py")
         print(f"Number of nets found without namespace: {len(nets)}")
         
         # Try to find place elements directly under each net element
         states = []
         for net in nets:
             places = net.findall(".//place")
+            print("pnml_reader.py")
             print(f"Number of places found without namespace: {len(places)}")
             for place in places:
                 name_element = place.find(".//text")
                 if name_element is not None and name_element.text:
                     states.append(name_element.text)
                 else:
+                    print("pnml_reader.py")
                     print(f"No text found for place with ID: {place.get('id')}")
 
         # If no places found, try with namespace
@@ -66,10 +74,12 @@ def get_pnml_states():
                 # Extract the namespace
                 uri = root.tag.split("}")[0].strip("{")
                 namespace = {'pnml': uri}
+            print("pnml_reader.py")
             print(f"Using namespace: {namespace}")
 
             # Find all place elements in the PNML file using namespace
             places = root.findall(".//pnml:place", namespaces=namespace)
+            print("pnml_reader.py")
             print(f"Number of places found with namespace: {len(places)}")
 
             for place in places:
@@ -77,18 +87,22 @@ def get_pnml_states():
                 if name_element is not None and name_element.text:
                     states.append(name_element.text)
                 else:
+                    print("pnml_reader.py")
                     print(f"No text found for place with ID: {place.get('id')}")
 
         # Debug: print the extracted states
+        print("pnml_reader.py")
         print(f"Extracted states: {states}")
 
         return states
 
     except Exception as e:
+        print("pnml_reader.py")
         print(f"Error reading or parsing file: {e}")
         return "Error reading or parsing file"
 
 # Example usage
 if __name__ == "__main__":
     states = get_pnml_states()
+    print("pnml_reader.py")
     print(states)

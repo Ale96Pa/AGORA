@@ -34,10 +34,7 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
     const fetchTechnicalAttributes = async () => {
       try {
         // Call the eel function to get the technical attributes for selected incidents
-        const result = await eel.get_incident_technical_attributes()();
-
-        // Convert the fetched result to JSON
-        const incidentData = JSON.parse(result);
+        const incidentData = await eel.get_incident_technical_attributes()(); // Directly use the returned JavaScript object
 
         console.log(incidentData);
         // Set the traces with the actual data

@@ -1,9 +1,9 @@
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-import NavigationBar from './NavigationBar.js';
-import SideBar from './SideBar.js';
-import ProcessAnalysis from './ProcessAnalysis.js';
+import NavigationBar from './NavigationBar.js'; // Import the Top component
+import SideBar from './SideBar.js'; // Import the left Side component 
+import ProcessAnalysis from './ProcessAnalysis.js'; // Import the Analysis component
 import Reporting from './Reporting.js';  // Import the new Reporting component
 import { useState } from 'react';
 
@@ -38,7 +38,6 @@ function App() {
 
   const handleSelectionChange = () => {
     setRefreshTrigger(prev => !prev);
-    console.log("here too");
   };
 
   const handleUpdateProgress = () => {

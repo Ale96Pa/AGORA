@@ -3,7 +3,7 @@ import './NavigationBar.css';
 import { eel } from './App.js';
 import ThresholdSlider from './ThresholdSlider';
 import TimeThresholds from './TimeThresholds.js';
-import IncidentSelection from './incident_selection.js';
+import IncidentSelection from './IncidentSelection.js';
 
 function NavigationBar({ refreshTrigger, onSelectionChange, toggleView }) {
   const [showSettings, setShowSettings] = useState(false);

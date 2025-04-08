@@ -55,20 +55,28 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
             try {
                 const result = await eel.calculate_individual_averages()();  // Fetch selected incidents from backend
                 setIndividualMetricAverages(result);
-
+    
                 const incidentDetails = await eel.get_incident_event_intervals()();  // Fetch event intervals
-                const parsedData = incidentDetails.map(item => ({
-                    ...item,
-                    event_intervals: JSON.parse(item.event_interval_minutes),  // Parse event intervals JSON
-                }));
-                setIncidentData(parsedData);
+                console.log('incidentDetails:', incidentDetails);  // Add this log for debugging
+    
+                // Check if incidentDetails is an array before calling .map()
+                if (Array.isArray(incidentDetails)) {
+                    const parsedData = incidentDetails.map(item => ({
+                        ...item,
+                        event_intervals: JSON.parse(item.event_interval_minutes),  // Parse event intervals JSON
+                    }));
+                    setIncidentData(parsedData);
+                } else {
+                    console.log('incidentDetails is not an array:', incidentDetails);
+                }
             } catch (error) {
                 console.error('Failed to fetch selected incidents:', error);
             }
         };
-
-        fetchSelectedIncidents();  // Run when `selectionTrigger` changes
-    }, [selectionTrigger]);  // Only run when `selectionTrigger` changes
+    
+        fetchSelectedIncidents();
+    }, [selectionTrigger]);
+    
 
     // Handle form submission
     const handleSubmit = async () => {
@@ -201,7 +209,7 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
                 <div className="average-item">
                     <div className="average-item-label">PERC SLA MET</div>
                     <div className="average-item-value">
-                        {individualMetricAverages.sla_percentage ? individualMetricAverages.sla_percentage : ''} %
+                        {individualMetricAverages.sla_percentage ? individualMetricAverages.sla_percentage : ''}
                     </div>
                 </div>
             </div>
@@ -209,7 +217,7 @@ const IndividualAnalysis = ({ height, selectionTrigger, updateAssessmentsResults
             {/* Scrollable Incident Details Section */}
             <div className="details-section-scrollable">
                 {graphHeight > 0 && (
-                    <svg ref={svgRef} className="incident-sequence-svg" width="100%" height={graphHeight} />
+                    <svg ref={svgRef} className="incident-sequence-svg" width="800%" height={graphHeight} />
                 )}
             </div>
 

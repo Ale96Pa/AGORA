@@ -161,10 +161,12 @@ def set_filter_value(path, new_value):
         value[keys[-1]] = new_value
 
         # Print the newly set filter value
+        print("database_filter_variables.py")
         print(f"Filter updated: {path} = {new_value}")
 
         return True
     except KeyError:
+        print("database_filter_variables.py")
         print(f"Failed to set filter: {path} is an invalid path.")
         return False
 
@@ -252,13 +254,16 @@ def set_filter_compliance_metric_thresholds(metric_name, range_start, range_end)
     if filter_key in filter_compliance_metric_thresholds:
         # If the filter exists, remove it (this means the user unclicked the severity level)
         del filter_compliance_metric_thresholds[filter_key]
+        print("database_filter_variables.py")
         print(f"Removed filter: {filter_key}")
     else:
         # Otherwise, add the filter to the global variable
         filter_compliance_metric_thresholds[filter_key] = (metric_name, range_start, range_end)
+        print("database_filter_variables.py")
         print(f"Added filter: {filter_key}")
 
     # For debugging, print the current filters
+    print("database_filter_variables.py")
     print("Current filters:", filter_compliance_metric_thresholds)
 
     # Optionally, return the current filters as a string or any format you need

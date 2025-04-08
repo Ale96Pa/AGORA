@@ -60,9 +60,11 @@ def calculate_column_average(column_name, db_path="../data/incidents.db", table_
         return average_value
 
     except sqlite3.Error as e:
+        print("calculate_averages_db.py")
         print(f"An error occurred with the database: {e}")
         return None
     except Exception as e:
+        print("calculate_averages_db.py")
         print(f"An error occurred: {e}")
         return None
 
@@ -72,6 +74,8 @@ if __name__ == "__main__":
     average_value = calculate_column_average(column_name)
     
     if average_value is not None:
+        print("calculate_averages_db.py")
         print(f"The average value of '{column_name}' for the selected incidents is: {average_value}")
     else:
+        print("calculate_averages_db.py")
         print(f"Could not calculate the average value for '{column_name}'.")

@@ -44,16 +44,15 @@ const ProcessStatistics = ({ globalFilterTrigger, graphCursorTrigger, refreshTri
     const fetchData = async () => {
       try {
         // Fetch state mapping from eel
-        const states = await eel.read_mapping_from_file()();
-        const deviations = await eel.count_frequencies()();
-        const durations = await eel.get_average_state_times()();
+        const [states, deviations] = await Promise.all([
+          eel.read_mapping_from_file()(),
+          eel.count_frequencies()(),
+        ]);
+        
 
         const filters = await eel.get_filter_value('filters')();
         const assessmentFilters = filters.thresholds;
 
-        console.log(assessmentFilters);
-        console.log(states);
-        console.log(deviations);
         // Calculate deviations and durations for each state
         const statesArray = Object.keys(states).map(state => {
           const stateId = states[state];
@@ -64,10 +63,6 @@ const ProcessStatistics = ({ globalFilterTrigger, graphCursorTrigger, refreshTri
             deviations.repetition[stateId] +
             deviations.mismatch[stateId];
 
-          // Get the corresponding duration for each state
-          const duration = durations[stateId] || '0h'; // Fallback to '0h' if not available
-          const durationInMinutes = convertDurationToMinutes(duration);
-
           console.log(stateId, state);
           console.log(deviations.missing[stateId] > assessmentFilters[state].deviations.acceptableMissing.replace('<=', ''));
           // Determine if any deviations exceed acceptable thresholds
@@ -77,24 +72,12 @@ const ProcessStatistics = ({ globalFilterTrigger, graphCursorTrigger, refreshTri
             deviations.mismatch[stateId] > assessmentFilters[state].deviations.acceptableMismatch.replace('<=', '')
           );
 
-          // Determine if duration is within acceptable or non-acceptable thresholds
-          const acceptableTime = parseInt(assessmentFilters[state].acceptableTime.replace('<=', ''), 10);
-          const nonAcceptableTime = parseInt(assessmentFilters[state].nonAcceptableTime.replace('>=', ''), 10);
-
-          let durationColor = 'orange'; // Default to orange (between acceptable and non-acceptable)
-          if (durationInMinutes <= acceptableTime) {
-            durationColor = 'green'; // Within acceptable time
-          } else if (durationInMinutes >= nonAcceptableTime) {
-            durationColor = 'red'; // Exceeds non-acceptable time
-          }
-
           console.log(deviationExceedsThreshold);
 
           return {
             state,
             deviations: totalDeviations,
-            durations: duration,
-            exceedsThreshold: deviationExceedsThreshold, durationColor
+            exceedsThreshold: deviationExceedsThreshold,
           };
         });
 
@@ -115,17 +98,20 @@ const ProcessStatistics = ({ globalFilterTrigger, graphCursorTrigger, refreshTri
         
         {/* DEVIATIONS Row */}
         <Collapsible
-          trigger={[<div className="layer-row full-width-trigger">
-            {statesData.map((state, i) => (
-              <div
-                className="state-column"
-                key={`deviations-${i}`}
-                style={{ color: state.exceedsThreshold ? 'red' : 'green' }} // Color based on threshold comparison
-              >
-                TOT DEV {state.deviations} 
-              </div>
-            ))}
-          </div>]}>
+          trigger={[
+            <div className="layer-row full-width-trigger" key="deviations-trigger">
+              {statesData.map((state) => (
+                <div
+                  className="state-column"
+                  key={`deviations-${state.state}`} // Unique key for each state
+                  style={{ color: state.exceedsThreshold ? 'red' : 'green' }} // Color based on threshold comparison
+                >
+                  TOT DEV {state.deviations}
+                </div>
+              ))}
+            </div>,
+          ]}
+        >
           <DeviationsBarChart height={40} globalFilterTrigger={globalFilterTrigger} refreshTrigger={refreshTrigger} />
         </Collapsible>
       </div>

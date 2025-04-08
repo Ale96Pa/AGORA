@@ -30,9 +30,11 @@ def update_incidents_with_opened_at(db_path="../data/incidents.db"):
         cursor.close()
         conn.close()
 
+        print("helper.py")
         print("Opened_at values successfully updated in incidents_fa_values_table.")
 
     except Exception as e:
+        print("helper.py")
         print(f"An error occurred: {e}")
 
 def copy_deviation_columns(db_path="../data/incidents.db"):
@@ -75,9 +77,11 @@ def copy_deviation_columns(db_path="../data/incidents.db"):
 
         # Commit the changes
         conn.commit()
+        print("helper.py")
         print("Deviation columns updated successfully.")
 
     except Exception as e:
+        print("helper.py")
         print(f"An error occurred: {e}")
     finally:
         # Close the database connection

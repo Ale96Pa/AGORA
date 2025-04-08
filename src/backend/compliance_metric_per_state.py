@@ -129,14 +129,13 @@ def get_compliance_per_state_per_incident(db_path="../data/incidents.db"):
                 'compliance_per_state': {state: round(score, 2) for state, score in compliance_per_state.items()}
             }
 
-            print(incident_result)
-
             # Append the result for the current incident to the results list
             results.append(incident_result)
 
         return json.dumps(results)
 
     except Exception as e:
+        print("compliance_metric_per_state.py")
         print(f"An error occurred: {e}")
         return json.dumps({'error': str(e)})
 
@@ -178,8 +177,6 @@ def calculate_cost_per_state(deviations_per_type_per_state, total_events, cost_f
     # Initialize total cost for the process
     non_compliance_cost_per_state = {}
 
-    print(total_events)
-
     thresholds = {"missing": False, "repetition": False, "mismatch": False}
 
     # Loop through all process states of the reference process
@@ -218,10 +215,6 @@ def calculate_cost_per_state(deviations_per_type_per_state, total_events, cost_f
     # Return non-compliance cost per state
     return non_compliance_cost_per_state
 
-
-
-
-
 @eel.expose
 def get_average_compliance_per_state(db_path="../data/incidents.db"):
     """
@@ -231,14 +224,17 @@ def get_average_compliance_per_state(db_path="../data/incidents.db"):
         db_path (str): Path to the SQLite database file.
 
     Returns:
-        str: A JSON string containing the average compliance per state.
+        dict: A Python dictionary containing the average compliance per state, which Eel will convert to a JavaScript object.
     """
     try:
         # Get compliance data for each incident
-        compliance_data = json.loads(get_compliance_per_state_per_incident(db_path))
+        compliance_data = get_compliance_per_state_per_incident(db_path)
+
+        if isinstance(compliance_data, str):
+            compliance_data = json.loads(compliance_data)
 
         if 'error' in compliance_data:
-            return json.dumps({'error': compliance_data['error']})
+            return {'error': compliance_data['error']}
 
         # Initialize a dictionary to sum compliance scores per state
         compliance_sum_per_state = {}
@@ -251,16 +247,20 @@ def get_average_compliance_per_state(db_path="../data/incidents.db"):
                 compliance_sum_per_state[state] = compliance_sum_per_state.get(state, 0) + compliance
 
         # Calculate the average compliance per state
-        average_compliance_per_state = {state: round(compliance_sum / incident_count, 2)
-                                        for state, compliance_sum in compliance_sum_per_state.items()}
+        average_compliance_per_state = {
+            state: round(compliance_sum / incident_count, 2)
+            for state, compliance_sum in compliance_sum_per_state.items()
+        }
 
-        return json.dumps(average_compliance_per_state)
+        return average_compliance_per_state  # Return a Python dictionary directly
 
     except Exception as e:
+        print("compliance_metric_per_state.py")
         print(f"An error occurred: {e}")
-        return json.dumps({'error': str(e)})
+        return {'error': str(e)}  # Return an error as a Python dictionary
     
 # Example usage
 if __name__ == "__main__":
     # Example call to the exposed function
+    print("compliance_metric_per_state.py")
     print(get_average_compliance_per_state())

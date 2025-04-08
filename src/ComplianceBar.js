@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { eel } from './App';
-import './ComplianceBar.css';  // Assuming you have a CSS file for custom styles
+import './ComplianceBar.css';
 
 const ComplianceBar = ({ height = 15, globalFilterTrigger, refreshTrigger }) => {
   const containerRef = useRef(); // Use ref for the container element
@@ -145,7 +145,7 @@ const ComplianceBar = ({ height = 15, globalFilterTrigger, refreshTrigger }) => 
       .attr('y1', 0)
       .attr('x2', (width * scaledProgress) / 100)
       .attr('y2', height)
-      .attr('stroke', '#000')
+      .attr('stroke', '#fff')
       .attr('stroke-dasharray', '2,2')  // More dashes
       .attr('stroke-width', '2');
 
@@ -155,7 +155,7 @@ const ComplianceBar = ({ height = 15, globalFilterTrigger, refreshTrigger }) => 
       .attr('y', height / 2)  // Position at the middle of the bar
       .attr('dy', '.35em')
       .attr('text-anchor', 'middle')
-      .attr('fill', '#000')
+      .attr('fill', '#fff')
       .text(`${roundedProgress}`)
       .style('font-size', '14px');
   };

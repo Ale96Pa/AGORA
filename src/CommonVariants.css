@@ -29,3 +29,18 @@
     border-color: blue;
     background-color: lightblue;
 }
+
+.state-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid black; /* Circle border */
+  border-radius: 50%; /* Makes it a circle */
+  font-size: 12px;
+  font-weight: bold;
+  color: black; /* Text color */
+  background-color: white; /* Background color inside the circle */
+  text-align: center;
+}

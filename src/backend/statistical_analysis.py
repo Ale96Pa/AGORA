@@ -92,4 +92,5 @@ def get_statistical_analysis_data(db_path="../data/incidents.db"):
 # Example usage
 if __name__ == "__main__":
     data = get_statistical_analysis_data()
+    print("statistical_analysis.py")
     print(data)

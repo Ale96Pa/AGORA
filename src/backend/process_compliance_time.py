@@ -39,6 +39,7 @@ def get_closed_ordered_incidents(db_name='../data/incidents.db'):
         return result
 
     except sqlite3.Error as e:
+        print("process_compliance_time.py")
         print(f"An error occurred: {e}")
         return None
     
@@ -51,10 +52,11 @@ def main():
     ordered_incidents = get_closed_ordered_incidents()
 
     if ordered_incidents:
+        print("process_compliance_time.py")
         print("Ordered Incidents:")
         for incident in ordered_incidents:
             print(f"ID: {incident[0]}, Closed At: {incident[1]}, Compliance Metric: {incident[2]}")
-
+    print("process_compliance_time.py")
     print(ordered_incidents)
 if __name__ == "__main__":
     main()

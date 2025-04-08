@@ -52,7 +52,8 @@ const ProcessStateTimes = ({ height = 500, graphCursorTrigger, refreshTrigger })
       };
 
       // Parse and transform data into the desired format
-      const parsedData = data.reduce((acc, d) => {
+      const json_parsed_data = JSON.parse(data);
+      const parsedData = json_parsed_data.reduce((acc, d) => {
         const closedDate = new Date(d.closed_at);
         const incidentPoints = [];
 
@@ -85,8 +86,8 @@ const ProcessStateTimes = ({ height = 500, graphCursorTrigger, refreshTrigger })
       // Set up scales
       const xScale = d3.scaleTime()
         .domain([
-          d3.timeDay.floor(d3.min(data, d => new Date(d.closed_at))),  // Start at the beginning of the first date
-          d3.timeDay.ceil(d3.max(data, d => new Date(d.closed_at)))    // End at the end of the last date
+          d3.timeDay.floor(d3.min(json_parsed_data, d => new Date(d.closed_at))),  // Start at the beginning of the first date
+          d3.timeDay.ceil(d3.max(json_parsed_data, d => new Date(d.closed_at)))    // End at the end of the last date
         ])
         .range([0, innerWidth]);
 

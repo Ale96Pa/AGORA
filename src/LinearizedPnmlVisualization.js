@@ -447,7 +447,7 @@ const LinearizedPnmlVisualization = ({ height, refreshTrigger }) => {
         const container = svgRef.current;
         console.log(transitionTimes);
         if (pnmlString) {
-          createVisualization(container, pnmlString, deviations, stateMapping, stateTimes, transitionTimes);
+          createVisualization(container, pnmlString, deviations, stateMapping, JSON.parse(stateTimes), JSON.parse(transitionTimes));
         }
       } catch (error) {
         console.error("Failed to fetch and visualize PNML data:", error);

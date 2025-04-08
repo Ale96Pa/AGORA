@@ -44,4 +44,5 @@ if __name__ == "__main__":
     # Get the progress data
     progress = get_global_progress()
     # Convert the dictionary to a JSON-formatted string and print
+    print("global_progess.py")
     print(progress)

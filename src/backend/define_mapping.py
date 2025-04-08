@@ -25,9 +25,11 @@ def extract_places_from_pnml():
 
         return places
     except ET.ParseError as e:
+        print("database_sec_controls.py")
         print(f"Failed to parse the XML file: {e}")
         return []
     except Exception as e:
+        print("database_sec_controls.py")
         print(f"An error occurred: {e}")
         return []
 
@@ -52,9 +54,11 @@ def write_mapping_to_file(places, state_mapping, file_path="../data/mapping.txt"
         # Write to file
         with open(file_path, 'w') as file:
             file.writelines(lines)
+            print("database_sec_controls.py")
             print(f"Mapping successfully written to {file_path}")
 
     except Exception as e:
+        print("database_sec_controls.py")
         print(f"An error occurred while writing to the file: {e}")
 
 @eel.expose
@@ -81,15 +85,17 @@ def read_mapping_from_file(file_path="../data/mapping.txt"):
                         mapping_dict[parts[0]] = parts[1]
         return mapping_dict
     except FileNotFoundError:
+        print("database_sec_controls.py")
         print(f"No mapping file found at {file_path}.")
         return {}
     except Exception as e:
+        print("database_sec_controls.py")
         print(f"An error occurred while reading the file: {e}")
         return {}
 
 def main():
     
-
+    print("database_sec_controls.py")
     print(read_mapping_from_file())
 
 if __name__ == "__main__":

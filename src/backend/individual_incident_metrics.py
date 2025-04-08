@@ -81,6 +81,7 @@ def calculate_individual_averages(db_path="../data/incidents.db"):
         }
 
     except Exception as e:
+        print("individual_incident_metrics.py")
         print(f"An error occurred: {e}")
         return {"error": str(e)}
 
@@ -130,6 +131,7 @@ def get_incident_event_intervals(db_path="../data/incidents.db"):
         return result
 
     except Exception as e:
+        print("individual_incident_metrics.py")
         print(f"An error occurred: {e}")
         return {"error": str(e)}
 
@@ -140,7 +142,9 @@ def get_incident_event_intervals(db_path="../data/incidents.db"):
 # Example usage
 if __name__ == "__main__":
     averages = calculate_individual_averages()
+    print("individual_incident_metrics.py")
     print(averages)
 
     event_intervals = get_incident_event_intervals()
+    print("individual_incident_metrics.py")
     print(event_intervals)

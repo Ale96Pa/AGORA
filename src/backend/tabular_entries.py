@@ -29,7 +29,7 @@ def build_filter_query(filters):
     compliance_conditions = []
 
     compliance_metric = filters.get('compliance_metric', '')
-    print(compliance_bar_filters)
+    print("tabular_entries.py1")
     for level, is_active in compliance_bar_filters.items():
         if is_active:
             threshold = severity_levels.get(level)
@@ -170,11 +170,10 @@ def build_filter_query(filters):
 
     # Handle date range filters
     date_range = filters.get('overview_metrics', {}).get('date_range', {})
-    if date_range.get('min_date') and date_range.get('max_date'):
+    if date_range.get('min_date') and date_range.get('max_date'):    
         conditions.append(f"closed_at BETWEEN ? AND ?")
         parameters.extend([date_range['min_date'], date_range['max_date']])
 
-    print(' AND '.join(conditions))
     # Join all conditions with AND
     return ' AND '.join(conditions), parameters
 
@@ -188,7 +187,7 @@ def get_tabular_incidents_entries(db_path="../data/incidents.db"):
         db_path (str): Path to the SQLite database file.
 
     Returns:
-        str: A JSON string containing the incident_id and compliance_metric columns.
+        dict: A Python dictionary containing the incident data, which will be converted to a JavaScript object by Eel.
     """
     try:
         # Connect to the SQLite database
@@ -213,7 +212,7 @@ def get_tabular_incidents_entries(db_path="../data/incidents.db"):
         incident_ids_selection = get_incident_ids_selection()
 
         if not incident_ids_selection:
-            return json.dumps([])  # Return empty JSON array if no incident IDs
+            return []  # Return an empty list if no incident IDs
 
         # Format the incident IDs for SQL query
         formatted_incident_ids = ', '.join('?' for _ in incident_ids_selection)
@@ -237,20 +236,22 @@ def get_tabular_incidents_entries(db_path="../data/incidents.db"):
         if filter_clause:
             query += f" AND ( {filter_clause} )"
 
+        
         # Combine parameters
         all_params = incident_id_params + parameters
-
+        
         # Execute the query and load the result into a DataFrame
         df = pd.read_sql_query(query, conn, params=all_params)
 
-        # Convert the DataFrame to a JSON string
-        json_result = df.to_json(orient='records')
+        # Convert the DataFrame to a list of dictionaries
+        result = df.to_dict(orient='records')
 
-        return json_result
+        return result  # Return the list of dictionaries, which Eel will convert to a JavaScript object
 
     except Exception as e:
+        print("tabular_entries.py3")
         print(f"An error occurred: {e}")
-        return json.dumps([])  # Return an empty JSON array on error
+        return []  # Return an empty list on error
         
     finally:
         # Close the database connection
@@ -261,5 +262,7 @@ if __name__ == "__main__":
     # Query the incident compliance data and print the JSON result
     filters = get_filter_value()
     filter_clause, parameters = build_filter_query(filters)
+    print("tabular_entries.py")
     print(filter_clause)
+    print("tabular_entries.py")
     print(parameters)

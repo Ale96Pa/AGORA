@@ -22,13 +22,13 @@ def get_incident_technical_attributes(db_path="../data/incidents.db"):
     """
     Fetches selected incidents from 'incident_ids_from_tabular_selection',
     queries the 'incidents_fa_values_table' to retrieve specified attributes,
-    and formats them into a JSON object array, removing all non-numeric text from the attribute values.
+    and formats them into a list of dictionaries, removing all non-numeric text from the attribute values.
 
     Args:
         db_path (str): Path to the SQLite database file.
 
     Returns:
-        str: JSON formatted string of object array for the selected incidents.
+        list: A list of dictionaries containing the selected incidents' attributes.
     """
     try:
         # Connect to the SQLite database
@@ -38,7 +38,7 @@ def get_incident_technical_attributes(db_path="../data/incidents.db"):
         incident_ids = get_incident_ids_selection()  # Directly use the list
 
         if not incident_ids:
-            return json.dumps({"error": "No incidents selected."})
+            return {"error": "No incidents selected."}
 
         # Query to get the desired columns from the incidents_fa_values_table
         query = f"""
@@ -69,11 +69,11 @@ def get_incident_technical_attributes(db_path="../data/incidents.db"):
                 "category": extract_numeric_value(row[6])
             })
 
-        # Return the result as a JSON string
-        return json.dumps(traces, indent=2)
+        # Return the result as a list of dictionaries
+        return traces
 
     except Exception as e:
-        return json.dumps({"error": str(e)})
+        return {"error": str(e)}
 
     finally:
         # Close the database connection
@@ -83,4 +83,5 @@ def get_incident_technical_attributes(db_path="../data/incidents.db"):
 # Example usage
 if __name__ == "__main__":
     result = get_incident_technical_attributes()
+    print("technical_analysis.py")
     print(result)

@@ -47,10 +47,11 @@ def transfer_event_log_data(db_path="../data/incidents.db"):
 
         # Commit the changes
         conn.commit()
-
+        print("copy_values.py")
         print(f"Data transferred successfully for {len(event_data)} incidents.")
 
     except Exception as e:
+        print("copy_values.py")
         print(f"An error occurred: {e}")
 
     finally:

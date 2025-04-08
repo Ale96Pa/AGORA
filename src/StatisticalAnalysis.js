@@ -134,24 +134,13 @@ const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
         .attr('fill', severityColors[level]);
     });
 
-    // Add a dashed line for the actual value
-    const lineX = (cappedScaledProgress / 100) * width;
-    svg.append('line')
-      .attr('x1', lineX)
-      .attr('y1', 0)
-      .attr('x2', lineX)
-      .attr('y2', height)
-      .attr('stroke', 'black')
-      .attr('stroke-dasharray', '4,2')  // Dashed line
-      .attr('stroke-width', 2);
-
     // Display the readable format of time (XXd, XXh, XXm) in the middle
     svg.append('text')
       .attr('x', width / 2)
       .attr('y', height / 2)
       .attr('dy', '.35em')
       .attr('text-anchor', 'middle')
-      .attr('fill', '#000')
+      .attr('fill', '#fff')
       .text(convertMinutesToReadableFormat(valueInMinutes))
       .style('font-size', '14px');
 
@@ -209,7 +198,7 @@ const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
       .attr('y', height / 2)
       .attr('dy', '.35em')
       .attr('text-anchor', 'middle')
-      .attr('fill', '#000')
+      .attr('fill', '#fff')
       .text(`${value} ${isPercentage ? '%' : ''}`)
       .style('font-size', '14px');
   };

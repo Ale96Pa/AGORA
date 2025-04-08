@@ -10,6 +10,7 @@ def process_alignment(alignment):
         events = alignment.split(';')
         return ' '.join([event[3] for event in events if event.startswith('[S]') or event.startswith('[L]')])
     except Exception as e:
+        print("common_variants_db.py")
         print(f"Failed processing alignment {alignment}: {e}")
         return ""
 
@@ -20,6 +21,7 @@ def analyze_alignments(df):
         variant_counts = Counter(df['processed'])
         return sorted(variant_counts.items(), key=lambda x: x[1], reverse=True)
     except Exception as e:
+        print("common_variants_db.py")
         print(f"Error during analysis: {e}")
         return []
 
@@ -55,6 +57,7 @@ def get_sorted_variants_from_db():
         conn.close()
         return analyze_alignments(df)
     except Exception as e:
+        print("common_variants_db.py")
         print(f"An error occurred while querying the database: {e}")
         return []
     
@@ -88,6 +91,7 @@ def update_variants_in_db():
         conn.commit()
         conn.close()
         
+        print("common_variants_db.py")
         print("Variants updated successfully in the database.")
     except Exception as e:
         print(f"An error occurred during the update process: {e}")
@@ -95,5 +99,6 @@ def update_variants_in_db():
 # Example usage
 if __name__ == "__main__":
     sorted_variants = get_sorted_variants_from_db()
+    print("common_variants_db.py")
     print(process_alignment("[S]N;[M]A;[S]R;[L]R;[S]C;"))
     update_variants_in_db()

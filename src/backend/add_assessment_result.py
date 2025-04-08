@@ -63,11 +63,12 @@ def insert_assessment_result(name, entry_type, incident_ids_list, control_id, st
         conn.commit()
         cursor.close()
         conn.close()
-
+        print("add_assessment_result.py")
         print(f"Successfully inserted {entry_type} with name {name}, incident IDs: {incident_ids_list}, and updated status to '{status}'")
         return {"assessment_result_id": assessment_result_id, "control_id": control_id, "updated_evidence": updated_evidence}
 
     except Exception as e:
+        print("add_assessment_result.py")
         print(f"An error occurred: {e}")
         return None
 
@@ -101,6 +102,7 @@ def get_all_assessment_ids_and_names(db_path="../data/security_controls.db"):
         return assessment_list
 
     except Exception as e:
+        print("add_assessment_result.py")
         print(f"An error occurred: {e}")
         return []    
 
@@ -136,6 +138,7 @@ def get_all_assessment_details(db_path="../data/security_controls.db"):
         return json.dumps(assessment_details)
 
     except Exception as e:
+        print("add_assessment_result.py")
         print(f"An error occurred while fetching assessment details: {e}")
         return []  
 
@@ -184,6 +187,7 @@ def apply_what_if_analysis_multiple(assessment_ids, db_path="../data/security_co
         return f"Successfully applied what-if analysis for assessment IDs: {', '.join(map(str, assessment_ids))}"
 
     except Exception as e:
+        print("add_assessment_result.py")
         print(f"An error occurred: {e}")
         return str(e)
     

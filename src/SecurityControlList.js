@@ -77,18 +77,21 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                     <div className="div-104">
                         <Collapsible
                             trigger={[
-                                <div className="div-105">Define new Security Control</div>,
+                                <div key="define-security-control-text" className="div-105">Define new Security Control</div>,
                                 <img
+                                    key="define-security-control-icon"
                                     loading="lazy"
                                     src="https://cdn.builder.io/api/v1/image/assets/TEMP/c9992667147f295b32eec0696cb0fef65388fa9af146ce7034e2a192b713c079?"
                                     className="img-30"
-                                />]}>
+                                />
+                            ]}
+                        >
                             <DefineSecurityControl refreshControls={refreshControls} />
                         </Collapsible>
                     </div>
                 </div>
-                {securityControls.length > 0 ? securityControls.map((control, index) => (
-                    <div key={index} className="security-control-container">
+                {securityControls.length > 0 ? securityControls.map((control) => (
+                    <div key={control.id} className="security-control-container">
                         <div className={`security-control-content ${showDeleteOption === control.id ? 'blurred' : ''}`}>
                             <div className="security-control-header">
                                 <div className={`security-control-status ${getStatusClass(control.status)}`}>
@@ -103,8 +106,8 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                                 />
                             </div>
                             <div className="security-control-tags">
-                                {control.tags && control.tags.split(',').map((tag, tagIndex) => (
-                                    <div key={tagIndex} className="tag">{tag}</div>
+                                {control.tags && control.tags.split(',').map((tag) => (
+                                    <div key={tag.trim()} className="tag">{tag}</div>
                                 ))}
                             </div>
                             <div className="security-control-title">{control.title}</div>

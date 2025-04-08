@@ -52,6 +52,7 @@ def query_closed_incidents(start_date=None, end_date=None, db_path="../data/inci
         return [incident[0] for incident in incidents]
 
     except Exception as e:
+        print("select_time_period_db.py")
         print(f"An error occurred: {e}")
         return []
 
@@ -72,6 +73,7 @@ def count_unique_incidents(db_path="../data/incidents.db"):
         return count
 
     except sqlite3.Error as e:
+        print("select_time_period_db.py")
         print(f"An error occurred: {e}")
         return None
 
@@ -110,6 +112,7 @@ def get_min_max_closed_date(db_path="../data/incidents.db"):
         return min_date, max_date
 
     except sqlite3.Error as e:
+        print("select_time_period_db.py")
         print(f"An error occurred: {e}")
         return None, None
 
@@ -118,8 +121,10 @@ def main():
     end_date = '05/02/2018'
 
     incidents = query_closed_incidents(start_date, end_date)
+    print("select_time_period_db.py")
     print(f"Number of selected incident IDs: {len(incidents)}")
 
+    print("select_time_period_db.py")
     print(incident_ids_from_time_period)
 
 if __name__ == "__main__":

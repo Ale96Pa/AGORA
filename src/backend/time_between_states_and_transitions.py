@@ -47,6 +47,7 @@ def get_event_state_intervals(incident_id, db_path="../data/incidents.db"):
         return state_intervals
 
     except Exception as e:
+        print("time_between_states_and_transitions.py")
         print(f"An error occurred: {e}")
         return {}
 
@@ -80,6 +81,7 @@ def calculate_time_in_all_states(state_intervals):
 
         return time_in_states
     except Exception as e:
+        print("time_between_states_and_transitions.py")
         print(f"An error occurred: {e}")
         return {}
     
@@ -105,6 +107,7 @@ def calculate_transition_times(state_intervals):
         return transition_times
 
     except Exception as e:
+        print("time_between_states_and_transitions.py")
         print(f"An error occurred: {e}")
         return {}
 
@@ -184,9 +187,10 @@ def get_average_state_times(db_path="../data/incidents.db"):
             for state_key, state in state_mapping.items()
         }
 
-        return ordered_average_time_in_states
+        return json.dumps(ordered_average_time_in_states)
 
     except Exception as e:
+        print("time_between_states_and_transitions.py")
         print(f"An error occurred while fetching average state times: {e}")
         return {}
 
@@ -258,9 +262,10 @@ def get_average_transition_times(db_path="../data/incidents.db"):
                 if transition_key in average_transition_times:
                     ordered_average_transition_times[transition_key] = average_transition_times[transition_key]
 
-        return ordered_average_transition_times
+        return json.dumps(ordered_average_transition_times)
 
     except Exception as e:
+        print("time_between_states_and_transitions.py")
         print(f"An error occurred while fetching average transition times: {e}")
         return {}
 
@@ -283,13 +288,14 @@ def calculate_time_to_last_occurrence(db_path="../data/incidents.db"):
 
         for incident_id, opened_at in incidents:
             processed_incidents += 1
-
+            print("time_between_states_and_transitions.py")
             print(f"Processing incident {processed_incidents}/{total_incidents} (ID: {incident_id})")
 
             # Get the state intervals for the current incident
             state_intervals = get_event_state_intervals(incident_id, db_path)
 
             if not state_intervals:
+                print("time_between_states_and_transitions.py")
                 print(f"Skipping incident {incident_id} due to missing state intervals.")
                 continue
 
@@ -319,16 +325,19 @@ def calculate_time_to_last_occurrence(db_path="../data/incidents.db"):
 
         cursor.close()
         conn.close()
-
+        print("time_between_states_and_transitions.py")
         print("Time to last occurrence of each state successfully calculated and stored.")
 
     except Exception as e:
+        print("time_between_states_and_transitions.py")
         print(f"An error occurred: {e}")
 
 # Example usage
 if __name__ == "__main__":
     state_intervals = get_event_state_intervals('INC0000084')
+    print("time_between_states_and_transitions.py")
     print(state_intervals)
-
+    print("time_between_states_and_transitions.py")
     print(get_average_state_times())
+    print("time_between_states_and_transitions.py")
     print(get_average_transition_times())

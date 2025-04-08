@@ -43,9 +43,13 @@ const TimeStatistics = ({ globalFilterTrigger, graphCursorTrigger, refreshTrigge
     const fetchData = async () => {
       try {
         // Fetch state mapping from eel
-        const states = await eel.read_mapping_from_file()();
-        const deviations = await eel.count_frequencies()();
-        const durations = await eel.get_average_state_times()();
+        const [states, deviations, durations_unparsed] = await Promise.all([
+          eel.read_mapping_from_file()(),
+          eel.count_frequencies()(),
+          eel.get_average_state_times()(),
+        ]);
+        
+        const durations = JSON.parse(durations_unparsed);
 
         const filters = await eel.get_filter_value('filters')();
         const assessmentFilters = filters.thresholds;
@@ -115,17 +119,19 @@ const TimeStatistics = ({ globalFilterTrigger, graphCursorTrigger, refreshTrigge
         {/* DURATIONS Row */}
         <Collapsible
           trigger={[
-            <div className="layer-row full-width-trigger">
-              {statesData.map((state, i) => (
+            <div className="layer-row full-width-trigger" key="durations-trigger">
+              {statesData.map((state) => (
                 <div
                   className="state-column"
-                  key={`durations-${i}`}
+                  key={`durations-${state.state}`} // Unique key for each state
                   style={{ color: state.durationColor }} // Color based on time thresholds
                 >
                   AVG DUR {state.durations}
                 </div>
               ))}
-            </div>]}>
+            </div>,
+          ]}
+        >
           <ProcessStateTimes height={120} graphCursorTrigger={graphCursorTrigger} refreshTrigger={refreshTrigger} />
         </Collapsible>
       </div>

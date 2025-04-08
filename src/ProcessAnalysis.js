@@ -1,9 +1,8 @@
 import './ProcessAnalysis.css';
-import CommonVariants from './common_variants.js';
-import IncidentSelection from './incident_selection.js';
+import CommonVariants from './CommonVariants.js';
 import { useEffect, useState, useRef } from 'react';
 import './ProcessStateTimes.js';
-import DistributionViolinPlot from './ComplianceDistributionViolinPlot.js';
+import DistributionPlot from './ComplianceDistribution.js';
 import { eel } from './App';
 import TechnicalAnalysis from './TechnicalAnalysis.js';
 import LinearizedPnmlVisualization from './LinearizedPnmlVisualization.js';
@@ -19,20 +18,6 @@ import WhatIfAnalysis from './WhatIfAnalysis.js';
 import EvidenceModal from './EvidenceModal.js';
 import TimeStatistics from './TimeStatistics.js';
 import html2canvas from 'html2canvas';  // Import html2canvas for screenshot functionality
-
-async function getPNML() {
-  try {
-    const pnmlData = await eel.communicate_pnml_data_py()();
-    if (pnmlData !== "Error reading file") {
-      return pnmlData;
-    } else {
-      console.error("Failed to read PNML file:", pnmlData);
-      return;
-    }
-  } catch (error) {
-    console.error("An error occurred:", error);
-  }
-}
 
 const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
   const [refreshTrigger, setRefreshTrigger] = useState(false);
@@ -309,7 +294,7 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
                 />
               </div>
             </div>
-            <DistributionViolinPlot height={150} refreshTrigger={refreshTrigger} />
+            <DistributionPlot height={150} refreshTrigger={refreshTrigger} />
             <div className="view-header">
               <div className="view-title">
                 <div className="view-color"/>

@@ -85,10 +85,12 @@ def get_mean_cost_total_and_state_times(db_path="../data/incidents.db"):
         })
 
     except Exception as e:
+        print("new_helper.py")
         print(f"An error occurred: {e}")
         return json.dumps({"error": str(e)})
 
 # Example usage
 if __name__ == "__main__":
     result_json = get_mean_cost_total_and_state_times()
+    print("new_helper.py")
     print(result_json)

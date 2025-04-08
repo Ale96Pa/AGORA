@@ -9,9 +9,11 @@ def create_connection(db_file):
     os.makedirs(os.path.dirname(db_file), exist_ok=True)
     try:
         conn = sqlite3.connect(db_file)
+        print("database_sec_controls.py")
         print(f"Connected to SQLite, version {sqlite3.version}")
         return conn
     except Error as e:
+        print("database_sec_controls.py")
         print(e)
     return None
 
@@ -48,8 +50,10 @@ def create_tables(conn):
         cursor.execute(sql_create_tags_table)
         cursor.execute(sql_create_control_tags_table)
         conn.commit()
+        print("database_sec_controls.py")
         print("Tables created successfully")
     except Error as e:
+        print("database_sec_controls.py")
         print(e)
 
 @eel.expose
@@ -66,9 +70,11 @@ def insert_security_control(title, description, operator_name, status='not cover
         control_id = cursor.lastrowid  # Fetch the last inserted id
 
         conn.commit()
+        print("database_sec_controls.py")
         print("Security control and tags inserted successfully.")
         conn.close()
     except sqlite3.Error as e:
+        print("database_sec_controls.py")
         print(f"An error occurred: {e}")
         conn.rollback()
 
@@ -93,6 +99,7 @@ def fetch_all_security_controls():
         conn.close()
         return json.dumps(controls_list)
     except sqlite3.Error as e:
+        print("database_sec_controls.py")
         print(f"An error occurred: {e}")
         return json.dumps([])
 
@@ -110,8 +117,10 @@ def delete_security_control(control_id):
         
         # Check if the row was deleted
         if cursor.rowcount == 0:
+            print("database_sec_controls.py")
             print("No such security control found with ID:", control_id)
         else:
+            print("database_sec_controls.py")
             print("Security control deleted successfully.")
         
         # Commit the changes to the database
@@ -124,6 +133,7 @@ def delete_security_control(control_id):
         conn.close()
 
     except sqlite3.Error as e:
+        print("database_sec_controls.py")
         print(f"An error occurred: {e}")
         conn.rollback()  # Roll back any changes if an error occurs
 
@@ -145,6 +155,7 @@ def count_security_controls(security_control_status=None):
         conn.close()
         return count
     except sqlite3.Error as e:
+        print("database_sec_controls.py")
         print(f"An error occurred: {e}")
         return 0
 
@@ -160,6 +171,7 @@ def main():
         create_tables(conn)
         conn.close()
     else:
+        print("database_sec_controls.py")
         print("Error! cannot create the database connection.")
 
     # Example security control data
@@ -174,6 +186,7 @@ def main():
         insert_security_control(*data)
 
     controls = fetch_all_security_controls()
+    print("database_sec_controls.py")
     print("All security controls:", controls)
 
 

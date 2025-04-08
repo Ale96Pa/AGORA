@@ -57,10 +57,12 @@ def get_compliance_metric_distribution(db_path="../data/incidents.db"):
         return distribution_json
 
     except Exception as e:
+        print("process_compliance_distribution.py")
         print(f"An error occurred: {e}")
         return json.dumps([])
 
 # Example usage
 if __name__ == "__main__":
     distribution_json = get_compliance_metric_distribution()
+    print("process_compliance_distribution.py")
     print(distribution_json)
