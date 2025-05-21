@@ -58,25 +58,39 @@ def create_tables(conn):
 
 @eel.expose
 def insert_security_control(title, description, operator_name, status='not covered'):
-    """Insert a security control and its associated tags into the database."""
+    """Insert a security control into the database."""
     try:
         database = "../data/security_controls.db"  # Path to the database file
         conn = sqlite3.connect(database)
 
+        # Ensure status is a string and has a valid value
+        if not isinstance(status, str):
+            raise ValueError(f"Invalid status type: {type(status)}. Expected a string.")
+        if status not in ['covered', 'partially covered', 'not covered']:
+            raise ValueError(f"Invalid status value: {status}. Expected one of 'covered', 'partially covered', 'not covered'.")
+
         # Inserting into security_controls table
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO security_controls (title, description, operator_id, status) VALUES (?, ?, ?, ?)",
-                       (title, description, operator_name, status))
+        cursor.execute(
+            "INSERT INTO security_controls (title, description, operator_id, status) VALUES (?, ?, ?, ?)",
+            (title, description, operator_name, status)
+        )
         control_id = cursor.lastrowid  # Fetch the last inserted id
 
         conn.commit()
         print("database_sec_controls.py")
-        print("Security control and tags inserted successfully.")
+        print("Security control inserted successfully.")
         conn.close()
+        return "Success"
     except sqlite3.Error as e:
         print("database_sec_controls.py")
         print(f"An error occurred: {e}")
         conn.rollback()
+        return f"Error: {e}"
+    except ValueError as ve:
+        print("database_sec_controls.py")
+        print(f"Validation error: {ve}")
+        return f"Error: {ve}"
 
 @eel.expose
 def fetch_all_security_controls():

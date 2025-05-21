@@ -3,11 +3,13 @@ import './SecurityControlList.css';
 import { eel } from './App';
 import Collapsible from 'react-collapsible';
 import DefineSecurityControl from './define_security_control.js';
+import SecurityControlsModal from './SecurityControlsModal'; // Import the modal component
 
 function SecurityControlList({ refreshTrigger, refreshControls }) {
     const [securityControls, setSecurityControls] = useState([]);
     const [showDeleteOption, setShowDeleteOption] = useState(null); // State to manage delete option visibility
     const [totalSecurityControls, setTotalSecurityControls] = useState(0);
+    const [showModal, setShowModal] = useState(false); // State to control modal visibility
 
     useEffect(() => {
         const fetchSecurityControls = async () => {
@@ -22,7 +24,7 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
             }
         };
 
-        fetchSecurityControls();  // Fetch controls on mount and when refreshTrigger changes
+        fetchSecurityControls(); // Fetch controls on mount and when refreshTrigger changes
     }, [refreshTrigger]);
 
     const handleDelete = async (controlId) => {
@@ -61,10 +63,12 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                         </div>
                     </div>
                     <div className="div-92">
+                        {/* Show the modal when clicking this image */}
                         <img
                             loading="lazy"
                             src="https://cdn.builder.io/api/v1/image/assets/TEMP/38c07b170bfeb7835adc20b28bcff61a5a96acfa9c8b83250fd741f77e854b5d?"
                             className="img-27"
+                            onClick={() => setShowModal(true)} // Open the modal
                         />
                         <img
                             loading="lazy"
@@ -124,6 +128,13 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                     </div>
                 )) : <div className="security-control-container">No security controls found.</div>}
             </div>
+
+            {/* SecurityControlsModal for importing security controls */}
+            <SecurityControlsModal
+                show={showModal}
+                handleClose={() => setShowModal(false)} // Close the modal
+                refreshControls={refreshControls} // Refresh the list after importing
+            />
         </div>
     );
 }

@@ -304,7 +304,23 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
           <div className="tile active-tile">
             <h4>Active Incidents</h4>
-            <p>{summaryData.active.first} → {summaryData.active.last}</p>
+            <p>
+              {summaryData.active.first}
+              <span
+                style={{
+                  display: 'inline-block',
+                  transform: `rotate(${summaryData.active.last > summaryData.active.first 
+                    ? '-45deg' 
+                    : summaryData.active.last < summaryData.active.first 
+                    ? '45deg' 
+                    : '0deg'})`, // No rotation if values are the same
+                  margin: '0 5px',
+                }}
+              >
+                →
+              </span>
+              {summaryData.active.last}
+            </p>
           </div>
           <div className="tile low-tile">
             <h4>Closed Low Severity</h4>

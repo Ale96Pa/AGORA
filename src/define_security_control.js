@@ -5,12 +5,11 @@ import { eel } from './App';
 function DefineSecurityControl({ refreshControls }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [tags, setTags] = useState([]);
     const [operatorName, setOperator] = useState('');
 
     const handleSave = async (event) => {
         event.preventDefault();
-        eel.insert_security_control(title, description, operatorName, tags)((response) => {
+        eel.insert_security_control(title, description, operatorName)((response) => {
             console.log('Response from Python:', response);
             refreshControls(); // Call refreshControls to update the list
         });
