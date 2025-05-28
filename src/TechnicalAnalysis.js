@@ -469,6 +469,23 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
 
   return (
     <div>
+      {/* Checkbox controls for toggling scales */}
+      <div className="scale-toggles" style={{ marginBottom: '10px', textAlign: 'left' }}>
+        {Object.keys(enabledScales).map((scale) => (
+          <label key={scale} style={{ marginRight: '10px', color: 'white' }}>
+            <input
+              type="checkbox"
+              checked={enabledScales[scale]}
+              onChange={() => toggleScale(scale)}
+              disabled={scale === 'category'} // Prevent disabling the Category scale
+              style={{ marginRight: '5px' }}
+            />
+            {scale.charAt(0).toUpperCase() + scale.slice(1)}
+          </label>
+        ))}
+      </div>
+
+      {/* Button to toggle between full and summarized view */}
       <div className="controls" style={{ marginBottom: '10px', textAlign: 'right' }}>
         <button
           onClick={() => setViewMode(viewMode === 'full' ? 'summarized' : 'full')}
@@ -485,6 +502,7 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
         </button>
       </div>
 
+      {/* Render the appropriate view */}
       {viewMode === 'full' ? (
         <svg ref={svgRef} style={{ width: '100%', height: height }} />
       ) : (

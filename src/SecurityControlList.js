@@ -69,6 +69,7 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                             src="https://cdn.builder.io/api/v1/image/assets/TEMP/38c07b170bfeb7835adc20b28bcff61a5a96acfa9c8b83250fd741f77e854b5d?"
                             className="img-27"
                             onClick={() => setShowModal(true)} // Open the modal
+                            style={{ cursor: 'pointer' }}
                         />
                         <img
                             loading="lazy"

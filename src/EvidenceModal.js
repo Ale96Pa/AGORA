@@ -156,7 +156,7 @@ const EvidenceModal = ({ isVisible, onClose, containerRef, updateProgress }) => 
           <option value="not covered">Not Covered</option>
         </select>
 
-        <h3>Attach View</h3>
+        <br></br>
         <div className="modal-actions">
           <button onClick={() => onClose(null)}>Close</button>
           <button onClick={handleLinkViewtoSecurityControl}>
