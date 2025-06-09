@@ -191,11 +191,84 @@ def apply_what_if_analysis_multiple(assessment_ids, db_path="../data/security_co
         print(f"An error occurred: {e}")
         return str(e)
     
+@eel.expose
+def remove_assessment_result(assessment_id, db_path="../data/security_controls.db"):
+    """
+    Removes an assessment result from the database and updates the associated security control's evidence.
+
+    Parameters:
+    assessment_id (int): The ID of the assessment result to remove.
+    db_path (str): Path to the SQLite database.
+
+    Returns:
+    str: Success message or error.
+    """
+    try:
+        # Connect to the SQLite database
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # Fetch the name of the assessment result to be removed
+        cursor.execute("SELECT name FROM assessment_results WHERE id = ?", (assessment_id,))
+        result = cursor.fetchone()
+        if not result:
+            raise ValueError(f"No assessment result found with ID {assessment_id}")
+        assessment_name = result[0]
+
+        # Remove the assessment result from the assessment_results table
+        cursor.execute("DELETE FROM assessment_results WHERE id = ?", (assessment_id,))
+
+        # Update the evidence field in the security_controls table
+        cursor.execute("SELECT id, evidence FROM security_controls")
+        controls = cursor.fetchall()
+        for control_id, evidence in controls:
+            if evidence:
+                # Remove the assessment name from the evidence field
+                updated_evidence = ";".join(
+                    [e.strip() for e in evidence.split(";") if e.strip() != assessment_name]
+                )
+                cursor.execute(
+                    "UPDATE security_controls SET evidence = ? WHERE id = ?",
+                    (updated_evidence, control_id),
+                )
+
+        # Commit the transaction and close the connection
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        print("add_assessment_result.py")
+        print(f"Successfully removed assessment result with ID {assessment_id}")
+        return f"Successfully removed assessment result with ID {assessment_id}"
+
+    except Exception as e:
+        print("add_assessment_result.py")
+        print(f"An error occurred while removing assessment result: {e}")
+        return str(e)
+
 # Example usage:
 if __name__ == "__main__":
-    # Provide your database path and parameters
-    db_path = "../data/incidents.db"  # Adjust the path to your SQLite database
-    entry_type = "finding"  # Options: 'finding', 'area of concern', 'non-conformaty'
-    incident_ids_list = "INC0012345,INC0012346,INC0012347"  # Example list of incident IDs
+    # Path to the SQLite database
+    db_path = "../data/security_controls.db"
 
-    insert_assessment_result(name, entry_type, incident_ids_list)
+    try:
+        # Fetch all assessment IDs and names
+        assessments = get_all_assessment_ids_and_names(db_path=db_path)
+
+        if not assessments:
+            print("No assessments found in the database.")
+        else:
+            print(f"Found {len(assessments)} assessments. Removing them...")
+
+            # Iterate over each assessment and remove it
+            for assessment in assessments:
+                assessment_id = assessment['id']
+                assessment_name = assessment['name']
+                print(f"Removing assessment ID {assessment_id} with name '{assessment_name}'...")
+                result = remove_assessment_result(assessment_id, db_path=db_path)
+                print(result)
+
+            print("All assessments have been removed.")
+
+    except Exception as e:
+        print(f"An error occurred in the main function: {e}")

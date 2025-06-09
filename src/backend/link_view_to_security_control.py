@@ -150,3 +150,94 @@ def fetch_all_assessment_views(db_path="../data/security_controls.db"):
         print("link_view_to_security_control.py")
         print(f"An error occurred while fetching assessment views: {e}")
         return json.dumps([])
+
+@eel.expose
+def remove_assessment_view(view_id, db_path="../data/security_controls.db"):
+    """
+    Removes a specific assessment view from the database and updates the associated security controls' evidence fields.
+
+    Args:
+        view_id (int): The ID of the assessment view to remove.
+        db_path (str): Path to the SQLite database.
+
+    Returns:
+        str: A success message or error message.
+    """
+    try:
+        # Connect to the SQLite database
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # Fetch the filename of the assessment view to be removed
+        cursor.execute("SELECT view_data FROM assessment_views WHERE id = ?", (view_id,))
+        result = cursor.fetchone()
+        if not result:
+            raise ValueError(f"No assessment view found with ID {view_id}")
+        image_filename = result[0]
+
+        # Delete the assessment view from the assessment_views table
+        cursor.execute("DELETE FROM assessment_views WHERE id = ?", (view_id,))
+
+        # Update the evidence field in the security_controls table
+        cursor.execute("SELECT id, evidence FROM security_controls")
+        controls = cursor.fetchall()
+        for control_id, evidence in controls:
+            if evidence:
+                # Remove the reference to the deleted view from the evidence field
+                updated_evidence = ";".join(
+                    [e.strip() for e in evidence.split(";") if e.strip() != image_filename]
+                )
+                cursor.execute(
+                    "UPDATE security_controls SET evidence = ? WHERE id = ?",
+                    (updated_evidence, control_id),
+                )
+
+        # Commit the transaction
+        conn.commit()
+
+        # Close the database connection
+        cursor.close()
+        conn.close()
+
+        # Remove the image file from the filesystem
+        save_directory = '../assessment_results'
+        image_path = os.path.join(save_directory, image_filename)
+        if os.path.exists(image_path):
+            os.remove(image_path)
+
+        print("link_view_to_security_control.py")
+        print(f"Successfully removed assessment view with ID {view_id}")
+        return f"Successfully removed assessment view with ID {view_id}"
+
+    except Exception as e:
+        print("link_view_to_security_control.py")
+        print(f"An error occurred while removing assessment view: {e}")
+        return f"An error occurred: {e}"
+
+if __name__ == "__main__":
+    # Path to the SQLite database
+    db_path = "../data/security_controls.db"
+
+    try:
+        # Fetch all assessment views
+        print("Fetching all assessment views...")
+        assessment_views_json = fetch_all_assessment_views(db_path=db_path)
+        assessment_views = json.loads(assessment_views_json)
+
+        if not assessment_views:
+            print("No assessment views found in the database.")
+        else:
+            print(f"Found {len(assessment_views)} assessment views. Removing them...")
+
+            # Iterate over each assessment view and remove it
+            for view in assessment_views:
+                view_id = view['id']
+                image_filename = view['image_filename']
+                print(f"Removing assessment view ID {view_id} with image '{image_filename}'...")
+                result = remove_assessment_view(view_id, db_path=db_path)
+                print(result)
+
+            print("All assessment views have been removed.")
+
+    except Exception as e:
+        print(f"An error occurred in the main function: {e}")
