@@ -9,8 +9,11 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
   const [summaryData, setSummaryData] = useState(null);
   const [parsedData, setParsedData] = useState(null); // Store parsed data for rendering the chart
 
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
-    // Fetch data from the backend whenever refreshTrigger changes
+    setLoading(true);
+    try {
     eel.get_incidents_open_and_closed_over_time()().then(data => {
       const parsed = data;
 
@@ -32,9 +35,12 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
 
       setSummaryData(summary); // Update the tiles with the latest data
       setParsedData(parsed); // Store parsed data for rendering the chart
-    }).catch(error => {
-      console.error('Error fetching data:', error);
+      setLoading(false);
     });
+  } catch(error) {
+      console.error('Error fetching data:', error);
+    }
+    
   }, [refreshTrigger]); // Re-run whenever refreshTrigger changes
 
   useEffect(() => {
@@ -49,7 +55,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
     const containerWidth = svgElement.node().parentNode.clientWidth;
 
     const width = containerWidth;
-    const margin = { top: 10, right: 30, bottom: 25, left: 30 };
+    const margin = { top: 10, right: 20, bottom: 25, left: 40 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -69,6 +75,13 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
       total: (d.low || 0) + (d.moderate || 0) + (d.high || 0) + (d.critical || 0)
     }));
 
+    // Get the max value for closed incidents (stacked)
+    const maxClosedIncidents = d3.max(closedIncidents, d => d.total) || 0;
+
+    // Get the max value for active incidents
+    const maxActiveIncidents = d3.max(parsedData.active_incidents, d => d.count) || 0; 
+  
+
     // Create time scale based on both active and closed incidents' time range
     const xScale = d3.scaleTime()
       .domain([
@@ -79,7 +92,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
 
     // Get the min and max values for both active and closed incidents for Y scale
     const yMin = 0;
-    const yMax = d3.max(closedIncidents, d => d.total);
+    const yMax = Math.max(maxClosedIncidents, maxActiveIncidents); // Ensure yMax is at least 0
 
     // Create Y scale for counts of incidents, with domain fitting to min/max values
     const yScale = d3.scaleLinear()
@@ -290,15 +303,32 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
       .style("fill", "transparent"); // Remove the gray background by setting it to transparent
   };
 
-  return (
-    <div>
-      {/* Toggle Button */}
-      <div style={{ marginBottom: '10px', textAlign: 'right' }}>
-        <button onClick={() => setViewMode(viewMode === 'reduced' ? 'full' : 'reduced')}>
-          {viewMode === 'reduced' ? 'Show Full Content' : 'Show Reduced Content'}
-        </button>
-      </div>
+  // Handler to toggle view mode
+  const handleToggleView = () => {
+    setViewMode(viewMode === 'reduced' ? 'full' : 'reduced');
+  };
 
+  return (
+    <div style={{ position: 'relative', minHeight: height }}>
+      {/* Loading overlay */}
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(30,30,30,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10
+        }}>
+          <div className="spinner" />
+        </div>
+      )}
+    <div
+      style={{ cursor: 'pointer', width: '100%' }}
+      onClick={handleToggleView}
+      title={`Click to switch to ${viewMode === 'reduced' ? 'full' : 'reduced'} view`}
+    >
       {/* Reduced View */}
       {viewMode === 'reduced' && summaryData && (
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
@@ -313,7 +343,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
                     ? '-45deg' 
                     : summaryData.active.last < summaryData.active.first 
                     ? '45deg' 
-                    : '0deg'})`, // No rotation if values are the same
+                    : '0deg'})`,
                   margin: '0 5px',
                 }}
               >
@@ -343,6 +373,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
 
       {/* Full View */}
       {viewMode === 'full' && <svg ref={svgRef} style={{ width: '100%', height: height }} />}
+    </div>
     </div>
   );
 };

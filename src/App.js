@@ -50,10 +50,10 @@ function App() {
 
   return (
     <>
-      <div className="div">
+      <div className="main-container">
         <NavigationBar onSelectionChange={handleSelectionChange} refreshTrigger={refreshTrigger} toggleView={toggleView} />
-        <div className="div-34">
-          <div className="div-35">
+        <div className="assessment-container">
+          <div className="assessment-sub-container">
             <SideBar refreshTrigger={refreshTrigger} refreshControls={refreshSecurityControls} />
             {/* Conditionally render ProcessAnalysis or Reporting based on the showProcessAnalysis state */}
             {showProcessAnalysis ? (

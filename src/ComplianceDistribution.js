@@ -1,12 +1,13 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import * as d3 from 'd3';
 import { eel } from './App';
 
 const DistributionPlot = ({ height = 500, refreshTrigger }) => {
   const svgRef = useRef();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Fetch the data from the Python function using eel
+    setLoading(true);
     eel.get_compliance_metric_distribution()().then(data => {
       const svgElement = d3.select(svgRef.current);
       const containerWidth = svgElement.node().parentNode.clientWidth;
@@ -104,10 +105,27 @@ const DistributionPlot = ({ height = 500, refreshTrigger }) => {
     }).catch(error => {
       console.error('Error fetching data:', error);
     });
-  }, [height, refreshTrigger]); // Adding refreshTrigger to the dependency array
+    setLoading(false); 
+  }, [height, refreshTrigger]);
 
   return (
-    <svg ref={svgRef} style={{ width: '100%', height: height }} />
+    <div style={{ position: 'relative', minHeight: height }}>
+      {/* Loading overlay */}
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(30,30,30,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10
+        }}>
+          <div className="spinner" />
+        </div>
+      )}
+      <svg ref={svgRef} style={{ width: '100%', height: height }} />
+    </div>
   );
 };
 

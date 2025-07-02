@@ -5,7 +5,8 @@ import './TechnicalAnalysis.css';
 
 const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, refreshTrigger }) => {
   const svgRef = useRef();
-  const [viewMode, setViewMode] = useState('full'); // 'full' or 'summarized'
+  const [viewMode, setViewMode] = useState('full');
+  const [loading, setLoading] = useState(true);
   const [enabledScales, setEnabledScales] = useState({
     symptom: true,
     impact: true,
@@ -58,6 +59,7 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
   // Fetch incident technical attributes from the backend using eel
   useEffect(() => {
     const fetchTechnicalAttributes = async () => {
+      setLoading(true);
       try {
         const incidentData = await eel.get_incident_technical_attributes()();
 
@@ -72,6 +74,7 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
       } catch (error) {
         console.error('Failed to fetch technical attributes:', error);
       }
+      setLoading(false);
     };
 
     fetchTechnicalAttributes();
@@ -468,7 +471,21 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
   };
 
   return (
-    <div>
+    <div style={{ position: 'relative', minHeight: height }}>
+      {/* Loading overlay */}
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(30,30,30,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10
+        }}>
+          <div className="spinner" />
+        </div>
+      )}
       {/* Checkbox controls for toggling scales */}
       <div className="scale-toggles" style={{ marginBottom: '10px', textAlign: 'left' }}>
         {Object.keys(enabledScales).map((scale) => (

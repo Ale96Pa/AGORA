@@ -35,7 +35,7 @@ const ProcessStateTimes = ({ height = 500, graphCursorTrigger, refreshTrigger })
       const containerWidth = svgElement.node().parentNode.clientWidth;
 
       const width = containerWidth;
-      const margin = { top: 10, right: 10, bottom: 25, left: 30 };
+      const margin = { top: 10, right: 20, bottom: 25, left: 40 };
       const innerWidth = width - margin.left - margin.right;
       const innerHeight = height - margin.top - margin.bottom;
 

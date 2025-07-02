@@ -4,7 +4,7 @@ import './CriticalIncidents.css'; // Import custom styles if needed
 
 const CriticalIncidents = ({ refreshTrigger, height = 400 }) => {
   const [criticalIncidents, setCriticalIncidents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [complianceMetric, setComplianceMetric] = useState('');
 
   // Fetch critical incidents from the backend
@@ -16,9 +16,8 @@ const CriticalIncidents = ({ refreshTrigger, height = 400 }) => {
     } catch (error) {
       console.error('Error fetching critical incidents:', error);
       setCriticalIncidents([]); // Handle errors by setting an empty array
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   // Fetch the incident compliance metric
@@ -39,10 +38,22 @@ const CriticalIncidents = ({ refreshTrigger, height = 400 }) => {
 
   // Conditional rendering based on loading state and data presence
   return (
+    <div style={{ position: 'relative', minHeight: height }}>
+      {/* Loading overlay */}
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(30,30,30,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10
+        }}>
+          <div className="spinner" />
+        </div>
+      )}
     <div className="critical-incidents-container" style={{ maxHeight: `${height}px`, overflowY: 'auto' }}>
-      {loading ? (
-        <p>Loading critical incidents...</p>
-      ) : criticalIncidents.length > 0 ? (
         <table className="critical-incidents-table">
           <thead>
             <tr>
@@ -63,9 +74,7 @@ const CriticalIncidents = ({ refreshTrigger, height = 400 }) => {
             ))}
           </tbody>
         </table>
-      ) : (
-        <p>No critical incidents found.</p>
-      )}
+    </div>
     </div>
   );
 };

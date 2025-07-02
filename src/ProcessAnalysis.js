@@ -17,16 +17,16 @@ import ComplianceDevelopment from './ComplianceDevelopment.js';
 import WhatIfAnalysis from './WhatIfAnalysis.js';
 import EvidenceModal from './EvidenceModal.js';
 import TimeStatistics from './TimeStatistics.js';
-import html2canvas from 'html2canvas';  // Import html2canvas for screenshot functionality
+import html2canvas from 'html2canvas';  
 
-const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
+const ProcessAnalysis = ({ analysisTrigger, updateProgress }) => {
   const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [selectionTabularTrigger, setTabularSelectionTrigger] = useState(false);
   const [globalFilterTrigger, setGlobalFilterTrigger] = useState(false);
   const [graphCursorTrigger, setGraphCursorTrigger] = useState(false);
   const [whatIfAnalysisTrigger, setWhatIfAnalysisTrigger] = useState(false);
 
-  const [isModalVisible, setModalVisible] = useState(false);  // State to track modal visibility
+  const [isModalVisible, setModalVisible] = useState(false);
 
   // Create separate refs for each view container
   const activeclosedIncidentsRef = useRef(null);
@@ -108,12 +108,13 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
       <EvidenceModal
             isVisible={isModalVisible}
             onClose={handleModalClose}
-            containerRef={currentRef}  // Pass the correct ref to the modal
+            containerRef={currentRef} 
             updateProgress={handleUpdateProgress}
           />
-      <div className="div-114">
+      <div className="aggregated-views-container">
         <div className="aggregated-view">
-          {/* Active and (compliantly) closed incidents */}
+
+          {/* Incidents Development */}
           <div className="view" style={{ flex: '3'}} ref={activeclosedIncidentsRef}>
             <div className="view-header">
               <div className="view-title">
@@ -124,7 +125,7 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
-                  className="img-40"
+                  className="img-bookmark"
                   onClick={() => openModalWithRef(activeclosedIncidentsRef)}  // Capture referenceModelRef
                   style={{ cursor: 'pointer' }}
                 />
@@ -140,16 +141,16 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
 
           {/* Statistical Analysis */}
           <div className="view" style={{ flex: '1'}} ref={statisticalAnalysisRef}>
-            <div className="div-155">
-              <div className="div-156">
-                <div className="div-157" />
-                <div className="div-158">Statistical Analysis</div>
+            <div className="view-header">
+              <div className="view-title">
+                <div className="view-color" />
+                <div className="view-name">Statistical Analysis</div>
               </div>
-              <div className="div-159">
+              <div className="view-options">
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/b8802bce4b2328afc3828723fb3f6019547d9405c4147e72d184d0ccb80e867c?"
-                  className="img-40"
+                  className="img-bookmark"
                   onClick={() => openModalWithRef(statisticalAnalysisRef)}  // Capture commonVariantsRef
                   style={{ cursor: 'pointer' }}
                 />
@@ -176,7 +177,7 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
-                  className="img-40"
+                  className="img-bookmark"
                   onClick={() => openModalWithRef(referenceModelRef)}  // Capture referenceModelRef
                   style={{ cursor: 'pointer' }}
                 />
@@ -192,16 +193,16 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
 
           {/* Common Variants */}
           <div className="view" style={{ flex: '1'}} ref={commonVariantsRef}>
-            <div className="div-155">
-              <div className="div-156">
-                <div className="div-157" />
-                <div className="div-158">Common Variants</div>
+            <div className="view-header">
+              <div className="view-title">
+                <div className="view-color" />
+                <div className="view-name">Common Variants</div>
               </div>
-              <div className="div-159">
+              <div className="view-options">
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/b8802bce4b2328afc3828723fb3f6019547d9405c4147e72d184d0ccb80e867c?"
-                  className="img-40"
+                  className="img-bookmark"
                   onClick={() => openModalWithRef(commonVariantsRef)}  // Capture commonVariantsRef
                   style={{ cursor: 'pointer' }}
                 />
@@ -231,7 +232,7 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
-                  className="img-40"
+                  className="img-bookmark"
                   onClick={() => openModalWithRef(processStatisticsRef)} // Capture referenceModelRef
                   style={{ cursor: 'pointer' }}
                 />
@@ -243,7 +244,7 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
               </div>
             </div>
 
-            {/* Content Container */}
+
             <div className="view-content" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               {/* ComplianceDevelopment Component */}
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
@@ -283,7 +284,7 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
-                  className="img-40"
+                  className="img-bookmark"
                   onClick={() => openModalWithRef(criticalIncidentsRef)}  // Capture criticalIncidentsRef
                   style={{ cursor: 'pointer' }}
                 />
@@ -304,7 +305,7 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/a596cbe0638ef32530bc667ec818053e9585b1e23beaba7e39db2a185087af5b?"
-                  className="img-40"
+                  className="img-bookmark"
                   onClick={() => openModalWithRef(criticalIncidentsRef)}  // Capture criticalIncidentsRef
                   style={{ cursor: 'pointer' }}
                 />
@@ -318,27 +319,26 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
             <CriticalIncidents refreshTrigger={refreshTrigger} height={250} />
           </div>
         </div>
-        {/* Third row of views */}
         <div className="aggregated-view">
           {/* Technical Analysis */}
           <div className="view" style={{ flex: '1.5'}} ref={technicalAnalysisRef}>
-            <div className="div-258">
-              <div className="div-259">
-                <div className="div-260" />
-                <div className="div-261">Technical Analysis</div>
+            <div className="view-header">
+              <div className="view-title">
+                <div className="view-color" />
+                <div className="view-name">Technical Analysis</div>
               </div>
-              <div className="div-262">
+              <div className="view-options">
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/247bed24a7d4f2c3c91739144cd671e38774320b936ec7e542e65ce70b7fb329?"
-                  className="img-40"
+                  className="img-bookmark"
                   onClick={() => openModalWithRef(technicalAnalysisRef)}  // Capture technicalAnalysisRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/475ecedfbaad1db822df345503478a70f3355aee312eff89648301026c86ddf2?"
-                  className="img-77"
+                  className="img-three-dots"
                 />
               </div>
             </div>
@@ -347,23 +347,23 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
 
           {/* Tabular Analysis */}
           <div className="view" style={{ flex: '1.5'}} ref={tabularAnalysisRef}>
-            <div className="div-258">
-              <div className="div-259">
-                <div className="div-260" />
-                <div className="div-261">Tabular Analysis</div>
+            <div className="view-header">
+              <div className="view-title">
+                <div className="view-color" />
+                <div className="view-name">Tabular Analysis</div>
               </div>
-              <div className="div-262">
+              <div className="view-options">
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/247bed24a7d4f2c3c91739144cd671e38774320b936ec7e542e65ce70b7fb329?"
-                  className="img-40"
+                  className="img-bookmark"
                   onClick={() => openModalWithRef(tabularAnalysisRef)}  // Capture tabularAnalysisRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/475ecedfbaad1db822df345503478a70f3355aee312eff89648301026c86ddf2?"
-                  className="img-77"
+                  className="img-three-dots"
                 />
               </div>
             </div>
@@ -372,46 +372,46 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress}) => {
 
           {/* Individual Analysis */}
           <div className="view" style={{ flex: '0.5'}} ref={individualAnalysisRef}>
-            <div className="div-258">
-              <div className="div-259">
-                <div className="div-260" />
-                <div className="div-261">Individual Analysis</div>
+            <div className="view-header">
+              <div className="view-title">
+                <div className="view-color" />
+                <div className="view-name">Individual Analysis</div>
               </div>
-              <div className="div-262">
+              <div className="view-options">
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/247bed24a7d4f2c3c91739144cd671e38774320b936ec7e542e65ce70b7fb329?"
-                  className="img-40"
+                  className="img-bookmark"
                   onClick={() => openModalWithRef(individualAnalysisRef)}  // Capture individualAnalysisRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/475ecedfbaad1db822df345503478a70f3355aee312eff89648301026c86ddf2?"
-                  className="img-77"
+                  className="img-three-dots"
                 />
               </div>
             </div>
             <IndividualAnalysis height={210} selectionTrigger={selectionTabularTrigger} updateAssessmentsResultsTrigger={handleWhatIfAnalysisUpdate} updateProgress={handleUpdateProgress}/>
           </div>
           <div className="view" style={{ flex: '0.5'}} ref={whatIfAnalysisRef}>
-            <div className="div-258">
-              <div className="div-259">
-                <div className="div-287" />
-                <div className="div-261">What-if Analysis</div>
+            <div className="view-header">
+              <div className="view-title">
+                <div className="view-color" />
+                <div className="view-name">What-if Analysis</div>
               </div>
-              <div className="div-262">
+              <div className="view-options">
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/247bed24a7d4f2c3c91739144cd671e38774320b936ec7e542e65ce70b7fb329?"
-                  className="img-40"
+                  className="img-bookmark"
                   onClick={() => openModalWithRef(whatIfAnalysisRef)}  // Capture individualAnalysisRef
                   style={{ cursor: 'pointer' }}
                 />
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/475ecedfbaad1db822df345503478a70f3355aee312eff89648301026c86ddf2?"
-                  className="img-77"
+                  className="img-three-dots"
                 />
               </div>
             </div>
