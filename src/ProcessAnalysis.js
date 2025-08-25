@@ -188,7 +188,7 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress }) => {
                 />
               </div>
             </div>
-            <LinearizedPnmlVisualization height={110} refreshTrigger={refreshTrigger} />
+            <LinearizedPnmlVisualization height={100} refreshTrigger={refreshTrigger} />
           </div>
 
           {/* Common Variants */}
@@ -213,7 +213,7 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress }) => {
                 />
               </div>
             </div>
-            <CommonVariants height={130} globalFilterTrigger={handleTabularFilterChange} refreshTrigger={refreshTrigger} />
+            <CommonVariants height={100} globalFilterTrigger={handleTabularFilterChange} refreshTrigger={refreshTrigger} />
           </div>
         </div>
         <div className="aggregated-view">
