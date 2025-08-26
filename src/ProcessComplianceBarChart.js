@@ -71,7 +71,8 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
       // Assign a horizontal offset based on the number of bars that share the same closedAt date
       groupedByDate.forEach((group, date) => {
         group.forEach((d, i) => {
-          d.offset = i - (group.length - 1) / 2; // Center the bars around the original position
+          // d.offset = i - (group.length - 1) / 2; Center the bars around the original position
+          d.offset = 0;
         });
       });
 

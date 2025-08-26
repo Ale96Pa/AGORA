@@ -101,6 +101,140 @@ const Reporting = () => {
     return selectedControl ? linkedControl && linkedControl.id === selectedControl : true;
   });
 
+  // Add these helper functions inside your component:
+  const exportControlsToCSV = (controls) => {
+    if (!controls || controls.length === 0) return;
+    const headers = Object.keys(controls[0]);
+    const csvRows = [
+      headers.join(','),
+      ...controls.map(row => headers.map(h => `"${row[h] ?? ''}"`).join(','))
+    ];
+    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
+    const link = document.createElement('a');
+    link.href = encodeURI(csvContent);
+    link.download = 'security_controls.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportControlsToPDF = async (controls, assessmentResultsWithImages) => {
+    if (!controls || controls.length === 0) return;
+    const { default: jsPDF } = await import('jspdf');
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+    // PDF layout constants
+    const leftMargin = 40;
+    const rightMargin = 40;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const usableWidth = pageWidth - leftMargin - rightMargin;
+    const maxImageHeight = doc.internal.pageSize.getHeight() - 100; // leave space for margins
+    const lineHeight = 14;
+
+    // Date and time
+    const now = new Date();
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Incident Management Assessment Report`, leftMargin, 40);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'italic');
+    doc.text(`Generated: ${now.toLocaleString()}`, leftMargin, 60);
+    doc.setFont('helvetica', 'normal');
+
+    let y = 80;
+
+    // Helper to wrap text and return lines
+    const wrap = (text, fontSize = 10) => {
+      doc.setFontSize(fontSize);
+      return doc.splitTextToSize(String(text ?? ''), usableWidth);
+    };
+
+    // Helper to get image dimensions from base64
+    const getImageDimensions = (base64) => {
+      return new Promise(resolve => {
+        const img = new window.Image();
+        img.onload = () => {
+          resolve({ width: img.width, height: img.height });
+        };
+        img.src = `data:image/png;base64,${base64}`;
+      });
+    };
+
+    for (const control of controls) {
+      doc.setFontSize(12);
+      doc.setTextColor(40, 40, 40);
+
+      [
+        { label: `Control ID: ${control.id}`, fontSize: 12 },
+        { label: `Title: ${control.title}` },
+        { label: `Description: ${control.description}` },
+        { label: `Operator ID: ${control.operator_id}` },
+        { label: `Status: ${control.status}` },
+        { label: `Evidence: ${control.evidence}` },
+        { label: `Comments: ${control.comments}` }
+      ].forEach(({ label, fontSize }) => {
+        const lines = wrap(label, fontSize || 10);
+        doc.text(lines, leftMargin, y);
+        y += lines.length * lineHeight;
+      });
+
+      // Linked assessment images and comments
+      const evidenceFiles = control.evidence ? control.evidence.split(';') : [];
+      const linkedAssessments = assessmentResultsWithImages.filter(a =>
+        evidenceFiles.includes(a.image_filename)
+      );
+      for (const a of linkedAssessments) {
+        const evidenceLines = wrap(`Evidence Name: ${a.image_filename}`);
+        doc.text(evidenceLines, leftMargin + 20, y);
+        y += evidenceLines.length * lineHeight;
+
+        // Image (original aspect ratio, scaled to fit within usableWidth and maxImageHeight)
+        if (a.encoded_image) {
+          try {
+            const { width: imgW, height: imgH } = await getImageDimensions(a.encoded_image);
+            let drawW = imgW, drawH = imgH;
+            // Scale down if too large for PDF
+            const widthScale = usableWidth / imgW;
+            const heightScale = maxImageHeight / imgH;
+            const scale = Math.min(1, widthScale, heightScale);
+            drawW = imgW * scale;
+            drawH = imgH * scale;
+
+            // If image would overflow bottom, add new page
+            if (y + drawH > doc.internal.pageSize.getHeight() - 60) {
+              doc.addPage();
+              y = 40;
+            }
+
+            doc.addImage(
+              `data:image/png;base64,${a.encoded_image}`,
+              'PNG',
+              leftMargin + 20, y, drawW, drawH
+            );
+            y += drawH + 15;
+          } catch (err) {
+            const errorLines = wrap('Image could not be rendered.');
+            doc.text(errorLines, leftMargin + 20, y);
+            y += errorLines.length * lineHeight;
+          }
+        }
+
+        // Comments
+        const commentLines = wrap(`Assessment Comments: ${a.comments}`);
+        doc.text(commentLines, leftMargin + 20, y);
+        y += commentLines.length * lineHeight;
+      }
+
+      y += 10;
+      if (y > doc.internal.pageSize.getHeight() - 60) {
+        doc.addPage();
+        y = 40;
+      }
+    }
+
+    doc.save('security_controls_report.pdf');
+  };
+
   return (
     <div className="reporting-container">
       <div className="div-114">
@@ -112,8 +246,35 @@ const Reporting = () => {
                 <div className="view-color" />
                 <div className="view-name">Security Controls List</div>
               </div>
-              <div className="view-options">
-                {/* Options icons (if any) */}
+              <div className="view-options" style={{ marginLeft: 'auto', display: 'flex', gap: '10px' }}>
+                <button
+                  className="export-btn"
+                  onClick={() => exportControlsToCSV(controls)}
+                  style={{
+                    background: '#0099db',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '4px 12px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Export CSV
+                </button>
+                <button
+                  className="export-btn"
+                  onClick={() => exportControlsToPDF(controls, assessmentResultsWithImages)}
+                  style={{
+                    background: '#db0099',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '4px 12px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Export PDF
+                </button>
               </div>
             </div>
             {/* Security Controls Table */}
