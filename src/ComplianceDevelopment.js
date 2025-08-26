@@ -7,9 +7,12 @@ import ProcessComplianceBarChart from './ProcessComplianceBarChart';
 const ComplianceDevelopment = ({ refreshTrigger }) => {
   const [statesData, setStatesData] = useState([]);
 
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     // Fetch state mapping, compliance data, and compliance metric
     const fetchData = async () => {
+      setLoading(true);
       try {
         // Fetch state mapping from eel
         const states = await eel.read_mapping_from_file()(); // Directly use the returned JavaScript object
@@ -29,6 +32,7 @@ const ComplianceDevelopment = ({ refreshTrigger }) => {
         });
 
         setStatesData(statesArray);
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching states data from eel:', error);
       }
@@ -49,27 +53,43 @@ const ComplianceDevelopment = ({ refreshTrigger }) => {
   };
 
   return (
-    <div className="visualization-wrapper">
-      {/* Right column with values */}
-      <div className="layer-values">
-        {/* COMP Row */}
-        <Collapsible
-          trigger={[
-            <div className="layer-row full-width-trigger" key="comp-trigger">
-              {statesData.map((state, i) => (
-                <div
-                  className="state-column"
-                  key={`comp-${i}`}
-                  style={{ color: determineColor(state.comp) }}
-                >
-                  AVG {state.compliance_metric} {state.comp}
-                </div>
-              ))}
-            </div>,
-          ]}
-        >
-          <ProcessComplianceBarChart height={111} refreshTrigger={refreshTrigger} />
-        </Collapsible>
+    <div style={{ position: 'relative' }}>
+      {/* Loading overlay */}
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(30,30,30,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10
+        }}>
+          <div className="spinner" />
+        </div>
+      )}
+      <div className="visualization-wrapper">
+        {/* Right column with values */}
+        <div className="layer-values">
+          {/* COMP Row */}
+          <Collapsible
+            trigger={[
+              <div className="layer-row full-width-trigger" key="comp-trigger">
+                {statesData.map((state, i) => (
+                  <div
+                    className="state-column"
+                    key={`comp-${i}`}
+                    style={{ color: determineColor(state.comp) }}
+                  >
+                    AVG {state.compliance_metric} {state.comp}
+                  </div>
+                ))}
+              </div>,
+            ]}
+          >
+            <ProcessComplianceBarChart height={111} refreshTrigger={refreshTrigger} />
+          </Collapsible>
+        </div>
       </div>
     </div>
   );

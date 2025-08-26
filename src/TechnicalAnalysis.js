@@ -107,7 +107,7 @@ const TechnicalAnalysis = ({ width = 1000, height = 500, globalFilterTrigger, re
     ];
 
     return (
-      <div className="pie-charts-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: `${height}px` }}>
+      <div className="pie-charts-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: `${height}px` , }}>
         {scales.map((scale, index) => (
           <div key={index} className="pie-chart" style={{ width: `${width / 8}px`, textAlign: 'center' }}>
             <svg width={100} height={100}>

@@ -109,7 +109,7 @@ const DistributionPlot = ({ height = 500, refreshTrigger }) => {
   }, [height, refreshTrigger]);
 
   return (
-    <div style={{ position: 'relative', minHeight: height }}>
+    <div style={{ position: 'relative'}}>
       {/* Loading overlay */}
       {loading && (
         <div style={{

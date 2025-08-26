@@ -6,6 +6,7 @@ import ProcessStateTimes from './ProcessStateTimes';
 
 const TimeStatistics = ({ globalFilterTrigger, graphCursorTrigger, refreshTrigger }) => {
   const [statesData, setStatesData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const convertDurationToMinutes = (duration) => {
     // Initialize total minutes to 0
@@ -41,6 +42,7 @@ const TimeStatistics = ({ globalFilterTrigger, graphCursorTrigger, refreshTrigge
   useEffect(() => {
     // Fetch state mapping, deviations, and durations
     const fetchData = async () => {
+      setLoading(true);
       try {
         // Fetch state mapping from eel
         const [states, deviations, durations_unparsed] = await Promise.all([
@@ -102,7 +104,7 @@ const TimeStatistics = ({ globalFilterTrigger, graphCursorTrigger, refreshTrigge
         });
 
         setStatesData(statesArray);
-        
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching states data from eel:", error);
       }
@@ -112,28 +114,44 @@ const TimeStatistics = ({ globalFilterTrigger, graphCursorTrigger, refreshTrigge
   }, [refreshTrigger]);
 
   return (
-    <div className="visualization-wrapper">
-      {/* Right column with values */}
-      <div className="layer-values">
-        
-        {/* DURATIONS Row */}
-        <Collapsible
-          trigger={[
-            <div className="layer-row full-width-trigger" key="durations-trigger">
-              {statesData.map((state) => (
-                <div
-                  className="state-column"
-                  key={`durations-${state.state}`} // Unique key for each state
-                  style={{ color: state.durationColor }} // Color based on time thresholds
-                >
-                  AVG DUR {state.durations}
-                </div>
-              ))}
-            </div>,
-          ]}
-        >
-          <ProcessStateTimes height={120} graphCursorTrigger={graphCursorTrigger} refreshTrigger={refreshTrigger} />
-        </Collapsible>
+    <div style={{ position: 'relative' }}>
+      {/* Loading overlay */}
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(30,30,30,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10
+        }}>
+          <div className="spinner" />
+        </div>
+      )}
+      <div className="visualization-wrapper">
+        {/* Right column with values */}
+        <div className="layer-values">
+          
+          {/* DURATIONS Row */}
+          <Collapsible
+            trigger={[
+              <div className="layer-row full-width-trigger" key="durations-trigger">
+                {statesData.map((state) => (
+                  <div
+                    className="state-column"
+                    key={`durations-${state.state}`} // Unique key for each state
+                    style={{ color: state.durationColor }} // Color based on time thresholds
+                  >
+                    AVG DUR {state.durations}
+                  </div>
+                ))}
+              </div>,
+            ]}
+          >
+            <ProcessStateTimes height={120} graphCursorTrigger={graphCursorTrigger} refreshTrigger={refreshTrigger} />
+          </Collapsible>
+        </div>
       </div>
     </div>
   );

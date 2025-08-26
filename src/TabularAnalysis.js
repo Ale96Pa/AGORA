@@ -6,7 +6,7 @@ import debounce from 'lodash.debounce'; // Install lodash.debounce if not alread
 
 const TabularAnalysis = ({ refreshTrigger, globalFilterTrigger, selectionTabularChange }) => {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Function to fetch tabular data from backend (Python via Eel)
   const fetchData = useCallback(
@@ -51,8 +51,8 @@ const TabularAnalysis = ({ refreshTrigger, globalFilterTrigger, selectionTabular
         multiple: true,  // Allow multiple row selection
         width: '100%',
         layout: 'fixed',  // Auto layout for flexible column widths
-        maxWidth: 600,
-        height: 210
+        maxWidth: 700,
+        height: '100%'
       });
 
       table.style.tableLayout = "fixed";  // Ensure fixed layout for consistent column widths
@@ -70,7 +70,21 @@ const TabularAnalysis = ({ refreshTrigger, globalFilterTrigger, selectionTabular
   }, [data]);  // Re-render the table when data changes
 
   return (
-    <div>
+    <div style={{ position: 'relative', minHeight: 100 }}>
+      {/* Loading overlay */}
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(30,30,30,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10
+        }}>
+          <div className="spinner" />
+        </div>
+      )}
       <div id="table-container" className="table-layout">
         {loading ? (
           <p>Loading data...</p>

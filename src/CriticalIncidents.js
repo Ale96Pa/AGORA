@@ -38,7 +38,7 @@ const CriticalIncidents = ({ refreshTrigger, height = 400 }) => {
 
   // Conditional rendering based on loading state and data presence
   return (
-    <div style={{ position: 'relative', minHeight: height }}>
+    <div style={{ position: 'relative' }}>
       {/* Loading overlay */}
       {loading && (
         <div style={{

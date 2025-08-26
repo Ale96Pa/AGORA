@@ -7,6 +7,9 @@ const LinearizedPnmlVisualization = ({ height, refreshTrigger }) => {
   const svgRef = useRef();
   const [showNonCompliantTransitions, setShowNonCompliantTransitions] = useState(false); // State for toggle
 
+  const [loading, setLoading] = useState(false);
+  
+
   useEffect(() => {
     const parsePnml = async (pnmlString) => {
       try {
@@ -436,6 +439,7 @@ const LinearizedPnmlVisualization = ({ height, refreshTrigger }) => {
     };
 
     const fetchAndVisualizePnml = async () => {
+      setLoading(true);
       try {
         const [pnmlString, deviations, stateMapping, stateTimes, transitionTimes] = await Promise.all([
           eel.get_pnml_data()(),
@@ -449,6 +453,7 @@ const LinearizedPnmlVisualization = ({ height, refreshTrigger }) => {
         if (pnmlString) {
           createVisualization(container, pnmlString, deviations, stateMapping, JSON.parse(stateTimes), JSON.parse(transitionTimes));
         }
+        setLoading(false);
       } catch (error) {
         console.error("Failed to fetch and visualize PNML data:", error);
       }
@@ -458,7 +463,21 @@ const LinearizedPnmlVisualization = ({ height, refreshTrigger }) => {
   }, [height, refreshTrigger, showNonCompliantTransitions]);  // Re-render when toggle changes
 
   return (
-    <div>
+    <div style={{ position: 'relative', minHeight: height }}>
+      {/* Loading overlay */}
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(30,30,30,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10
+        }}>
+          <div className="spinner" />
+        </div>
+      )}
       <div style={{ color: '#fff' }}>
         <label>
           <input
