@@ -41,13 +41,29 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress }) => {
   const tabularAnalysisRef = useRef(null);
   const individualAnalysisRef = useRef(null);
   const whatIfAnalysisRef = useRef(null);
+  const [infoView, setInfoView] = useState(null);
 
+  const viewInfoTexts = {
+    processActivitiesAnalysis: "The Process Activities Analysis view provides different perspectives on the related metrics, compliance metric, process deviations and time durations while adhereing to the process-centric view from the Refernce Model view. Each view is collapsed by default showing the related metrics for each process activity. The top view (Compliance Development) can be expanded to show a graph that shows the temporal complaince development as a stacked bar chart represeinting the different process activities with distinct colours. The middle view provides the total numbers of deviations per activity that can be expanded to show the numbers of deviation typer per process activity. The lower view provides the average durations per activity and can be expanded to a temporal development graph stacked by process activities.",
+    complianceDistributon: "The Compliance Distribution view provides a distribution plot of the compliance metric across all incidents. This allows to quickly identify the overall compliance posture and to spot non-conformities, areas of concern and findings.",
+    criticalIncidents: "Provides the most critical incidents according to the selected compliance metric in a decreasing severity order.",
+    technicalAnalysis: "The Technical Analysis provides insights into the technical attributes (symptoms, impact, urgency, priority, location & category) of incidents. The information are either displayed as summarizing pie charts or via a flow chart where each axis provides an attribute. Axis (except category are selectable or can be hidden. Each incident is represented as a line drifting through the chart. This view allows to identify patterns and correlations between different technical attributes of incidents.",
+    tabularAnalysis: "Tabular Analysis displays selected incidents via the global filter mechanism in a table together with metrics, improtant to incident management for detailed review. Incidents my be bulk or single selected to appear within the Individual Analysis view.",
+    individualAnalysis: "Individual Analysis allows assessment of single incidents or multiple selected incidents via the Tabular Analysis view. The incidents can than be collected within a tag and connected to a security control.",
+    whatIfAnalysis: "What-if Analysis simulates alternative scenario outcomes by excluding previously defined incidents via tags from the overall assessment. This allows to quickly verify the impact on the overall compliance posture when certain incidents (findings, area of concerns and non-conformities) are not considered.",
+  };
   const [currentRef, setCurrentRef] = useState(null);
 
   const openModalWithRef = (ref) => {
     setCurrentRef(ref);  // Set the current ref
     setModalVisible(true);  // Show the modal
   };
+
+  const showViewInformation = (viewKey) => {
+    setInfoView(viewKey);
+  };
+
+  const closeInfoModal = () => setInfoView(null);
 
   useEffect(() => {
     setRefreshTrigger(prev => !prev);
@@ -332,17 +348,33 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress }) => {
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/247bed24a7d4f2c3c91739144cd671e38774320b936ec7e542e65ce70b7fb329?"
                   className="img-bookmark"
-                  onClick={() => openModalWithRef(technicalAnalysisRef)}  // Capture technicalAnalysisRef
+                  onClick={() => openModalWithRef(technicalAnalysisRef)}
                   style={{ cursor: 'pointer' }}
                 />
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/475ecedfbaad1db822df345503478a70f3355aee312eff89648301026c86ddf2?"
                   className="img-three-dots"
+                  onClick={() => showViewInformation('technicalAnalysis')}
+                  style={{ cursor: 'pointer' }}
                 />
               </div>
             </div>
-            <TechnicalAnalysis height={210} globalFilterTrigger={handleTabularFilterChange} refreshTrigger={refreshTrigger}/>
+
+            <div className={`view-content${infoView === 'technicalAnalysis' ? ' blurred' : ''}`}>
+              <TechnicalAnalysis height={210} globalFilterTrigger={handleTabularFilterChange} refreshTrigger={refreshTrigger}/>
+            </div>
+
+            {infoView === 'technicalAnalysis' && (
+              <div className="view-info-overlay">
+                <div className="view-info-content">
+                  <button className="close-info-btn" onClick={closeInfoModal}>Close</button>
+                  <h3>View Information</h3>
+                  <p>{viewInfoTexts['technicalAnalysis']}</p>
+                </div>
+              </div>
+            )}
+
           </div>
 
           {/* Tabular Analysis */}
@@ -419,6 +451,15 @@ const ProcessAnalysis = ({ analysisTrigger, updateProgress }) => {
           </div>
         </div>
       </div>
+      {infoView && (
+        <div className="view-info-modal">
+          <div className="view-info-content">
+            <button className="close-info-btn" onClick={closeInfoModal}>Close</button>
+            <h3>View Information</h3>
+            <p>{viewInfoTexts[infoView]}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -17,6 +17,8 @@ const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
     falsePositives: null,
   });
 
+  const [loading, setLoading] = useState(false);
+
   // Refs for D3 rendering
   const slaRef = useRef();
   const resolveRef = useRef();
@@ -25,6 +27,7 @@ const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
 
   // Function to fetch statistical data from the backend
   const fetchStatisticalData = async () => {
+    setLoading(true);
     try {
       // Call the exposed function from the backend via Eel
       const result = await eel.get_statistical_analysis_data()();
@@ -37,6 +40,7 @@ const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
       setAvgToResolve(data.avg_time_to_resolve || 0);
       setPercAssignedToResolved(data.perc_assigned_to_resolved_by || 0);
       setPercFalsePositives(data.perc_false_positives || 0);
+      setLoading(false);
     } catch (error) {
       console.error('Failed to fetch statistical data:', error);
     }
@@ -212,25 +216,41 @@ const StatisticalAnalysis = ({ globalFilterTrigger, refreshTrigger }) => {
   }, [percSLAMet, avgToResolve, percAssignedToResolved, percFalsePositives, selectedParts]);
 
   return (
-    <div className="progress-bars-layout">
-      <div className="progress-box">
-        <div className="name">SLA MET</div>
-        <div ref={slaRef}></div>
+    <div style={{ position: 'relative'}}>
+      {/* Loading overlay */}
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(30,30,30,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10
+        }}>
+          <div className="spinner" />
+        </div>
+      )}
+      <div className="progress-bars-layout">
+        <div className="progress-box">
+          <div className="name">SLA MET</div>
+          <div ref={slaRef}></div>
+        </div>
+        <div className="progress-box">
+          <div className="name">AVG TTR</div>
+          <div ref={resolveRef}></div>
+        </div>
+        {/*
+        <div className="progress-box">
+          <div className="name">ASSIGN/RES.</div>
+          <div ref={assignedRef}></div>
+        </div>
+        <div className="progress-box">
+          <div className="name">FALSE POS.</div>
+          <div ref={falsePositivesRef}></div>
+        </div>
+        */}
       </div>
-      <div className="progress-box">
-        <div className="name">AVG TTR</div>
-        <div ref={resolveRef}></div>
-      </div>
-      {/*
-      <div className="progress-box">
-        <div className="name">ASSIGN/RES.</div>
-        <div ref={assignedRef}></div>
-      </div>
-      <div className="progress-box">
-        <div className="name">FALSE POS.</div>
-        <div ref={falsePositivesRef}></div>
-      </div>
-      */}
     </div>
   );
 };

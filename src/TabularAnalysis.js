@@ -51,7 +51,7 @@ const TabularAnalysis = ({ refreshTrigger, globalFilterTrigger, selectionTabular
         multiple: true,  // Allow multiple row selection
         width: '100%',
         layout: 'fixed',  // Auto layout for flexible column widths
-        maxWidth: 700,
+        maxWidth: 600,
         height: '100%'
       });
 

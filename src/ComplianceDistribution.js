@@ -4,6 +4,7 @@ import { eel } from './App';
 
 const DistributionPlot = ({ height = 500, refreshTrigger }) => {
   const svgRef = useRef();
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -14,9 +15,9 @@ const DistributionPlot = ({ height = 500, refreshTrigger }) => {
 
       const width = containerWidth;
       const marginTop = 10;
-      const marginRight = 30;
-      const marginBottom = 20;
-      const marginLeft = 20;
+      const marginRight = 20;
+      const marginBottom = 25;
+      const marginLeft = 40;
 
       // Clear previous SVG content if any
       svgElement.selectAll('*').remove();
@@ -102,10 +103,10 @@ const DistributionPlot = ({ height = 500, refreshTrigger }) => {
           svg.selectAll(".y-axis").call(yAxis);
         }
       }
+      setLoading(false);
     }).catch(error => {
       console.error('Error fetching data:', error);
     });
-    setLoading(false); 
   }, [height, refreshTrigger]);
 
   return (
