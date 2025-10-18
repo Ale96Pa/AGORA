@@ -4,6 +4,7 @@ import { eel } from './App.js';
 import ThresholdSlider from './ThresholdSlider';
 import TimeThresholds from './TimeThresholds.js';
 import IncidentSelection from './IncidentSelection.js';
+import { FaSearch, FaFileAlt } from 'react-icons/fa';
 
 function NavigationBar({ refreshTrigger, onSelectionChange, toggleView }) {
   const [showSettings, setShowSettings] = useState(false);
@@ -13,6 +14,10 @@ function NavigationBar({ refreshTrigger, onSelectionChange, toggleView }) {
 
   // State to track the active button (either "Process Analysis" or "Reporting")
   const [activeTab, setActiveTab] = useState('processAnalysis');  // Default active tab
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [profileRole, setProfileRole] = useState('FULL INTERFACE');
+
+  const profileRoles = ['FULL INTERFACE', 'MANAGER', 'MONITOR', 'RESPONDER', 'ANALYST'];
 
   const handleSettingsChange = () => {
 
@@ -31,6 +36,15 @@ function NavigationBar({ refreshTrigger, onSelectionChange, toggleView }) {
   const handleTabClick = (tab) => {
     setActiveTab(tab);  // Set the clicked tab as active
     toggleView();  // Toggle between views when a tab is clicked
+  };
+
+  const handleProfileClick = () => {
+    setProfileDropdownOpen(!profileDropdownOpen);
+  };
+
+  const handleRoleSelect = (role) => {
+    setProfileRole(role);
+    setProfileDropdownOpen(false);
   };
 
   useEffect(() => {
@@ -75,19 +89,24 @@ function NavigationBar({ refreshTrigger, onSelectionChange, toggleView }) {
       <div className="section-container">
         {/* Process Analysis Button */}
         <div
-          className={`section-content ${activeTab === 'processAnalysis' ? 'active-tab' : ''}`}  // Apply active class if processAnalysis is active
+          className={`section-content ${activeTab === 'processAnalysis' ? 'active-tab' : ''}`}
           onClick={() => handleTabClick('processAnalysis')}
         >
-          <div className="label">Process Analysis</div>
+          <div style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <FaSearch style={{ marginRight: 8, width: 18, height: 18, color: 'white' }} />
+            <div className="label">Process Analysis</div>
+          </div>
         </div>
 
         {/* Reporting Button */}
         <div
-          className={`section-content ${activeTab === 'reporting' ? 'active-tab' : ''}`}  // Apply active class if reporting is active
+          className={`section-content ${activeTab === 'reporting' ? 'active-tab' : ''}`}
           onClick={() => handleTabClick('reporting')}
         >
-          
-          <div className="label">Reporting</div>
+          <div style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <FaFileAlt style={{ marginRight: 8, width: 18, height: 18, color: 'white' }} />
+            <div className="label">Reporting</div>
+          </div>
         </div>
       </div>
 
@@ -115,12 +134,39 @@ function NavigationBar({ refreshTrigger, onSelectionChange, toggleView }) {
           />
         </div>
 
-        <div className="profile-section">
-          
-          <div className="profile-details">
+        <div className="profile-section" style={{ position: 'relative' }}>
+          <div className="profile-details" onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
             <div className="profile-name">John Doe</div>
-            <div className="profile-role">FULL INTERFACE</div>
+            <div className="profile-role">{profileRole}</div>
           </div>
+          {profileDropdownOpen && (
+            <div className="profile-dropdown" style={{
+              position: 'absolute',
+              top: '100%',
+              right: 0,
+              background: '#222',
+              color: '#fff',
+              borderRadius: '6px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              zIndex: 100,
+              minWidth: '140px',
+              padding: '8px 0'
+            }}>
+              {profileRoles.map(role => (
+                <div
+                  key={role}
+                  onClick={() => handleRoleSelect(role)}
+                  style={{
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    background: profileRole === role ? '#0099db' : 'none'
+                  }}
+                >
+                  {role}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

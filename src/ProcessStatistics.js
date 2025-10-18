@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { eel } from './App'; // Assuming eel is set up in your App
-import './ProcessStatistics.css'; // Custom CSS for layout and styling
+import { eel } from './App';
+import './ProcessStatistics.css';
 import Collapsible from 'react-collapsible';
 import ProcessStateTimes from './ProcessStateTimes';
 import DeviationsBarChart from './DeviationsBarChart';

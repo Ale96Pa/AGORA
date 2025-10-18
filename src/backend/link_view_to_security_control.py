@@ -5,6 +5,26 @@ import os
 import random
 import string
 import json
+from google import genai
+
+def get_gemini_summary(comments):
+    prompt = (
+        "Try to generate an ai summary from the report. Structure the content and provide generated idea on what to do (possible remediations). "
+        "Will even better support the claim of decision making. What is the state of decision? Suggest for each point a remediation?\n"
+        f"Comments: {comments}"
+    )
+    try:
+        client = genai.Client(api_key="AIzaSyDCLNMTB2oOKW_8kD4tK-jqICLpH9cBgdo")
+        response = client.models.generate_content(
+            model="gemini-2.5-flash", contents=prompt
+        )
+        print("response.text")
+        return response.text
+    except Exception as e:
+        print(f"Gemini API call failed: {e}")
+        return None
+
+
 
 @eel.expose
 def save_screenshot_and_link_to_control(screenshot_data, name, comments, control_id, status, db_path="../data/security_controls.db"):
@@ -47,15 +67,18 @@ def save_screenshot_and_link_to_control(screenshot_data, name, comments, control
         if status not in valid_statuses:
             raise ValueError(f"Invalid status '{status}'. Valid statuses are: {valid_statuses}")
 
+        # Generate AI summary from comments
+        ai_summary = get_gemini_summary(comments)
+        
         # Connect to the SQLite database
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 
         # Insert the filename and comments into the assessment_views table
         cursor.execute("""
-            INSERT INTO assessment_views (view_data, comments) 
-            VALUES (?, ?)
-        """, (filename, comments))
+            INSERT INTO assessment_views (view_data, comments, ai_summary) 
+            VALUES (?, ?, ?)
+        """, (filename, comments, ai_summary))
 
         # Fetch the ID of the newly inserted assessment view
         assessment_view_id = cursor.lastrowid
@@ -109,7 +132,7 @@ def fetch_all_assessment_views(db_path="../data/security_controls.db"):
         cursor = conn.cursor()
 
         # Fetch all entries from the assessment_views table
-        cursor.execute("SELECT id, view_data, comments FROM assessment_views")
+        cursor.execute("SELECT id, view_data, comments, ai_summary FROM assessment_views")
         views = cursor.fetchall()
 
         # Close the database connection
@@ -123,7 +146,7 @@ def fetch_all_assessment_views(db_path="../data/security_controls.db"):
 
         # Process each view entry
         for view in views:
-            view_id, image_filename, comment = view
+            view_id, image_filename, comment, ai_summary = view
 
             # Define the full path to the image file
             image_path = os.path.join(save_directory, image_filename)
@@ -140,7 +163,8 @@ def fetch_all_assessment_views(db_path="../data/security_controls.db"):
                 "id": view_id,
                 "image_filename": image_filename,
                 "encoded_image": encoded_image,
-                "comments": comment
+                "comments": comment,
+                "ai_summary": ai_summary
             })
 
         # Return the data as a JSON string
@@ -227,17 +251,26 @@ if __name__ == "__main__":
         if not assessment_views:
             print("No assessment views found in the database.")
         else:
-            print(f"Found {len(assessment_views)} assessment views. Removing them...")
+            print(f"Found {len(assessment_views)} assessment views. Updating AI summaries...")
 
-            # Iterate over each assessment view and remove it
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+
             for view in assessment_views:
                 view_id = view['id']
-                image_filename = view['image_filename']
-                print(f"Removing assessment view ID {view_id} with image '{image_filename}'...")
-                result = remove_assessment_view(view_id, db_path=db_path)
-                print(result)
+                comment = view['comments']
+                print(f"Generating AI summary for assessment view ID {view_id}...")
+                ai_summary = get_gemini_summary(comment)
+                cursor.execute(
+                    "UPDATE assessment_views SET ai_summary = ? WHERE id = ?",
+                    (ai_summary, view_id)
+                )
+                conn.commit()
+                print(f"Updated AI summary for assessment view ID {view_id}.")
 
-            print("All assessment views have been removed.")
+            cursor.close()
+            conn.close()
+            print("All assessment views have been updated with AI summaries.")
 
     except Exception as e:
         print(f"An error occurred in the main function: {e}")

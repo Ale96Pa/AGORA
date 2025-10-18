@@ -101,7 +101,6 @@ const Reporting = () => {
     return selectedControl ? linkedControl && linkedControl.id === selectedControl : true;
   });
 
-  // Add these helper functions inside your component:
   const exportControlsToCSV = (controls) => {
     if (!controls || controls.length === 0) return;
     const headers = Object.keys(controls[0]);
@@ -130,6 +129,7 @@ const Reporting = () => {
     const usableWidth = pageWidth - leftMargin - rightMargin;
     const maxImageHeight = doc.internal.pageSize.getHeight() - 100; // leave space for margins
     const lineHeight = 14;
+    const pageBottom = doc.internal.pageSize.getHeight() - 60; // bottom margin
 
     // Date and time
     const now = new Date();
@@ -174,8 +174,14 @@ const Reporting = () => {
         { label: `Comments: ${control.comments}` }
       ].forEach(({ label, fontSize }) => {
         const lines = wrap(label, fontSize || 10);
-        doc.text(lines, leftMargin, y);
-        y += lines.length * lineHeight;
+        for (const line of lines) {
+          if (y + lineHeight > pageBottom) {
+            doc.addPage();
+            y = 40;
+          }
+          doc.text(line, leftMargin, y);
+          y += lineHeight;
+        }
       });
 
       // Linked assessment images and comments
@@ -185,8 +191,14 @@ const Reporting = () => {
       );
       for (const a of linkedAssessments) {
         const evidenceLines = wrap(`Evidence Name: ${a.image_filename}`);
-        doc.text(evidenceLines, leftMargin + 20, y);
-        y += evidenceLines.length * lineHeight;
+        for (const line of evidenceLines) {
+          if (y + lineHeight > pageBottom) {
+            doc.addPage();
+            y = 40;
+          }
+          doc.text(line, leftMargin + 20, y);
+          y += lineHeight;
+        }
 
         // Image (original aspect ratio, scaled to fit within usableWidth and maxImageHeight)
         if (a.encoded_image) {
@@ -200,8 +212,7 @@ const Reporting = () => {
             drawW = imgW * scale;
             drawH = imgH * scale;
 
-            // If image would overflow bottom, add new page
-            if (y + drawH > doc.internal.pageSize.getHeight() - 60) {
+            if (y + drawH > pageBottom) {
               doc.addPage();
               y = 40;
             }
@@ -214,19 +225,44 @@ const Reporting = () => {
             y += drawH + 15;
           } catch (err) {
             const errorLines = wrap('Image could not be rendered.');
-            doc.text(errorLines, leftMargin + 20, y);
-            y += errorLines.length * lineHeight;
+            for (const line of errorLines) {
+              if (y + lineHeight > pageBottom) {
+                doc.addPage();
+                y = 40;
+              }
+              doc.text(line, leftMargin + 20, y);
+              y += lineHeight;
+            }
           }
         }
 
         // Comments
+        doc.setFont('helvetica', 'bold');
         const commentLines = wrap(`Assessment Comments: ${a.comments}`);
-        doc.text(commentLines, leftMargin + 20, y);
-        y += commentLines.length * lineHeight;
+        for (const line of commentLines) {
+          if (y + lineHeight > pageBottom) {
+            doc.addPage();
+            y = 40;
+          }
+          doc.text(line, leftMargin + 20, y);
+          y += lineHeight;
+        }
+        doc.setFont('helvetica', 'normal');
+
+        // AI Suggestion
+        const AISuggestiontLines = wrap(`AI Suggestion: ${a.ai_summary}`);
+        for (const line of AISuggestiontLines) {
+          if (y + lineHeight > pageBottom) {
+            doc.addPage();
+            y = 40;
+          }
+          doc.text(line, leftMargin + 20, y);
+          y += lineHeight;
+        }
       }
 
       y += 10;
-      if (y > doc.internal.pageSize.getHeight() - 60) {
+      if (y > pageBottom) {
         doc.addPage();
         y = 40;
       }
@@ -365,6 +401,7 @@ const Reporting = () => {
                           <p className="assessment-control-info">No linked control found</p>
                         )}
                         <p className="assessment-comments">Comments: {result.comments}</p>
+                        <p className="assessment-comments">AI Suggestion: {result.ai_summary}</p>
                       </div>
                     );
                   })}
