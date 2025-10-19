@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as d3 from 'd3';
+import { schemeSet2 } from 'd3-scale-chromatic';
 import { eel } from './App';
 import { XMLParser } from 'fast-xml-parser';
 
@@ -184,7 +185,7 @@ const LinearizedPnmlVisualization = ({ height, refreshTrigger }) => {
       // Create a color scale
       const colorScale = d3.scaleOrdinal()
         .domain(allNodes.map((d, i) => i))
-        .range(['steelblue', 'orange', 'green', 'red', 'purple']);
+        .range(schemeSet2);
 
       const svg = parent.append("svg")
         .attr("width", "100%")
@@ -478,14 +479,15 @@ const LinearizedPnmlVisualization = ({ height, refreshTrigger }) => {
           <div className="spinner" />
         </div>
       )}
-      <div style={{ color: '#fff' }}>
-        <label>
-          <input
+      <div style={{ display: 'flex', justifyContent: 'flex-end', color: '#fff', marginBottom: '8px' }}>
+        <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
+         <input
             type="checkbox"
             checked={showNonCompliantTransitions}
             onChange={(e) => setShowNonCompliantTransitions(e.target.checked)}
+            style={{ marginRight: '8px' }}
           />
-          Show Non-Compliant Transitions
+         Show Non-Compliant Transitions
         </label>
       </div>
       <div ref={svgRef} style={{ width: '100%', height: `${height}px` }}></div>

@@ -108,6 +108,7 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                                     src="https://cdn.builder.io/api/v1/image/assets/TEMP/8895bd9f8d97cf1ce797fbfd735df7d6f317969a72619e5b468bb33460611015?"
                                     className="img-41"
                                     onClick={() => setShowDeleteOption(showDeleteOption === control.id ? null : control.id)} // Toggle delete option visibility
+                                    style={{ cursor: 'pointer' }}
                                 />
                             </div>
                             <div className="security-control-tags">

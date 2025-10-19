@@ -135,7 +135,7 @@ const IncidentSelection = ({ onSelectionChange }) => {
       .attr('y', 0)
       .attr('width', (progressBarValue / 100) * width)
       .attr('height', height)
-      .attr('fill', '#17a2b8');
+      .attr('fill', 'steelblue');
 
     // Text label showing the incident count and percentage
     svg

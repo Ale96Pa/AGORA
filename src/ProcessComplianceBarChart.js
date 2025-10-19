@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as d3 from 'd3';
+import { schemeSet2 } from 'd3-scale-chromatic';
 import { eel } from './App';
 import './ProcessComplianceBarChart.css'; // Import the CSS file
 
@@ -110,7 +111,7 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
 
       const colorScale = d3.scaleOrdinal()
         .domain(orderedStates)
-        .range(['steelblue', 'orange', 'green', 'red', 'purple']);
+        .range(schemeSet2);
 
       const g = svgElement.append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`)
@@ -149,12 +150,13 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
       g.append('g')
         .attr('transform', `translate(0,${innerHeight})`)
         .attr('class', 'x-axis')
-        .call(d3.axisBottom(xScale).tickPadding(10))
+        .call(d3.axisBottom(xScale).tickPadding(5))
         .selectAll('text')
         .attr('fill', 'white'); // Make the axis text white
 
       g.select('.x-axis path').style('stroke', 'white'); // Set x-axis line color to white
       g.select('.x-axis line').style('stroke', 'white'); // Set x-axis ticks color to white
+      g.select('.x-axis').selectAll('.tick line').attr('stroke', 'white');
 
       // Append the y-axis with 5 ticks
       g.append('g')
@@ -162,12 +164,13 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
         .call(d3.axisLeft(yScale)
           .ticks(5) // Specify 5 ticks on the y-axis
           .tickSize(-innerWidth)
-          .tickPadding(10))
+          .tickPadding(5))
         .selectAll('text')
         .attr('fill', 'white'); // Set y-axis text color to white
 
       g.select('.y-axis path').style('stroke', 'white'); // Set y-axis line color to white
       g.select('.y-axis line').style('stroke', 'white'); // Set y-axis ticks color to white
+      
 
       // Apply zoom behavior
       const zoom = d3.zoom()
@@ -177,12 +180,13 @@ const ProcessComplianceBarChart = ({ height = 500, refreshTrigger }) => {
         .on('zoom', (event) => {
           const newXScale = event.transform.rescaleX(xScale);
           g.selectAll('.bars rect').attr('x', d => newXScale(d.data.closedAt) + (d.data.offset * (barWidth + maxOffset))); // Adjust position on zoom
-          g.select('.x-axis').call(d3.axisBottom(newXScale).tickPadding(10));
+          g.select('.x-axis').call(d3.axisBottom(newXScale).tickPadding(5));
 
           // Reapply styles to x-axis elements after zoom
           g.select('.x-axis').selectAll('text').attr('fill', 'white');
           g.select('.x-axis path').style('stroke', 'white');
           g.select('.x-axis line').style('stroke', 'white');
+          g.select('.x-axis').selectAll('.tick line').attr('stroke', 'white');
         });
 
       svgElement.call(zoom);

@@ -33,6 +33,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
         critical: lastClosedIncident ? lastClosedIncident.critical || 0 : 0,
       };
 
+      
       setSummaryData(summary); // Update the tiles with the latest data
       setParsedData(parsed); // Store parsed data for rendering the chart
       setLoading(false);
@@ -181,12 +182,13 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
     g.append('g')
       .attr('transform', `translate(0,${innerHeight})`)
       .attr('class', 'x-axis')
-      .call(d3.axisBottom(xScale).tickPadding(10))
+      .call(d3.axisBottom(xScale).tickPadding(5))
       .selectAll('text')
       .attr('fill', 'white');  // Make the axis text white
 
     g.select('.x-axis path').style('stroke', 'white'); // Set x-axis line color to white
     g.select('.x-axis line').style('stroke', 'white'); // Set x-axis ticks color to white
+    g.select('.x-axis').selectAll('.tick line').attr('stroke', 'white');
 
     // Append the y-axis with 5 ticks
     g.append("g")
@@ -194,7 +196,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
       .call(d3.axisLeft(yScale)
         .ticks(5) // Specify 5 ticks on the y-axis
         .tickSize(-innerWidth)
-        .tickPadding(10))
+        .tickPadding(5))
       .selectAll("text")
       .attr("fill", 'white'); // Set y-axis text color to white
 
@@ -255,7 +257,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
       .on('zoom', (event) => {
         // Rescale x-axis
         const newXScale = event.transform.rescaleX(xScale);
-        g.select('.x-axis').call(d3.axisBottom(newXScale).tickPadding(10));
+        g.select('.x-axis').call(d3.axisBottom(newXScale).tickPadding(5));
 
         // Update line paths with new x-scale
         g.select('.line-active').attr('d', lineActive.x(d => newXScale(new Date(d.time))));
@@ -270,6 +272,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
         g.select('.x-axis').selectAll('text').attr('fill', 'white');
         g.select('.x-axis path').style('stroke', 'white');
         g.select('.x-axis line').style('stroke', 'white');
+        g.select('.x-axis').selectAll('.tick line').attr('stroke', 'white');
       });
 
     // Apply zoom behavior to the SVG
@@ -308,6 +311,11 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
     setViewMode(viewMode === 'reduced' ? 'full' : 'reduced');
   };
 
+  const totalClosed = summaryData.low + summaryData.moderate + summaryData.high + summaryData.critical;
+        // Helper to get percentage height
+    const getHeightPercent = (count) =>
+        totalClosed > 0 ? `${(count / totalClosed) * 100 + 25}%` : '25%';
+
   return (
     <div style={{ position: 'relative', minHeight: height }}>
       {/* Loading overlay */}
@@ -331,7 +339,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
     >
       {/* Reduced View */}
       {viewMode === 'reduced' && summaryData && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+        <div className="tile" style={{ display: 'flex', gap: '10px', height: height}}>
           <div className="tile active-tile">
             <h4>Active Incidents</h4>
             <p>
@@ -352,19 +360,19 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
               {summaryData.active.last}
             </p>
           </div>
-          <div className="tile low-tile">
+          <div className="tile low-tile" style={{ height: getHeightPercent(summaryData.low) }}>
             <h4>Closed Low Severity</h4>
             <p>{summaryData.low}</p>
           </div>
-          <div className="tile moderate-tile">
+          <div className="tile moderate-tile" style={{ height: getHeightPercent(summaryData.moderate) }}>
             <h4>Closed Moderate Severity</h4>
             <p>{summaryData.moderate}</p>
           </div>
-          <div className="tile high-tile">
+          <div className="tile high-tile" style={{ height: getHeightPercent(summaryData.high) }}>
             <h4>Closed High Severity</h4>
             <p>{summaryData.high}</p>
           </div>
-          <div className="tile critical-tile">
+          <div className="tile critical-tile" style={{ height: getHeightPercent(summaryData.critical) }}>
             <h4>Closed Critical Severity</h4>
             <p>{summaryData.critical}</p>
           </div>

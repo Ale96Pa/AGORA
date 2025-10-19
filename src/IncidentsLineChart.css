@@ -1,10 +1,12 @@
 .tile {
     flex: 1;
     text-align: center;
+    align-items: center;
     padding: 10px;
     border-radius: 5px;
     color: white;
     font-weight: bold;
+    height: 100%;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   }
   
@@ -14,18 +16,22 @@
   
   .low-tile {
     background-color: green;
+    margin-top: auto;
   }
   
   .moderate-tile {
     background-color: orange;
+    margin-top: auto;
   }
   
   .high-tile {
     background-color: red;
+    margin-top: auto;
   }
   
   .critical-tile {
     background-color: purple;
+    margin-top: auto;
   }
   
   .tile h4 {
