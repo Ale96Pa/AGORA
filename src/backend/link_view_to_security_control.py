@@ -6,6 +6,7 @@ import random
 import string
 import json
 from google import genai
+from api_keys import GEMINI_API_KEY
 
 def get_gemini_summary(comments):
     prompt = (
@@ -14,7 +15,7 @@ def get_gemini_summary(comments):
         f"Comments: {comments}"
     )
     try:
-        client = genai.Client(api_key="AIzaSyDCLNMTB2oOKW_8kD4tK-jqICLpH9cBgdo")
+        client = genai.Client(api_key=GEMINI_API_KEY)
         response = client.models.generate_content(
             model="gemini-2.5-flash", contents=prompt
         )

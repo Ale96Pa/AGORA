@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime
 import eel
 
-from  database_filter_variables import set_incident_ids_selection
+from database_filter_variables import set_incident_ids_selection
 
 @eel.expose
 def query_closed_incidents(start_date=None, end_date=None, db_path="../data/incidents.db"):
@@ -117,15 +117,15 @@ def get_min_max_closed_date(db_path="../data/incidents.db"):
         return None, None
 
 def main():
-    start_date = '20/02/2016'
-    end_date = '05/02/2018'
+    start_date = '01/06/2016'
+    end_date = '01/07/2016'
 
     incidents = query_closed_incidents(start_date, end_date)
     print("select_time_period_db.py")
     print(f"Number of selected incident IDs: {len(incidents)}")
 
     print("select_time_period_db.py")
-    print(incident_ids_from_time_period)
+    print(incidents)
 
 if __name__ == "__main__":
     main()

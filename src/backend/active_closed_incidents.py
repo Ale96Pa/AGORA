@@ -9,12 +9,53 @@ def get_incidents_open_and_closed_over_time(db_path="../data/incidents.db"):
     """
     Queries the incident opened_at and closed_at from the database and processes it
     to return data for visualizing active and closed incidents over time along with severity levels.
-    
+
     Args:
         db_path (str): Path to the SQLite database file.
 
     Returns:
-        str: A JSON string containing lists for active and closed incidents over time, and categorized severity counts.
+        dict: A dictionary with the following structure:
+            {
+                'opened_incidents': [
+                    {'time': 'YYYY-MM-DD', 'count': int},
+                    ...
+                ],
+                'active_incidents': [
+                    {'time': 'YYYY-MM-DD', 'count': int},
+                    ...
+                ],
+                'closed_incidents': [
+                    {
+                        'time': 'YYYY-MM-DD',
+                        'count': int,        # cumulative number of closed incidents up to this date
+                        'low': int,          # cumulative number of closed incidents with low severity
+                        'moderate': int,     # cumulative number of closed incidents with moderate severity
+                        'high': int,         # cumulative number of closed incidents with high severity
+                        'critical': int      # cumulative number of closed incidents with critical severity
+                    },
+                    ...
+                ],
+                'closed_selected_incidents': [
+                    {
+                        'time': 'YYYY-MM-DD',
+                        'count': int,        # number of closed incidents in the selected period (not cumulative)
+                        'low': int,
+                        'moderate': int,
+                        'high': int,
+                        'critical': int
+                    },
+                    ...
+                ]
+            }
+
+    Interpretation:
+        - Each list contains daily time series data.
+        - 'opened_incidents': Number of incidents opened on each date (cumulative).
+        - 'active_incidents': Number of incidents that are active (open but not yet closed) on each date.
+        - 'closed_incidents': Cumulative number of incidents closed up to each date, with breakdown by severity.
+        - 'closed_selected_incidents': Number of incidents closed in the selected period (not cumulative), with breakdown by severity.
+        - The 'time' field is a string in 'YYYY-MM-DD' format.
+        - The 'low', 'moderate', 'high', and 'critical' fields represent the cumulative or period-specific counts of closed incidents for each severity level.
     """
     try:
         # Connect to the SQLite database
