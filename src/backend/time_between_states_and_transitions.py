@@ -122,8 +122,30 @@ def format_minutes_to_timedelta(minutes):
 @eel.expose   
 def get_average_state_times(db_path="../data/incidents.db"):
     """
-    Fetch the average time spent in each state for all incidents combined from the database.
-    Order the results based on the state mapping.
+    Calculates and returns the average time spent in each process state across all incidents closed within the currently selected date range.
+
+    Args:
+        db_path (str): Path to the SQLite database file.
+
+    Returns:
+        str (JSON): A JSON string representing a dictionary mapping each process state (str) to its average time spent (str, formatted as 'Xd, Xh, Xmin').
+        Example:
+            {
+                "Investigation": "0d, 2h, 15min",
+                "Containment": "0d, 1h, 40min",
+                "Eradication": "0d, 3h, 5min",
+                ...
+            }
+
+    Interpretation:
+        - Each key is a process state name as defined in the reference model.
+        - Each value is the average time spent in that state, calculated over all incidents closed in the selected date range.
+        - The time is formatted as days, hours, and minutes (e.g., '0d, 2h, 15min').
+        - If no incidents are found in the date range, the function returns an empty dictionary as a JSON string.
+
+    Usage:
+        - Use this output to visualize or compare how long incidents typically spend in each state, identify bottlenecks, or track improvements over time.
+        - The JSON string can be directly consumed by JavaScript via Eel for frontend analytics and reporting.
     """
     try:
         conn = sqlite3.connect(db_path)
@@ -197,8 +219,29 @@ def get_average_state_times(db_path="../data/incidents.db"):
 @eel.expose
 def get_average_transition_times(db_path="../data/incidents.db"):
     """
-    Fetch the average transition time between states for all incidents combined from the database.
-    Order the results based on the state mapping.
+    Calculates and returns the average time taken to transition between each pair of process states across all incidents closed within the currently selected date range.
+
+    Args:
+        db_path (str): Path to the SQLite database file.
+
+    Returns:
+        str (JSON): A JSON string representing a dictionary mapping each state transition (str, e.g. 'Investigation->Containment') to its average transition time (str, formatted as 'Xd, Xh, Xmin').
+        Example:
+            {
+                "Investigation->Containment": "0d, 0h, 30min",
+                "Containment->Eradication": "0d, 1h, 10min",
+                ...
+            }
+
+    Interpretation:
+        - Each key is a state transition, formatted as 'StateA->StateB' according to the reference model.
+        - Each value is the average time taken to transition from StateA to StateB, calculated over all incidents closed in the selected date range.
+        - The time is formatted as days, hours, and minutes (e.g., '0d, 0h, 30min').
+        - If no incidents are found in the date range, the function returns an empty dictionary as a JSON string.
+
+    Usage:
+        - Use this output to visualize or compare how long transitions between states typically take, identify delays or bottlenecks, or track improvements over time.
+        - The JSON string can be directly consumed by JavaScript via Eel for frontend analytics and reporting.
     """
     try:
         conn = sqlite3.connect(db_path)

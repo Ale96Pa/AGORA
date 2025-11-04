@@ -72,7 +72,7 @@
 
 .delete-option {
     position: absolute;
-    top: 50%;
+    top: 35%;
     left: 50%;
     transform: translate(-50%, -50%);
     padding: 10px;
@@ -92,6 +92,30 @@
 
 .delete-option button:hover {
     background-color: darkred;
+}
+
+.generate-assessment {
+    position: absolute;
+    top: 65%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+    z-index: 1;
+}
+
+.generate-assessment button {
+    background-color: blue;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.generate-assessment button:hover {
+    background-color: darkblue;
 }
 
 .div-85 {

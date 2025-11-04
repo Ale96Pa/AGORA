@@ -124,6 +124,14 @@ def get_filter_value(path=None):
     Returns:
         The value at the specified path, or the entire assessment_filters if no path is provided,
         or None if the path is invalid.
+
+    Interpretation:
+        - If a valid dot-separated path is provided, the function traverses the nested assessment_filters dictionary and returns the value at that path.
+        - If no path is provided, the function returns the entire assessment_filters dictionary.
+        - If the path is invalid (does not exist in the dictionary), the function returns None.
+        - The returned value can be any type stored in the dictionary (str, int, float, bool, list, dict).
+        - This function is useful for dynamically accessing configuration, filter, or threshold values for analytics, reporting, or backend logic.
+        - The output can be directly consumed by JavaScript via Eel for frontend use.
     """
     # If no path is provided, return the entire assessment_filters object
     if not path:

@@ -16,8 +16,27 @@ def parse_dict_column(column):
 @eel.expose
 def count_frequencies():
     """
-    Count frequencies of states in missing, repetition, and mismatch columns from a database,
-    only for the incidents specified in `incident_ids_from_time_period`.
+    Counts the frequencies of process states for missing, repetition, and mismatch deviations across all incidents specified in `incident_ids_from_time_period`.
+
+    Returns:
+        dict: A Python dictionary with three top-level keys ('missing', 'repetition', 'mismatch'), each mapping to a dictionary of process state codes and their respective counts.
+        Example:
+            {
+                "missing":    {"N": 3, "A": 0, "R": 2, "C": 1, "W": 0},
+                "repetition": {"N": 1, "A": 2, "R": 0, "C": 0, "W": 1},
+                "mismatch":   {"N": 0, "A": 1, "R": 1, "C": 2, "W": 0}
+            }
+
+    Interpretation:
+        - Each top-level key ('missing', 'repetition', 'mismatch') refers to a type of process deviation.
+        - Each inner dictionary maps process state codes (e.g., 'N', 'A', 'R', 'C', 'W') to the total count of that deviation type for the state, summed over all relevant incidents.
+        - The counts represent how many times each state was involved in the respective deviation type (missing, repetition, or mismatch) in the selected incidents.
+        - Higher counts indicate more frequent deviations for that state and type.
+        - If no incidents are found, all counts will be zero.
+
+    Usage:
+        - Use this output to identify which process states are most prone to missing, repetition, or mismatch deviations.
+        - The dictionary can be directly consumed by JavaScript via Eel for frontend analytics and reporting.
     """
     db_path = "../data/incidents.db"
     conn = sqlite3.connect(db_path)

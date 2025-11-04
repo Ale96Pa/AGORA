@@ -6,11 +6,37 @@ import eel
 @eel.expose
 def get_ordered_time_to_states_last_occurrence(db_name='../data/incidents.db'):
     """
-    Fetches and returns the time to last occurrence of states for each incident in a structured format.
-    The data is returned in a list of dictionaries, each containing:
-    - incident_id: The ID of the incident
-    - closed_at: The date and time when the incident was closed
-    - time_to_states: A dictionary where keys are state codes and values are times in minutes
+    Fetches and returns the time to last occurrence of process states for each incident, ordered by the incident's closed_at timestamp.
+
+    Args:
+        db_name (str): Path to the SQLite database file.
+
+    Returns:
+        str: A JSON-formatted string containing a list of dictionaries, each with:
+            - incident_id (str): The ID of the incident.
+            - closed_at (str): The date and time when the incident was closed.
+            - time_to_states (dict): A dictionary mapping 'TT' + state code (str) to time in minutes (int or float).
+        Example:
+            [
+                {
+                    "incident_id": "INC0033734",
+                    "closed_at": "2016-06-26 10:00:00",
+                    "time_to_states": {"TTN": 13, "TTA": 26187, "TTR": 31602, "TTC": 38824}
+                },
+                ...
+            ]
+
+    Interpretation:
+        - Each dictionary represents one incident, including its ID, closure timestamp, and a mapping of process states to the time (in minutes) taken to reach their last occurrence.
+        - The keys in time_to_states are formatted as 'TT' (Time To) followed by the state code (e.g., 'TTN' for Time To state N).
+        - The values are the number of minutes until the last occurrence of each state in the incident's process flow.
+        - The list is ordered by the closed_at timestamp in ascending order (oldest first).
+        - Only incidents selected by get_incident_ids_selection() and filtered by what-if analysis are included.
+        - If no incidents are found or an error occurs, the function returns None.
+
+    Usage:
+        - Use this output to analyze the timing of process state transitions across incidents, identify bottlenecks, or visualize process timelines.
+        - The JSON string can be directly consumed by JavaScript via Eel for frontend analytics, dashboards, or reporting.
     """
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()

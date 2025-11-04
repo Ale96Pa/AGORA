@@ -11,6 +11,7 @@ from time_between_states_and_transitions import get_average_state_times, get_ave
 from process_compliance_distribution import get_compliance_metric_distribution
 from critical_incidents import get_critical_incidents
 from technical_analysis import get_incident_technical_attributes
+from process_timedeltas import get_ordered_time_to_states_last_occurrence
 from google import genai
 from api_keys import GEMINI_API_KEY
 import eel
@@ -32,10 +33,23 @@ def generate_ai_recommendation(control, update=None):
     selected_time_period = get_filter_value("filters.overview_metrics.date_range") 
     environment_variables = get_filter_value("filters.thresholds")
     data_incident_development = get_incidents_open_and_closed_over_time()
+
+    data_incident_development_doc = {
+        "description": "Data is provided as the output of get_incidents_open_and_closed_over_time(). Docstring of the function providing the data:",
+        "get_incidents_open_and_closed_over_time": get_incidents_open_and_closed_over_time.__doc__
+    }
+
     data_statistical_analysis = [
         calculate_column_average("fitness"),
         get_statistical_analysis_data()
     ]
+
+    data_statistical_analysis_doc = {
+        "description": "Data is provided as an array data_statistical_analysis = [calculate_column_average(compliance_metric), get_statistical_analysis_data()]. Docstrings of the functions providing the data:",
+        "calculate_column_average": calculate_column_average.__doc__,
+        "get_statistical_analysis_data": get_statistical_analysis_data.__doc__
+    }
+
     data_reference_model = [
         get_pnml_data(),
         count_frequencies(),
@@ -43,15 +57,57 @@ def generate_ai_recommendation(control, update=None):
         get_average_state_times(),
         get_average_transition_times()
     ]
+
+    data_reference_model_doc = {
+        "description": "Data is provided as an array data_reference_model = [get_pnml_data(), count_frequencies(), read_mapping_from_file(), get_average_state_times(), get_average_transition_times()]. Docstrings of the functions providing the data:",
+        "get_pnml_data": get_pnml_data.__doc__,
+        "count_frequencies": count_frequencies.__doc__,
+        "read_mapping_from_file": read_mapping_from_file.__doc__,
+        "get_average_state_times": get_average_state_times.__doc__,
+        "get_average_transition_times": get_average_transition_times.__doc__
+    }
+
+
     data_common_variants = get_sorted_variants_from_db()
+
+    data_common_variants_doc = {
+        "description": "Data is provided as the output of get_sorted_variants_from_db(). Docstring of the function providing the data:",
+        "get_sorted_variants_from_db": get_sorted_variants_from_db.__doc__
+    }
+
     data_process_activities_analysis = [
         get_average_compliance_per_state(),
         count_frequencies(),
-        get_average_state_times()
+        get_average_state_times(),
+        get_ordered_time_to_states_last_occurrence()
     ]
+    data_process_activities_analysis_doc = {
+        "description": "Data is provided as an array data_process_activities_analysis = [get_average_compliance_per_state(),count_frequencies(), get_average_state_times(),get_ordered_time_to_states_last_occurrence()]. Docstrings of the functions providing the data:",
+        "get_average_compliance_per_state": get_average_compliance_per_state.__doc__,
+        "count_frequencies": count_frequencies.__doc__,
+        "get_average_state_times": get_average_state_times.__doc__,
+        "get_ordered_time_to_states_last_occurrence": get_ordered_time_to_states_last_occurrence.__doc__
+    }
     data_compliance_distribution = get_compliance_metric_distribution()
+
+    data_compliance_distribution_doc = {
+        "description": "Data is provided as the output of get_compliance_metric_distribution(). Docstring of the function providing the data:",
+        "get_compliance_metric_distribution": get_compliance_metric_distribution.__doc__
+    }
+
     data_most_critical_incidents = get_critical_incidents()
+
+    data_most_critical_incidents_doc = {
+        "description": "Data is provided as the output of get_critical_incidents(). Docstring of the function providing the data:",
+        "get_critical_incidents": get_critical_incidents.__doc__
+    }
+
     data_technical_analysis = get_incident_technical_attributes()
+
+    data_technical_analysis_doc = {
+        "description": "Data is provided as the output of get_incident_technical_attributes(). Docstring of the function providing the data:",
+        "get_incident_technical_attributes": get_incident_technical_attributes.__doc__
+    }
 
     personas = {
         "Manager": {
@@ -61,21 +117,21 @@ def generate_ai_recommendation(control, update=None):
                     "description": "Provides a reduced view with 5 tiles (active incidents at start and end of selected time period, closed incidents with low, moderate, high, and critical process severity at the end of selected time period). The full view provides these data in a line chart over time together with a line showing the active incidents over time.",
                     "information": {
                         "data": data_incident_development,
-                        "data_structure_and_interpretation": "TBD"
+                        "data_structure_and_interpretation": data_incident_development_doc
                     }
                 },
                 "statistical_analysis": {
                     "description": "Overview of the most important KPIs: average process compliance value, average number of SLA met, and average time to resolve incidents.",
                     "information": {
                         "data": data_statistical_analysis,
-                        "data_structure_and_interpretation": "TBD"
+                        "data_structure_and_interpretation": data_statistical_analysis_doc
                     }
                 },
                 "reference_model": {
                     "description": "Provides the IM reference model in a linearized way. Shows average state times and transitions, and non-compliant transitions.",
                     "information": {
                         "data": data_reference_model,
-                        "data_structure_and_interpretation": "TBD"
+                        "data_structure_and_interpretation": data_reference_model_doc
                     }
                 }
             }
@@ -87,14 +143,14 @@ def generate_ai_recommendation(control, update=None):
                     "description": "Provides the IM reference model in a linearized way. Shows average state times and transitions, and non-compliant transitions.",
                     "information": {
                         "data": data_reference_model,
-                        "database_filter_variables": "TBD"
+                        "database_filter_variables": data_reference_model_doc
                     }
                 },
                 "common_variants": {
                     "description": "Shows the most common variants of incident process flows recorded in the selected time period. The list is provided as a collection of recorded variants sorted from most frequent to least frequent with percentage and total number of occurrences.",
                     "information": {
                         "data": data_common_variants,
-                        "data_structure_and_interpretation": "TBD"
+                        "data_structure_and_interpretation": data_common_variants_doc
                     }
                 }
             }
@@ -103,17 +159,17 @@ def generate_ai_recommendation(control, update=None):
             "description": "Responsible for responding to IT security incidents and ensuring compliance with organizational policies and standards. Focuses on the detailed process activities and their compliance to the reference model. The data provided in the following views shall only be assessed with the background of the Responder in mind.",
             "views": {
                 "process_activities_analysis": {
-                    "description": "Provides a detailed analysis opportunity of average compliance value per reference model activity (the sum is the total average compliance value, so in order to assess each individially they are devided by the number of total activites in the reference model), total deviations per reference model activity, and average time spent in each reference model activity. Also shows the timely development of process compliance in a time chart, total deviations per activity separated into types (missing, repetition, mismatch), and durations of activities in a time chart. The operator can select different compliance metrics.",
+                    "description": "Provides a detailed analysis opportunity of average compliance value per reference model activity (the sum is the total average compliance value, so in order to assess each individially they are devided by the number of total activites in the reference model), total deviations per reference model activity, and average time spent in each reference model activity. Also shows the temporal development of process compliance in a time chart, total deviations per activity separated into types (missing, repetition, mismatch), and durations of activities in a time chart. The operator can select different compliance metrics. In this analysis part not only the state of art of KPI`s averages is important but also the trend over time.",
                     "information": {
                         "data": data_process_activities_analysis,
-                        "data_structure_and_interpretation": "TBD"
+                        "data_structure_and_interpretation": data_process_activities_analysis_doc
                     }
                 },
                 "compliance_distribution": {
                     "description": "Shows the distribution of process compliance values over all incidents in the selected time period.",
                     "information": {
                         "data": data_compliance_distribution,
-                        "data_structure_and_interpretation": "TBD"
+                        "data_structure_and_interpretation": data_compliance_distribution_doc
                     }
                 }
             }
@@ -125,14 +181,14 @@ def generate_ai_recommendation(control, update=None):
                     "description": "Provides a list of the most critical incidents regarding process compliance in the selected time period, sorted from most critical to least critical by process compliance value.",
                     "information": {
                         "data": data_most_critical_incidents,
-                        "data_structure_and_interpretation": "TBD"
+                        "data_structure_and_interpretation": data_most_critical_incidents_doc
                     }
                 },
                 "technical_analysis": {
                     "description": "Provides a detailed technical analysis of selected incidents regarding Symptom, Impact, Urgency, Priority, Location, Category in a sort of sankey diagram showing more affected attributes and flows more prominently.",
                     "information": {
                         "data": data_technical_analysis,
-                        "data_structure_and_interpretation": "TBD"
+                        "data_structure_and_interpretation": data_technical_analysis_doc
                     }
                 }
             }
@@ -188,7 +244,6 @@ def generate_assessment_security_control(control_id, operator_response=None):
         conn = sqlite3.connect(database)
         cursor = conn.cursor()
 
-        # SQL command to fetch the security control by ID
         sql_fetch_control = """
             SELECT title, description, operator_id, comments
             FROM security_controls
@@ -214,7 +269,6 @@ def generate_assessment_security_control(control_id, operator_response=None):
         else:
             recommendation = generate_ai_recommendation(control)
 
-        # Write the recommendation into the comments section
         sql_update_comments = """
             UPDATE security_controls
             SET comments = ?
@@ -312,10 +366,6 @@ def check_imported_functions():
 # Example usage
 if __name__ == "__main__":
 
-    result = generate_assessment_security_control(148)
+    result = generate_assessment_security_control(149)
 
     print(result)
-
-    #recommendation_result = generate_ai_recommendation(test_control)
-    #print("AI Recommendation Generation Result:")
-    #print(recommendation_result)

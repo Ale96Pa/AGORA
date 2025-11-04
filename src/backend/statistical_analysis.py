@@ -7,17 +7,32 @@ from database_filter_variables import *
 @eel.expose
 def get_statistical_analysis_data(db_path="../data/incidents.db"):
     """
-    Fetches data from 'incidents_fa_values_table' and calculates:
-    - PERC SLA MET: Percentage of incidents that met the SLA.
-    - AVG TIME TO RESOLVE: Average time taken to resolve incidents.
-    - PERC ASSIGNED TO RESOLVED BY: Percentage of incidents where assigned_to equals resolved_by.
-    - FALSE POSITIVES: Percentage of incidents where the time between closed_at and opened_at is zero.
+    Calculates and returns key statistical metrics for the selected incidents from the 'incidents_fa_values_table'.
 
     Args:
         db_path (str): Path to the SQLite database file.
 
     Returns:
-        str: JSON formatted string with the calculated statistics.
+        str: A JSON-formatted string containing the following metrics:
+            {
+                "perc_sla_met": float,                # Percentage of incidents that met the SLA
+                "avg_time_to_resolve": float,         # Average time to resolve incidents (TTR)
+                "perc_assigned_to_resolved_by": float,# Percentage of incidents where assigned_to equals resolved_by
+                "perc_false_positives": float         # Percentage of incidents where closed_at == opened_at
+            }
+        If no incidents are selected or an error occurs, returns a JSON string with an "error" key.
+
+    Interpretation:
+        - "perc_sla_met": The proportion (in percent) of selected incidents that met their SLA requirements.
+        - "avg_time_to_resolve": The average time to resolve (TTR) for selected incidents, extracted from the time_to_states_last_occurrence field.
+        - "perc_assigned_to_resolved_by": The proportion (in percent) of incidents where the person assigned to the incident is the same as the person who resolved it.
+        - "perc_false_positives": The proportion (in percent) of incidents where the incident was closed at the same time it was opened (potential false positives).
+        - All metrics are calculated only for incidents whose IDs are returned by get_incident_ids_selection(), and may be further filtered by what-if analysis.
+        - If no incidents are selected, all metrics are omitted and an error message is returned.
+
+    Usage:
+        - Use this output to monitor process KPIs, identify trends, or compare performance across time periods or filters.
+        - The JSON string can be directly consumed by JavaScript via Eel for frontend analytics, dashboards, or reporting.
     """
     try:
         # Connect to the SQLite database

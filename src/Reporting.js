@@ -276,7 +276,7 @@ const Reporting = () => {
       <div className="div-114">
         <div className="aggregated-view">
           {/* Security Controls Section */}
-          <div className="view" style={{ flex: '2' }}>
+          <div className="view" style={{ flex: '2', display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div className="view-header">
               <div className="view-title">
                 <div className="view-color" />
@@ -314,7 +314,7 @@ const Reporting = () => {
               </div>
             </div>
             {/* Security Controls Table */}
-            <div className="controls-table-container">
+             <div className="controls-table-container" style={{ maxHeight: '1000px', overflowY: 'auto' }}>
               {loadingControls ? (
                 <p>Loading security controls...</p>
               ) : controls.length === 0 ? (
@@ -366,7 +366,7 @@ const Reporting = () => {
               </div>
             </div>
             {/* Assessment Results Display */}
-            <div className="assessment-results-container">
+            <div className="assessment-results-container" style={{ maxHeight: '1000px', overflowY: 'auto' }}>
               {/* First, display assessment results with images */}
               <h2>Assessment Views</h2>
               {loadingAssessmentResultsWithImages ? (

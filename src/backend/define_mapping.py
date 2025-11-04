@@ -67,10 +67,26 @@ def read_mapping_from_file(file_path="../data/mapping.txt"):
     Reads a mapping of places to state codes from a file.
 
     Args:
-    file_path (str): Path to the file from which the mapping should be read.
-    
+        file_path (str): Path to the file from which the mapping should be read.
+
     Returns:
-    dict: A dictionary containing the mapping of place names to state codes.
+        dict: A dictionary containing the mapping of place names (str) to state codes (str).
+        Example:
+            {
+                "Detection": "N",
+                "Activation": "A",
+                ...
+            }
+
+    Interpretation:
+        - Each key is a place name from the PNML reference model.
+        - Each value is the corresponding state code assigned to that place.
+        - The mapping is used to translate between human-readable process states and their coded representations in the incident management system.
+        - If the mapping file does not exist or cannot be read, the function returns an empty dictionary.
+
+    Usage:
+        - Use this output to map process states in analytics, reporting, or compliance calculations.
+        - The dictionary can be directly consumed by JavaScript via Eel for frontend logic or visualization.
     """
     try:
         with open(file_path, 'r') as file:

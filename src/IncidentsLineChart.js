@@ -311,11 +311,6 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
     setViewMode(viewMode === 'reduced' ? 'full' : 'reduced');
   };
 
-  const totalClosed = summaryData.low + summaryData.moderate + summaryData.high + summaryData.critical;
-        // Helper to get percentage height
-    const getHeightPercent = (count) =>
-        totalClosed > 0 ? `${(count / totalClosed) * 100 + 25}%` : '25%';
-
   return (
     <div style={{ position: 'relative', minHeight: height }}>
       {/* Loading overlay */}
@@ -360,19 +355,19 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
               {summaryData.active.last}
             </p>
           </div>
-          <div className="tile low-tile" style={{ height: getHeightPercent(summaryData.low) }}>
+          <div className="tile low-tile">
             <h4>Closed Low Severity</h4>
             <p>{summaryData.low}</p>
           </div>
-          <div className="tile moderate-tile" style={{ height: getHeightPercent(summaryData.moderate) }}>
+          <div className="tile moderate-tile">
             <h4>Closed Moderate Severity</h4>
             <p>{summaryData.moderate}</p>
           </div>
-          <div className="tile high-tile" style={{ height: getHeightPercent(summaryData.high) }}>
+          <div className="tile high-tile">
             <h4>Closed High Severity</h4>
             <p>{summaryData.high}</p>
           </div>
-          <div className="tile critical-tile" style={{ height: getHeightPercent(summaryData.critical) }}>
+          <div className="tile critical-tile">
             <h4>Closed Critical Severity</h4>
             <p>{summaryData.critical}</p>
           </div>

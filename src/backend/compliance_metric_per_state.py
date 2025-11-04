@@ -218,13 +218,24 @@ def calculate_cost_per_state(deviations_per_type_per_state, total_events, cost_f
 @eel.expose
 def get_average_compliance_per_state(db_path="../data/incidents.db"):
     """
-    Retrieves the average compliance per state across all incidents within the specified date range.
+    Calculates and returns the average process compliance value for each process state across all incidents closed within the currently selected date range.
 
     Args:
         db_path (str): Path to the SQLite database file.
 
     Returns:
-        dict: A Python dictionary containing the average compliance per state, which Eel will convert to a JavaScript object.
+        dict: A Python dictionary mapping each process state (str) to its average compliance value (float) across all relevant incidents.
+
+    Interpretation:
+        - Each key is a process state name as defined in the reference model.
+        - Each value is the average compliance score for that state, calculated over all incidents closed in the selected date range.
+        - The compliance score for a state reflects how closely the process execution for that state matched the reference model, considering deviations such as missing, repetition, and mismatch.
+        - Higher values (closer to 1.0) indicate better compliance (fewer or less severe deviations); lower values indicate more frequent or severe deviations from the reference process in that state.
+        - If no incidents are found in the date range, the function returns {'error': <error_message>}.
+
+    Usage:
+        - Use this output to visualize or compare process compliance for each state, identify weak points in process execution, or track improvements over time.
+        - The dictionary can be directly consumed by JavaScript via Eel for frontend analytics and reporting.
     """
     try:
         # Get compliance data for each incident
@@ -262,5 +273,4 @@ def get_average_compliance_per_state(db_path="../data/incidents.db"):
 # Example usage
 if __name__ == "__main__":
     # Example call to the exposed function
-    print("compliance_metric_per_state.py")
-    print(get_average_compliance_per_state())
+    print(get_average_compliance_per_state.__doc__)

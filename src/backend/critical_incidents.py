@@ -8,14 +8,31 @@ from database_filter_variables import *
 @eel.expose
 def get_critical_incidents(db_path="../data/incidents.db"):
     """
-    Queries the incident_alignment_table for incidents that fall into the critical range
-    based on a compliance metric and returns them as a JavaScript object.
+    Retrieves incidents that fall into the critical range based on the selected compliance metric and threshold levels.
 
     Args:
         db_path (str): Path to the SQLite database file.
 
     Returns:
-        list: A list of dictionaries containing the most critical incidents based on the compliance metric.
+        list: A list of dictionaries, each representing a critical incident with its incident_id and compliance metric value.
+        Example:
+            [
+                {"incident_id": "INC0121001", "fitness": 0.32},
+                {"incident_id": "INC0121002", "fitness": 0.41},
+                ...
+            ]
+
+    Interpretation:
+        - The function selects incidents whose compliance metric (e.g., 'fitness' or 'cost') falls within the critical threshold as defined in the filters.
+        - The compliance metric and thresholds are dynamically selected using get_filter_value.
+        - Only incidents selected by get_incident_ids_selection() and filtered by what-if analysis are included.
+        - For 'fitness', lower values are more critical; for 'cost', higher values are more critical.
+        - The result is sorted by the compliance metric in the appropriate order (ascending for 'fitness', descending for 'cost').
+        - If no incidents are found or an error occurs, the function returns an empty list.
+
+    Usage:
+        - Use this output to identify and analyze the most critical incidents for process improvement, reporting, or targeted remediation.
+        - The list can be directly consumed by JavaScript via Eel for frontend analytics, dashboards, or visualization.
     """
     try:
         # Connect to the SQLite database

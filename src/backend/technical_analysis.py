@@ -20,15 +20,38 @@ def extract_numeric_value(value):
 @eel.expose
 def get_incident_technical_attributes(db_path="../data/incidents.db"):
     """
-    Fetches selected incidents from 'incident_ids_from_tabular_selection',
-    queries the 'incidents_fa_values_table' to retrieve specified attributes,
-    and formats them into a list of dictionaries, removing all non-numeric text from the attribute values.
+    Retrieves selected technical attributes for each incident specified by get_incident_ids_selection(),
+    cleans the attribute values to extract only numeric data, and returns the result as a list of dictionaries.
 
     Args:
         db_path (str): Path to the SQLite database file.
 
     Returns:
-        list: A list of dictionaries containing the selected incidents' attributes.
+        list: A list of dictionaries, each representing an incident and its technical attributes.
+        Example:
+            [
+                {
+                    "symptom": 2,
+                    "impact": 3,
+                    "urgency": 1,
+                    "priority": 2,
+                    "location": 5,
+                    "category": 4
+                },
+                ...
+            ]
+        If no incidents are selected or an error occurs, returns a dictionary with an "error" key.
+
+    Interpretation:
+        - Each dictionary contains the numeric values for the specified technical attributes of an incident.
+        - Non-numeric text in the attribute values is removed; only the first numeric value is extracted.
+        - Only incidents selected by get_incident_ids_selection() and filtered by what-if analysis are included.
+        - If no incidents are selected, the function returns {"error": "No incidents selected."}.
+        - If an error occurs, the function returns {"error": <error_message>}.
+
+    Usage:
+        - Use this output for technical analysis, attribute distribution, or to visualize incident characteristics in dashboards or reports.
+        - The list can be directly consumed by JavaScript via Eel for frontend analytics and visualization.
     """
     try:
         # Connect to the SQLite database

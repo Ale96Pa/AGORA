@@ -28,11 +28,30 @@ def analyze_alignments(df):
 @eel.expose
 def get_sorted_variants_from_db():
     """
-    Queries the incidents_alignment_table in a SQLite database containing 'alignment' data,
-    processes the data to extract variants, and returns sorted variants based on frequency.
-    
+    Queries the incident_alignment_table in the SQLite database for alignments of selected incidents,
+    processes the alignment data to extract process variants, and returns a sorted list of variants by frequency.
+
     Returns:
-    list of tuples: A sorted list of tuples, where each tuple is (variant, frequency).
+        list of tuples: Each tuple is (variant, frequency), sorted from most frequent to least frequent.
+        Example:
+            [
+                ("N R C", 12),
+                ("N A R C", 8),
+                ("N R R C", 3),
+                ...
+            ]
+
+    Interpretation:
+        - Each variant is a string representing the sequence of process states (e.g., "N R C") as extracted from the alignment data.
+        - The frequency is the number of incidents in which that variant occurred.
+        - The list is sorted in descending order by frequency, so the most common variants appear first.
+        - Only incidents selected by get_incident_ids_selection() and filtered by what-if analysis are included.
+        - If no incidents are found, the function returns an empty list.
+
+    Usage:
+        - Use this output to identify the most common process flows (variants) in the selected incident set.
+        - The result can be visualized as a ranked list, bar chart, or used for further process mining and compliance analysis.
+        - The output can be directly consumed by JavaScript via Eel for frontend analytics and reporting.
     """
     try:
         db_path = "../data/incidents.db"

@@ -5,6 +5,22 @@ import xml.etree.ElementTree as ET
 
 @eel.expose
 def get_pnml_data():
+    """
+    Reads and returns the raw contents of the reference model PNML file.
+
+    Returns:
+        str: The full text content of the PNML file as a string. If the file cannot be read, returns an error message string.
+
+    Interpretation:
+        - The returned string contains the XML markup of the Petri Net reference model in PNML format.
+        - This data can be parsed to extract process states, transitions, and the structure of the reference model.
+        - Use this output for further parsing, visualization, or analysis of the incident management reference process.
+        - If an error occurs (e.g., file not found or unreadable), the function returns a string describing the error.
+
+    Usage:
+        - Use this function to obtain the raw PNML data for backend processing or frontend visualization.
+        - The string can be parsed using XML libraries to extract specific elements or attributes as needed.
+    """
     try:
         # Define the path for the data directory and file
         data_dir = os.path.abspath(os.path.join(os.getcwd(), '..', 'data'))

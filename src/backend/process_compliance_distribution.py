@@ -6,8 +6,32 @@ import eel
 @eel.expose
 def get_compliance_metric_distribution(db_path="../data/incidents.db"):
     """
-    Get the distribution of a compliance metric from the incidents_fa_values_table.
-    Returns the distribution data in a JSON format suitable for a violin plot.
+    Retrieves the distribution of a selected compliance metric for all incidents specified by get_incident_ids_selection(),
+    formatted as a JSON array suitable for visualization (e.g., violin plot).
+
+    Args:
+        db_path (str): Path to the SQLite database file.
+
+    Returns:
+        str: A JSON-formatted string containing a list of dictionaries, each with 'incident_id' and 'value' keys.
+        Example:
+            [
+                {"incident_id": "INC0121001", "value": 0.92},
+                {"incident_id": "INC0121002", "value": 0.85},
+                ...
+            ]
+        If no data is found or an error occurs, returns an empty JSON array: []
+
+    Interpretation:
+        - Each dictionary in the list represents one incident and its compliance metric value.
+        - The metric column is selected dynamically via get_filter_value("filters.compliance_metric").
+        - Only incidents selected by get_incident_ids_selection() and filtered by what-if analysis are included.
+        - The output is suitable for statistical visualization, such as violin plots, histograms, or box plots.
+        - If no incidents are found or an error occurs, the function returns an empty list.
+
+    Usage:
+        - Use this output to visualize the distribution of compliance metrics across incidents, identify outliers, or analyze process performance.
+        - The JSON string can be directly consumed by JavaScript via Eel for frontend analytics and reporting.
     """
     try:
         # Connect to the database

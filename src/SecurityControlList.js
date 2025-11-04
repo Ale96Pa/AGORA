@@ -7,7 +7,7 @@ import SecurityControlsModal from './SecurityControlsModal'; // Import the modal
 
 function SecurityControlList({ refreshTrigger, refreshControls }) {
     const [securityControls, setSecurityControls] = useState([]);
-    const [showDeleteOption, setShowDeleteOption] = useState(null); // State to manage delete option visibility
+    const [showOptions, setShowOptions] = useState(null); // State to manage delete option visibility
     const [totalSecurityControls, setTotalSecurityControls] = useState(0);
     const [showModal, setShowModal] = useState(false); // State to control modal visibility
 
@@ -30,10 +30,20 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
     const handleDelete = async (controlId) => {
         try {
             await eel.delete_security_control(controlId)();
-            setShowDeleteOption(null); // Hide delete option after deletion
+            setShowOptions(null); // Hide delete option after deletion
             refreshControls();
         } catch (error) {
             console.error('Failed to delete security control:', error);
+        }
+    };
+
+    const handleGenerateAssessment = async (controlId) => {
+        try {
+            await eel.generate_assessment_security_control(controlId)();
+            setShowOptions(null); // Hide delete option after deletion
+            refreshControls();
+        } catch (error) {
+            console.error('Failed to failed to generate assessment for security control:', error);
         }
     };
 
@@ -97,7 +107,7 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                 </div>
                 {securityControls.length > 0 ? securityControls.map((control) => (
                     <div key={control.id} className="security-control-container">
-                        <div className={`security-control-content ${showDeleteOption === control.id ? 'blurred' : ''}`}>
+                        <div className={`security-control-content ${showOptions === control.id ? 'blurred' : ''}`}>
                             <div className="security-control-header">
                                 <div className={`security-control-status ${getStatusClass(control.status)}`}>
                                     {control.status}
@@ -107,7 +117,7 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                                     loading="lazy"
                                     src="https://cdn.builder.io/api/v1/image/assets/TEMP/8895bd9f8d97cf1ce797fbfd735df7d6f317969a72619e5b468bb33460611015?"
                                     className="img-41"
-                                    onClick={() => setShowDeleteOption(showDeleteOption === control.id ? null : control.id)} // Toggle delete option visibility
+                                    onClick={() => setShowOptions(showOptions === control.id ? null : control.id)} // Toggle delete option visibility
                                     style={{ cursor: 'pointer' }}
                                 />
                             </div>
@@ -122,10 +132,12 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                                 <div className="security-control-operator">Assigned to: {control.operator_id}</div>
                             </div>
                         </div>
-                        {showDeleteOption === control.id && (
-                            <div className="delete-option">
+                        {showOptions === control.id && (
+                            <><div className="delete-option">
                                 <button onClick={() => handleDelete(control.id)}>Delete</button>
-                            </div>
+                            </div><div className="generate-assessment">
+                                    <button onClick={() => handleGenerateAssessment(control.id)}>Generate Assessment</button>
+                                </div></>
                         )}
                     </div>
                 )) : <div className="security-control-container">No security controls found.</div>}
