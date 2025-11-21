@@ -32,6 +32,8 @@ def generate_ai_recommendation(control, update=None):
     role = control["role"]
     selected_time_period = get_filter_value("filters.overview_metrics.date_range") 
     environment_variables = get_filter_value("filters.thresholds")
+    compliance_metric = get_filter_value("filters.compliance_metric")
+    cost_model = get_filter_value("filters.cost_function")
     data_incident_development = get_incidents_open_and_closed_over_time()
 
     data_incident_development_doc = {
@@ -40,7 +42,7 @@ def generate_ai_recommendation(control, update=None):
     }
 
     data_statistical_analysis = [
-        calculate_column_average("fitness"),
+        calculate_column_average(compliance_metric),
         get_statistical_analysis_data()
     ]
 
@@ -111,7 +113,7 @@ def generate_ai_recommendation(control, update=None):
 
     personas = {
         "Manager": {
-            "description": "Responsible for overseeing the incident management process and ensuring compliance with organizational policies and standards. Acts on high-level metrics and KPIs to make strategic decisions and ensure contractual obligations are met. The data provided in the following views shall only be assessed with the background of the Manager in mind.",
+            "description": "Responsible for overseeing the incident management process and ensuring compliance with organizational policies and standards. Acts on high-level metrics and KPIs to make strategic decisions and ensure contractual obligations are met. Also the numbers of incidents (active, closed (+per process activity)) in tha given period are very relevant to understand current situations. Actual metrics relating to the singel process activites are not as important. The data provided in the following views shall only be assessed with the background of the Manager in mind.",
             "views": {
                 "incident_development": {
                     "description": "Provides a reduced view with 5 tiles (active incidents at start and end of selected time period, closed incidents with low, moderate, high, and critical process severity at the end of selected time period). The full view provides these data in a line chart over time together with a line showing the active incidents over time.",
@@ -156,10 +158,10 @@ def generate_ai_recommendation(control, update=None):
             }
         },
         "Responder": {
-            "description": "Responsible for responding to IT security incidents and ensuring compliance with organizational policies and standards. Focuses on the detailed process activities and their compliance to the reference model. The data provided in the following views shall only be assessed with the background of the Responder in mind.",
+            "description": "Responsible for responding to IT security incidents and ensuring compliance with organizational policies and standards. Focuses on the detailed process activities and their separated compliance to the reference model. The data provided in the following views shall only be assessed with the background of the Responder in mind.",
             "views": {
                 "process_activities_analysis": {
-                    "description": "Provides a detailed analysis opportunity of average compliance value per reference model activity (the sum is the total average compliance value, so in order to assess each individially they are devided by the number of total activites in the reference model), total deviations per reference model activity, and average time spent in each reference model activity. Also shows the temporal development of process compliance in a time chart, total deviations per activity separated into types (missing, repetition, mismatch), and durations of activities in a time chart. The operator can select different compliance metrics. In this analysis part not only the state of art of KPI`s averages is important but also the trend over time.",
+                    "description": "Provides a detailed analysis opportunity of average compliance value per reference model activity (the sum is the total average compliance value), total deviations per reference model activity, and average time spent in each reference model activity. Also shows the temporal development of process compliance in a time chart, total deviations per activity separated into types (missing, repetition, mismatch), and durations of activities in a time chart. The operator can select different compliance metrics. In this analysis part not only the state of art of KPI`s averages is important but also the trend over time.",
                     "information": {
                         "data": data_process_activities_analysis,
                         "data_structure_and_interpretation": data_process_activities_analysis_doc
@@ -202,11 +204,18 @@ def generate_ai_recommendation(control, update=None):
             "available_roles": list(personas.keys())
         }
 
-    prompt += f"\n Overall environment\n Reference Model: {reference_model}\n State Mapping: {state_mapping}\n Selected Time period: {selected_time_period}\n Environment Variables: {environment_variables}\n\n Data to be assessed:\n"
+    prompt += f"\n Overall environment\n Reference Model: {reference_model}\n State Mapping: {state_mapping}\n Selected Time period: {selected_time_period}\n "
+    if compliance_metric == 'fitness':
+        prompt += f" Compliance Metric: {compliance_metric} (measures how well the actual process executions conform to the predefined reference model, with higher values indicating better conformance). fitness of the given incident trace is measured by replaying it within the defined refernce process model and measuring the extent to which each trace can be executed as a valid path. Deviations from the theoretically presumed process in the refernce model are all treated equally each time. The values for fitness range from 0-1 where 1 is perfectly compliant. Please also correlate with your knowledge about process fitness if possible\n"
+    elif compliance_metric == 'cost':
+        prompt += f" Compliance Metric: {compliance_metric} (also known as non-compliance cost) (quantifies the impact each deviation type per recorded process activity has on the overall incident trace. The parameters for punishment are provided in the cost model parameterization for non-compliance cost {cost_model}\n"
+    prompt += f"\n Environment Variables: {environment_variables}\n"
     prompt += f"\n\nCurrent Role: {role}\n\n Role Description, included views and necessary data:\n{persona_data}"
-    prompt += f"\n\nThe answer should be as short and concise as possible, but still include all necessary information. Please refrain from making unnecessary assumptions or adding information that is not directly supported by the provided data. Your recommendation should be actionable and tailored to the specific control being assessed."
+    prompt += f"\n\nThe answer should be as short and concise as possible, limited to 3-4 sentences, but still include all necessary information and numeric values. Please refrain from making unnecessary assumptions or adding information that is not directly supported by the provided data. Your recommendation should be actionable and tailored to the specific control being assessed."
     
     if update:
+        if control["comments"]:
+            prompt += "\n\n Previous Recommendation: " + control["comments"]    
         prompt += f"\n\n Update Request: {update}"
     
     print(prompt)
@@ -214,7 +223,8 @@ def generate_ai_recommendation(control, update=None):
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
         response = client.models.generate_content(
-            model="gemini-2.5-flash", contents=prompt
+            model="gemini-2.5-flash",
+            contents=prompt,
         )
     except Exception as e:
         print(f"Gemini API call failed: {e}")
@@ -222,21 +232,10 @@ def generate_ai_recommendation(control, update=None):
 
     return response.text
 
-def update_ai_recommendation(control, operator_response):
-
-    ai_recommendation = control["comments"]
-
-    prompt = f"""Now you are required to formulate/generate an update to your previous recommendation: {ai_recommendation}
-    According to the updated requirements in the feedback: {operator_response}"""
-
-    response = generate_ai_recommendation(control, update=prompt)
-    
-    return response
-
 @eel.expose
 def generate_assessment_security_control(control_id, operator_response=None):
     """
-    Fetches the security control's title, description, and operator_id based on the provided control_id.
+    Fetches the security control's title, description, operator_id and previous comments based on the provided control_id.
     Returns a dictionary with these fields, or None if not found.
     """
     try:
@@ -264,10 +263,8 @@ def generate_assessment_security_control(control_id, operator_response=None):
             print(f"No security control found with ID: {control_id}")
             return None
         
-        if operator_response:
-            recommendation = update_ai_recommendation(control, operator_response)
-        else:
-            recommendation = generate_ai_recommendation(control)
+        
+        recommendation = generate_ai_recommendation(control, operator_response)
 
         sql_update_comments = """
             UPDATE security_controls
@@ -366,6 +363,6 @@ def check_imported_functions():
 # Example usage
 if __name__ == "__main__":
 
-    result = generate_assessment_security_control(149)
+    result = generate_assessment_security_control(154)
 
     print(result)

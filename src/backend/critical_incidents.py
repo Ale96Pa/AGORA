@@ -41,8 +41,11 @@ def get_critical_incidents(db_path="../data/incidents.db"):
         # Get the compliance metric from the filters
         compliance_metric = get_filter_value("filters.compliance_metric")
 
-        # Fetch the thresholds for the compliance metric using get_filter_value
-        thresholds = get_filter_value("filters.thresholds.compliance_metric_severity_levels")
+        compliance_metric_severity_levels2 = get_filter_value("filters.thresholds.compliance_metric_severity_levels2")
+        if compliance_metric_severity_levels2 and compliance_metric in compliance_metric_severity_levels2:
+            thresholds = compliance_metric_severity_levels2[compliance_metric]
+        else:
+            thresholds = get_filter_value("filters.thresholds.compliance_metric_severity_levels")
 
         # Get selected incident IDs
         incident_ids = get_incident_ids_selection()
@@ -56,7 +59,7 @@ def get_critical_incidents(db_path="../data/incidents.db"):
             severity_level = 'critical'  # Lower fitness values are more critical
             sort_order = 'ASC'  # Lower values first
         elif compliance_metric == 'cost':
-            severity_level = 'low'  # Higher cost values are more critical
+            severity_level = 'critical'  # Higher cost values are more critical
             sort_order = 'DESC'  # Higher values first
         else:
             raise ValueError(f"Unknown compliance metric: {compliance_metric}")

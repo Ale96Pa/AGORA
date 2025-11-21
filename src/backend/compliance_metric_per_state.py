@@ -108,6 +108,10 @@ def get_compliance_per_state_per_incident(db_path="../data/incidents.db"):
             # Count the total events without separating between states
             total_events = len(variant.split())
 
+            if row['incident_id'] == "INC0030204":
+                print("Total events:")
+                print(total_events)
+
             compliance_metric = get_filter_value("filters.compliance_metric")
             # Calculate compliance per state
             if (compliance_metric == "fitness"):
@@ -128,6 +132,9 @@ def get_compliance_per_state_per_incident(db_path="../data/incidents.db"):
                 'total_deviations': round(total_deviations, 2),
                 'compliance_per_state': {state: round(score, 2) for state, score in compliance_per_state.items()}
             }
+
+            if incident_result['incident_id'] == "INC0030204":
+                print(incident_result)
 
             # Append the result for the current incident to the results list
             results.append(incident_result)
@@ -174,6 +181,24 @@ def calculate_compliance_per_state(deviations_per_state, total_deviations):
     return compliance_scores
 
 def calculate_cost_per_state(deviations_per_type_per_state, total_events, cost_function):
+    """
+    Calculates the non-compliance cost per state based on deviations and a cost function.
+
+    Args:
+        deviations_per_type_per_state (dict): Nested dict with deviation counts per type and state.
+        total_events (int): Total number of events in the incident.
+        cost_function (dict): Cost weights for each deviation type and state.
+
+    Returns:
+        dict: A dictionary mapping each process state to its non-compliance cost.
+        Example:
+            {"N": 0.12, "A": 0.08, ...}
+
+    Interpretation:
+        - Each key is a process state code.
+        - Each value is the calculated non-compliance cost for that state.
+        - Used for cost-based compliance analysis.
+    """
     # Initialize total cost for the process
     non_compliance_cost_per_state = {}
 
@@ -183,10 +208,13 @@ def calculate_cost_per_state(deviations_per_type_per_state, total_events, cost_f
     for state in cost_function["missing"]:
         # Set of missing deviations
         deviations_missing = deviations_per_type_per_state["missing"][state]
+        
         # Set of repetition deviations
         deviations_repetition = deviations_per_type_per_state["repetition"][state]
+        
         # Set of mismatch deviations
         deviations_mismatch = deviations_per_type_per_state["mismatch"][state]
+        
         
         # Initialize the non-compliance cost for the current state
         state_non_compliance_cost = 0
@@ -204,7 +232,7 @@ def calculate_cost_per_state(deviations_per_type_per_state, total_events, cost_f
             state_non_compliance_cost += deviations_repetition * cost_function["repetition"][state] * cost_function["cost"]["repetition"] / total_events
         
         # Calculate cost for mismatch deviations (normalized by total_events)
-        if deviations_repetition * cost_function["mismatch"][state] > 1:
+        if deviations_mismatch * cost_function["mismatch"][state] > 1:
             state_non_compliance_cost += 1 * cost_function["cost"]["mismatch"]
         else:
             state_non_compliance_cost += deviations_mismatch * cost_function["mismatch"][state] * cost_function["cost"]["mismatch"] / total_events
@@ -269,8 +297,61 @@ def get_average_compliance_per_state(db_path="../data/incidents.db"):
         print("compliance_metric_per_state.py")
         print(f"An error occurred: {e}")
         return {'error': str(e)}  # Return an error as a Python dictionary
-    
+
+
+import sqlite3
+import pandas as pd
+import json
+import eel
+from database_filter_variables import *
+
+# ...existing code...
+
+@eel.expose
+def update_cost_with_compliance_per_state(db_path="../data/incidents.db"):
+    """
+    Updates the 'cost' column in the incidents_fa_values_table for each incident
+    with the sum of the compliance_per_state values as calculated by get_compliance_per_state_per_incident.
+
+    Args:
+        db_path (str): Path to the SQLite database file.
+
+    Returns:
+        dict: A summary of the update operation, including the number of updated incidents.
+    """
+    try:
+        # Get compliance data for each incident
+        compliance_data = get_compliance_per_state_per_incident(db_path)
+        if isinstance(compliance_data, str):
+            compliance_data = json.loads(compliance_data)
+        if 'error' in compliance_data:
+            return {'error': compliance_data['error']}
+
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        updated_count = 0
+
+        for incident in compliance_data:
+            incident_id = incident['incident_id']
+            # The new cost is the sum of compliance_per_state values
+            new_cost = sum(incident['compliance_per_state'].values())
+            # Update the cost in the database
+            cursor.execute(
+                "UPDATE incidents_fa_values_table SET cost = ? WHERE incident_id = ?",
+                (new_cost, incident_id)
+            )
+            updated_count += cursor.rowcount
+
+        conn.commit()
+        conn.close()
+        return {"updated_incidents": updated_count}
+
+    except Exception as e:
+        print("compliance_metric_per_state.py")
+        print(f"An error occurred during cost update: {e}")
+        return {'error': str(e)}
+
 # Example usage
 if __name__ == "__main__":
     # Example call to the exposed function
-    print(get_average_compliance_per_state.__doc__)
+    print(update_cost_with_compliance_per_state())

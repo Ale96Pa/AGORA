@@ -23,7 +23,7 @@ const CriticalIncidents = ({ refreshTrigger, height = 400 }) => {
   // Fetch the incident compliance metric
   const fetchComplianceMetric = async () => {
     try {
-      const metric = await eel.get_incident_compliance_metric()(); // Fetch compliance metric
+      const metric = await eel.get_filter_value("filters.compliance_metric")(); // Fetch compliance metric
       setComplianceMetric(metric); // Set the metric in state
     } catch (error) {
       console.error('Error fetching compliance metric:', error);

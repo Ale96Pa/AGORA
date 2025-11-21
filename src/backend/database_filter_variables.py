@@ -4,12 +4,12 @@ import json
 
 assessment_filters = {
     "filters": {
-        "compliance_metric": "fitness",
+        "compliance_metric": "cost",
         "cost_function": {
-            "missing": {"N":0.25,"A":0.25, "W":0, "R":0.25,"C":0.25},
-            "repetition": {"N":0.25,"A":0.25,"W":0.2,"R":0.2,"C":0.1},
-            "mismatch": {"N":0.35,"A":0.35,"W":0.1,"R":0.1,"C":0.1},
-            "cost": {"missing":0.33,"repetition":0.34,"mismatch":0.33},
+            "missing": {"N":0.2,"A":0.05, "W":0, "R":0.45,"C":0.30},
+            "repetition": {"N":0.1,"A":0.2,"W":0.1,"R":0.3,"C":0.3},
+            "mismatch": {"N":0.1,"A":0.25,"W":0.2,"R":0.3,"C":0.15},
+            "cost": {"missing":0.4,"repetition":0.2,"mismatch":0.4},
         }, 
         "thresholds": {
             "compliance_metric_severity_levels": {
@@ -18,50 +18,94 @@ assessment_filters = {
                 "high": ">= 0.5 AND < 0.65",
                 "critical": ">= 0 AND <= 0.5"
             },
+            "compliance_metric_severity_levels2": {
+                "fitness": {
+                    "low": ">= 0.85 AND <= 1",
+                    "moderate": ">= 0.65 AND < 0.85",
+                    "high": ">= 0.5 AND < 0.65",
+                    "critical": ">= 0 AND <= 0.5"
+                },
+                "cost": {
+                    "low": ">= 0.0 AND < 0.1",
+                    "moderate": ">= 0.1 AND < 0.2",
+                    "high": ">= 0.2 AND < 0.3",
+                    "critical": ">= 0.3 AND <= 2.0"
+                }
+            },
             "detection": {
-                "acceptableTime": "<= 480",
-                "nonAcceptableTime": ">= 720",
-                "deviations": {
-                    "acceptableMissing": "<=20",
-                    "acceptableRepetition": "<=50",
-                    "acceptableMismatch": "<=5"
-                },
-            },
-            "activation": {
-                "acceptableTime": "<= 1080",
-                "nonAcceptableTime": ">= 1440",
-                "deviations": {
-                    "acceptableMissing": "<=20",
-                    "acceptableRepetition": "<=50",
-                    "acceptableMismatch": "<=5"
-                },
-            },
-            "awaiting": {
-                "acceptableTime": "<= 100",
+                "acceptableTime": "<= 1440",
                 "nonAcceptableTime": ">= 2880",
                 "deviations": {
-                    "acceptableMissing": "<=100",
-                    "acceptableRepetition": "<=50",
+                    "acceptableMissing": "<=20",
+                    "acceptableRepetition": "<=500",
                     "acceptableMismatch": "<=5"
                 },
+                "fitness": {
+                    "acceptableCompliance": ">= 0.10 AND <= 0.2",
+                },
+                "cost": {
+                    "acceptableCompliance": "<= 0.05",
+                }
+            },
+            "activation": {
+                "acceptableTime": "<= 4320",
+                "nonAcceptableTime": ">= 7200",
+                "deviations": {
+                    "acceptableMissing": "<=200",
+                    "acceptableRepetition": "<=500",
+                    "acceptableMismatch": "<=50"
+                },
+                "fitness": {
+                    "acceptableCompliance": ">= 0.15 AND <= 0.2",
+                },
+                "cost": {
+                    "acceptableCompliance": "<= 0.05",
+                }
+            },
+            "awaiting": {
+                "acceptableTime": "<= 7200",
+                "nonAcceptableTime": ">= 14400",
+                "deviations": {
+                    "acceptableMissing": "<=100",
+                    "acceptableRepetition": "<=200",
+                    "acceptableMismatch": "<=20"
+                },
+                "fitness": {
+                    "acceptableCompliance": ">= 0.15 AND <= 0.2",
+                },
+                "cost": {
+                    "acceptableCompliance": "<= 0.05",
+                }
             },
             "resolution": {
-                "acceptableTime": "<= 100",
-                "nonAcceptableTime": ">= 4000",
+                "acceptableTime": "<= 2880",
+                "nonAcceptableTime": ">= 4320",
                 "deviations": {
-                    "acceptableMissing": "<=100",
+                    "acceptableMissing": "<=10",
                     "acceptableRepetition": "<=50",
-                    "acceptableMismatch": "<=5"
+                    "acceptableMismatch": "<=20"
                 },
+                "fitness": {
+                    "acceptableCompliance": ">= 0.15 AND <= 0.2",
+                },
+                "cost": {
+                    "acceptableCompliance": "<= 0.05",
+                }
             },
             "closure": {
-                "acceptableTime": "<= 100",
-                "nonAcceptableTime": ">= 5760",
+                "acceptableTime": "<= 720",
+                "nonAcceptableTime": ">= 1440",
                 "deviations": {
                     "acceptableMissing": "<=100",
                     "acceptableRepetition": "<=50",
                     "acceptableMismatch": "<=5"
                 },
+                "fitness": {
+                    "acceptableCompliance": ">= 0.15 AND <= 0.2",
+                },
+                "cost": {
+                    "acceptableCompliance": "<= 0.05",
+                }
             },
         },
         "overview_metrics": {

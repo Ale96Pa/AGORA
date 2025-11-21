@@ -89,8 +89,14 @@ def get_incidents_open_and_closed_over_time(db_path="../data/incidents.db"):
         formatted_incident_ids = ', '.join(f"'{incident_id}'" for incident_id in selected_incident_ids)
 
         # Get compliance metric and thresholds
+        # Get compliance metric and thresholds
         compliance_metric = get_filter_value("filters.compliance_metric")
-        compliance_metric_thresholds = get_filter_value("filters.thresholds.compliance_metric_severity_levels")
+        # Try to get metric-specific thresholds first
+        compliance_metric_severity_levels2 = get_filter_value("filters.thresholds.compliance_metric_severity_levels2")
+        if compliance_metric_severity_levels2 and compliance_metric in compliance_metric_severity_levels2:
+            compliance_metric_thresholds = compliance_metric_severity_levels2[compliance_metric]
+        else:
+            compliance_metric_thresholds = get_filter_value("filters.thresholds.compliance_metric_severity_levels")
 
         print("active_closed_incidents.py")
         print(compliance_metric_thresholds)
