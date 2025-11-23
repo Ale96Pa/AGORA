@@ -4,7 +4,7 @@ import json
 
 assessment_filters = {
     "filters": {
-        "compliance_metric": "cost",
+        "compliance_metric": "fitness",
         "cost_function": {
             "missing": {"N":0.2,"A":0.05, "W":0, "R":0.45,"C":0.30},
             "repetition": {"N":0.1,"A":0.2,"W":0.1,"R":0.3,"C":0.3},

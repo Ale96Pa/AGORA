@@ -335,7 +335,7 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
       {/* Reduced View */}
       {viewMode === 'reduced' && summaryData && (
         <div className="tile" style={{ display: 'flex', gap: '10px', height: height}}>
-          <div className="tile active-tile">
+          <div className="tile active-tile" style={{backgroundColor: 'steelblue'}}>
             <h4>Active Incidents</h4>
             <p>
               {summaryData.active.first}
@@ -355,19 +355,19 @@ const IncidentsLineChart = ({ height, graphCursorTrigger, refreshTrigger }) => {
               {summaryData.active.last}
             </p>
           </div>
-          <div className="tile low-tile">
+          <div className="tile low-tile" style={{backgroundColor: 'green'}}>
             <h4>Closed Low Severity</h4>
             <p>{summaryData.low}</p>
           </div>
-          <div className="tile moderate-tile">
+          <div className="tile moderate-tile" style={{backgroundColor: 'orange'}}>
             <h4>Closed Moderate Severity</h4>
             <p>{summaryData.moderate}</p>
           </div>
-          <div className="tile high-tile">
+          <div className="tile high-tile" style={{backgroundColor: 'red'}}>
             <h4>Closed High Severity</h4>
             <p>{summaryData.high}</p>
           </div>
-          <div className="tile critical-tile">
+          <div className="tile critical-tile" style={{backgroundColor: 'purple'}}>
             <h4>Closed Critical Severity</h4>
             <p>{summaryData.critical}</p>
           </div>

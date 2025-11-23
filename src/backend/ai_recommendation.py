@@ -13,11 +13,19 @@ from critical_incidents import get_critical_incidents
 from technical_analysis import get_incident_technical_attributes
 from process_timedeltas import get_ordered_time_to_states_last_occurrence
 from google import genai
+from google.genai import types
 from api_keys import GEMINI_API_KEY
 import eel
 import sqlite3
 
 def generate_ai_recommendation(control, update=None):
+
+    control_for_prompt = {
+        "title": control.get("title"),
+        "description": control.get("description"),
+        "role": control.get("role")
+    }
+
     prompt = f"""You are assessing the incident management compliance for recorded IT security incidents. Based on that background you are provided
     with the role of the user and the control they are assessing. The role description provides more detail on which perspective needs to be assessed.
     In the following you will first be provided with the necessary control, assigned role and control description.
@@ -25,7 +33,7 @@ def generate_ai_recommendation(control, update=None):
     After that you will be provided with the overall environment variables and restrictions and thresholds to which the later provided data shall be assessed.
     Finally you will be provided with the data to be assessed. Based on all that information you will provide a recommendation, required remediation or an output for insufficient data on how to improve the incident management compliance.
     In the Control description there might be an indication on which views should be considered by your assessment. You will be provided a list of views and data belonging to each view with descriptions on how to interpret the data based on the persona (role) which should assess the provided control.
-    The provided security control which shall be assessed:\n{control}."""
+    The provided security control which shall be assessed:\n{control_for_prompt}."""
 
     reference_model = get_pnml_data()
     state_mapping = read_mapping_from_file()
@@ -211,7 +219,7 @@ def generate_ai_recommendation(control, update=None):
         prompt += f" Compliance Metric: {compliance_metric} (also known as non-compliance cost) (quantifies the impact each deviation type per recorded process activity has on the overall incident trace. The parameters for punishment are provided in the cost model parameterization for non-compliance cost {cost_model}\n"
     prompt += f"\n Environment Variables: {environment_variables}\n"
     prompt += f"\n\nCurrent Role: {role}\n\n Role Description, included views and necessary data:\n{persona_data}"
-    prompt += f"\n\nThe answer should be as short and concise as possible, limited to 3-4 sentences, but still include all necessary information and numeric values. Please refrain from making unnecessary assumptions or adding information that is not directly supported by the provided data. Your recommendation should be actionable and tailored to the specific control being assessed."
+    prompt += f"\n\nThe answer should be as short and concise as possible, limited to 3-4 sentences, but still include all necessary information and numeric values. Please refrain from making unnecessary assumptions or adding information that is not directly supported by the provided data in this prompt. This inculdes prior instructions or clarifications in previous prompts. Your recommendation should be actionable and tailored to the specific control being assessed."
     
     if update:
         if control["comments"]:
@@ -363,6 +371,7 @@ def check_imported_functions():
 # Example usage
 if __name__ == "__main__":
 
-    result = generate_assessment_security_control(154)
+    result = generate_assessment_security_control(154, "Now please reevaluate the current security control but be aware that certain tunings to the global compliance configuration (environment variables) as well as explanation here have been provided. Please only consider those if there is a direct applicability to the security control or the previous assessment. First of all the applied compliance metric has been changed to non-compliance cost (cost) and the cost model with weights per activity and costs per deviation type are provided within cost_function. Furthermore, repetitive detection deviations do not reflect process errors but multiple triggers for the same technical activity such as mass service installs for the same executable for example triggered by the same source user. Therefore, these repetitions can be considered handled in a different case but the trigger occurred multiple times on multiple hosts. The threshold for those repetitive deviations of detection has been tuned. Next, the N*RC variant (Detection (potentially multiple)-Resolution-Closure) is caused by temporary merge rules, where for a specific incident as soon as there are new triggers, those are automatically merged to a leading case. No operator was manually involved or assigned to the merged incidents. Therefore, there is no error in the actual process and those variants do not require further attention. Last, repetitive awaiting activities relate to incidents assigned to a customer or third party side, where the actual security operators cannot take influence in incident handling. These repetitive process deviations occur after resubmission times were exceeded and the incident was not assigned back to the SOC operators or has been resolved. These cannot be considered as process harming deviations since these are not in the security operator control. The threshold for repetitive awaiting activities has been tuned accordingly.")
+    #result = generate_assessment_security_control(154)
 
     print(result)

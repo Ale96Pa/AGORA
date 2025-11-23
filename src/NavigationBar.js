@@ -4,16 +4,15 @@ import { eel } from './App.js';
 import ThresholdSlider from './ThresholdSlider';
 import TimeThresholds from './TimeThresholds.js';
 import IncidentSelection from './IncidentSelection.js';
-import { FaSearch, FaFileAlt } from 'react-icons/fa';
+import { FaSearch, FaFileAlt, FaCog } from 'react-icons/fa';
 
-function NavigationBar({ refreshTrigger, onSelectionChange, toggleView }) {
+function NavigationBar({ refreshTrigger, onSelectionChange, activeTab, onTabChange }) {
   const [showSettings, setShowSettings] = useState(false);
   const [notCoveredCount, setNotCoveredCount] = useState(0);
   const [partiallyCoveredCount, setPartiallyCoveredCount] = useState(0);
   const [coveredCount, setCoveredCount] = useState(0);
 
-  // State to track the active button (either "Process Analysis" or "Reporting")
-  const [activeTab, setActiveTab] = useState('processAnalysis');  // Default active tab
+  // Remove local activeTab state, use prop from App.js
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [profileRole, setProfileRole] = useState('FULL INTERFACE');
 
@@ -34,8 +33,7 @@ function NavigationBar({ refreshTrigger, onSelectionChange, toggleView }) {
   };
 
   const handleTabClick = (tab) => {
-    setActiveTab(tab);  // Set the clicked tab as active
-    toggleView();  // Toggle between views when a tab is clicked
+    onTabChange(tab); // Call parent handler to switch tab
   };
 
   const handleProfileClick = () => {
@@ -98,6 +96,17 @@ function NavigationBar({ refreshTrigger, onSelectionChange, toggleView }) {
           </div>
         </div>
 
+        {/* Compliance Configuration Button */}
+        <div
+          className={`section-content ${activeTab === 'complianceConfig' ? 'active-tab' : ''}`}
+          onClick={() => handleTabClick('complianceConfig')}
+        >
+          <div style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <FaCog style={{ marginRight: 8, width: 18, height: 18, color: 'white' }} />
+            <div className="label">Compliance Configuration</div>
+          </div>
+        </div>
+
         {/* Reporting Button */}
         <div
           className={`section-content ${activeTab === 'reporting' ? 'active-tab' : ''}`}
@@ -108,6 +117,7 @@ function NavigationBar({ refreshTrigger, onSelectionChange, toggleView }) {
             <div className="label">Reporting</div>
           </div>
         </div>
+        
       </div>
 
       <div className="settings-section">
@@ -136,7 +146,7 @@ function NavigationBar({ refreshTrigger, onSelectionChange, toggleView }) {
 
         <div className="profile-section" style={{ position: 'relative' }}>
           <div className="profile-details" onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
-            <div className="profile-name">John Doe</div>
+            <div className="profile-name">Operator</div>
             <div className="profile-role">{profileRole}</div>
           </div>
           {profileDropdownOpen && (

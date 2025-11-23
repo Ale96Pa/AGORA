@@ -10,6 +10,8 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
     const [showOptions, setShowOptions] = useState(null); // State to manage delete option visibility
     const [totalSecurityControls, setTotalSecurityControls] = useState(0);
     const [showModal, setShowModal] = useState(false); // State to control modal visibility
+    const [additionalInstructions, setAdditionalInstructions] = useState({}); // Store instructions per control
+    const [assessmentStatus, setAssessmentStatus] = useState({}); // { [controlId]: 'idle' | 'loading' | 'received' }
 
     useEffect(() => {
         const fetchSecurityControls = async () => {
@@ -39,7 +41,10 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
 
     const handleGenerateAssessment = async (controlId) => {
         try {
-            await eel.generate_assessment_security_control(controlId)();
+            const instruction = additionalInstructions[controlId] || '';
+        setAssessmentStatus(prev => ({ ...prev, [controlId]: 'loading' }));
+        const result = await eel.generate_assessment_security_control(controlId, instruction)();
+        setAssessmentStatus(prev => ({ ...prev, [controlId]: 'received' }));
             setShowOptions(null); // Hide delete option after deletion
             refreshControls();
         } catch (error) {
@@ -132,13 +137,45 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                                 <div className="security-control-operator">Assigned to: {control.operator_id}</div>
                             </div>
                         </div>
-                        {showOptions === control.id && (
-                            <><div className="delete-option">
-                                <button onClick={() => handleDelete(control.id)}>Delete</button>
-                            </div><div className="generate-assessment">
-                                    <button onClick={() => handleGenerateAssessment(control.id)}>Generate Assessment</button>
-                                </div></>
-                        )}
+                            {showOptions === control.id && (
+                                <>
+                                    <div className="delete-option" style={{ marginBottom: '8px' }}>
+                                        <button onClick={() => handleDelete(control.id)}>Delete</button>
+                                    </div>
+                                    <div className="assessment-action-box" style={{ marginTop: 4, padding: '12px', border: '2px solid #0099db', borderRadius: '8px', background: '#fafbfc', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        <div className="generate-assessment" style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px' }}>
+                                            <button
+                                                onClick={() => handleGenerateAssessment(control.id)}
+                                                style={{ minWidth: '180px' }}
+                                                disabled={assessmentStatus[control.id] === 'loading'}
+                                            >
+                                                Generate Assessment
+                                            </button>
+                                            {assessmentStatus[control.id] === 'loading' && (
+                                                <span className="loader" style={{ display: 'inline-block', width: 22, height: 22 }}>
+                                                    <svg viewBox="0 0 50 50" style={{ width: 22, height: 22 }}>
+                                                        <circle cx="25" cy="25" r="20" fill="none" stroke="#0099db" strokeWidth="5" strokeDasharray="31.4 31.4" strokeLinecap="round">
+                                                            <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.8s" repeatCount="indefinite" />
+                                                        </circle>
+                                                    </svg>
+                                                </span>
+                                            )}
+                                            {assessmentStatus[control.id] === 'received' && (
+                                                <span style={{ color: '#009900', fontSize: 20, marginLeft: 4 }} title="Assessment received">&#10003;</span>
+                                            )}
+                                        </div>
+                                        <div className="additional-instruction-box" style={{ marginTop: 10, width: '100%' }}>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. additional instruction"
+                                                    value={additionalInstructions[control.id] || ''}
+                                                    onChange={e => setAdditionalInstructions({ ...additionalInstructions, [control.id]: e.target.value })}
+                                                    style={{ width: '100%', padding: '6px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                     </div>
                 )) : <div className="security-control-container">No security controls found.</div>}
             </div>
