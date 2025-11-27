@@ -68,15 +68,15 @@ function NavigationBar({ refreshTrigger, onSelectionChange, activeTab, onTabChan
       <div className="section-container">
         <div className="control-count">
           <div className="count-circle" style={{ backgroundColor: '#b80000' }}>{notCoveredCount}</div>
-          <div className="count-label">Not covered SecControls</div>
+          <div className="count-label">Not covered Controls</div>
         </div>
         <div className="control-count">
           <div className="count-circle" style={{ backgroundColor: '#FF7A00' }}>{partiallyCoveredCount}</div>
-          <div className="count-label">Partially covered SecControls</div>
+          <div className="count-label">Partially covered Controls</div>
         </div>
         <div className="control-count">
           <div className="count-circle" style={{ backgroundColor: '#00b81d' }}>{coveredCount}</div>
-          <div className="count-label">Covered SecControls</div>
+          <div className="count-label">Covered Controls</div>
         </div>
       </div>
 
@@ -88,11 +88,11 @@ function NavigationBar({ refreshTrigger, onSelectionChange, activeTab, onTabChan
         {/* Process Analysis Button */}
         <div
           className={`section-content ${activeTab === 'processAnalysis' ? 'active-tab' : ''}`}
-          onClick={() => handleTabClick('processAnalysis')}
+          onClick={() => handleTabClick('processAnalysis')} style={{ backgroundColor: 'grey'}}
         >
           <div style={{ display: 'inline-flex', alignItems: 'center' }}>
             <FaSearch style={{ marginRight: 8, width: 18, height: 18, color: 'white' }} />
-            <div className="label">Process Analysis</div>
+            <div className="label">Analysis</div>
           </div>
         </div>
 

@@ -171,7 +171,7 @@ const Reporting = () => {
         { label: `Operator ID: ${control.operator_id}` },
         { label: `Status: ${control.status}` },
         { label: `Evidence: ${control.evidence}` },
-        { label: `Comments: ${control.comments}` }
+        { label: `Automatic recommender Comments: ${control.comments}` }
       ].forEach(({ label, fontSize }) => {
         const lines = wrap(label, fontSize || 10);
         for (const line of lines) {
@@ -248,17 +248,6 @@ const Reporting = () => {
           y += lineHeight;
         }
         doc.setFont('helvetica', 'normal');
-
-        // AI Suggestion
-        const AISuggestiontLines = wrap(`AI Suggestion: ${a.ai_summary}`);
-        for (const line of AISuggestiontLines) {
-          if (y + lineHeight > pageBottom) {
-            doc.addPage();
-            y = 40;
-          }
-          doc.text(line, leftMargin + 20, y);
-          y += lineHeight;
-        }
       }
 
       y += 10;
@@ -314,7 +303,7 @@ const Reporting = () => {
               </div>
             </div>
             {/* Security Controls Table */}
-             <div className="controls-table-container" style={{ maxHeight: '1000px', overflowY: 'auto' }}>
+             <div className="controls-table-container" style={{ maxHeight: '1050px', overflowY: 'auto' }}>
               {loadingControls ? (
                 <p>Loading security controls...</p>
               ) : controls.length === 0 ? (
@@ -401,7 +390,6 @@ const Reporting = () => {
                           <p className="assessment-control-info">No linked control found</p>
                         )}
                         <p className="assessment-comments">Comments: {result.comments}</p>
-                        <p className="assessment-comments">AI Suggestion: {result.ai_summary}</p>
                       </div>
                     );
                   })}

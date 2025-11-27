@@ -226,13 +226,14 @@ def generate_ai_recommendation(control, update=None):
             prompt += "\n\n Previous Recommendation: " + control["comments"]    
         prompt += f"\n\n Update Request: {update}"
     
-    print(prompt)
+    #print(prompt)
 
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
+            config=genai.types.GenerateContentConfig(temperature=0.5)
         )
     except Exception as e:
         print(f"Gemini API call failed: {e}")
@@ -371,7 +372,28 @@ def check_imported_functions():
 # Example usage
 if __name__ == "__main__":
 
-    result = generate_assessment_security_control(154, "Now please reevaluate the current security control but be aware that certain tunings to the global compliance configuration (environment variables) as well as explanation here have been provided. Please only consider those if there is a direct applicability to the security control or the previous assessment. First of all the applied compliance metric has been changed to non-compliance cost (cost) and the cost model with weights per activity and costs per deviation type are provided within cost_function. Furthermore, repetitive detection deviations do not reflect process errors but multiple triggers for the same technical activity such as mass service installs for the same executable for example triggered by the same source user. Therefore, these repetitions can be considered handled in a different case but the trigger occurred multiple times on multiple hosts. The threshold for those repetitive deviations of detection has been tuned. Next, the N*RC variant (Detection (potentially multiple)-Resolution-Closure) is caused by temporary merge rules, where for a specific incident as soon as there are new triggers, those are automatically merged to a leading case. No operator was manually involved or assigned to the merged incidents. Therefore, there is no error in the actual process and those variants do not require further attention. Last, repetitive awaiting activities relate to incidents assigned to a customer or third party side, where the actual security operators cannot take influence in incident handling. These repetitive process deviations occur after resubmission times were exceeded and the incident was not assigned back to the SOC operators or has been resolved. These cannot be considered as process harming deviations since these are not in the security operator control. The threshold for repetitive awaiting activities has been tuned accordingly.")
-    #result = generate_assessment_security_control(154)
+    import csv
+    import time
+    results = []
+    control_ids = list(range(148, 155))
+    for control_id in control_ids:
+        for i in range(10):
+            #recommendation = generate_assessment_security_control(control_id, "Now please reevaluate the current security control but be aware that certain tunings to the global compliance configuration (environment variables) as well as explanation here have been provided. Please only consider those if there is a direct applicability to the security control or the previous assessment. First of all the applied compliance metric has been changed to non-compliance cost (cost) and the cost model with weights per activity and costs per deviation type are provided within cost_function. Furthermore, repetitive detection deviations do not reflect process errors but multiple triggers for the same technical activity such as mass service installs for the same executable for example triggered by the same source user. Therefore, these repetitions can be considered handled in a different case but the trigger occurred multiple times on multiple hosts. The threshold for those repetitive deviations ofdetection has been tuned. Next, the N*RC variant (Detection (potentially multiple)-Resolution-Closure) is caused by temporary merge rules, where for a specific incident as soon as there are new triggers, those are automatically merged to a leading case.No operator was manually involved or assigned to the merged incidents. Therefore, there is no error in the actual process and those variants do not require further attention. Last, repetitive awaiting activities relate to incidents assigned to a customer or third party side, where the actual security operators cannot take influence in incident handling. These repetitive process deviations occur after resubmission times were exceeded and the incident was not assigned back to the SOC operators or has been resolved. These cannot be considered as process harming deviations since these are not in the security operator control. The threshold for repetitive awaiting activities has been tuned accordingly.")
+            recommendation = generate_assessment_security_control(control_id)
+            results.append({
+                "control_id": control_id,
+                "iteration": i+1,
+                "recommendation": recommendation
+            })
+            print(f"Completed control_id {control_id}, iteration {i+1}. Waiting 2 minutes before next call...")
+            time.sleep(120)  # Wait for 2 minutes
 
-    print(result)
+    # Write all results to a single CSV file
+    csv_file = "assessment_security_control_results_robustness_uc2_temp0.5.csv"
+    with open(csv_file, mode="w", newline='', encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["control_id", "iteration", "recommendation"])
+        writer.writeheader()
+        for row in results:
+            writer.writerow(row)
+    print(f"Results written to {csv_file}")
+
