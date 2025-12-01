@@ -1,6 +1,5 @@
 ## AGORA
-AGORA: Human-Supervised Automated Recom-
-mendations for Cybersecurity Compliance Auditing
+AGORA: Human-Supervised Automated Recommendations for Cybersecurity Compliance Auditing
 
 Reference Video:
 
