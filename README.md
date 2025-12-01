@@ -7,8 +7,8 @@ List of Requirements Elicitation:
 
 <table>
   <tr>
-    <td><img src="compliance_configuration.png" width="300"></td>
-    <td><img src="reporting_manager.png" width="300"></td>
+    <td><img src="compliance_configuration.png" width="450"></td>
+    <td><img src="reporting_manager.png" width="450"></td>
   </tr>
 </table>
 
