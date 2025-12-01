@@ -5,6 +5,13 @@ List of Requirements Elicitation:
 [Requirements](AGORA_Requirements.pdf)
 
 
+<table>
+  <tr>
+    <td><img src="compliance_configuration.png" width="300"></td>
+    <td><img src="reporting_manager.png" width="300"></td>
+  </tr>
+</table>
+
 
 # Extensive Use Case Descriptions:
 
