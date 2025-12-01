@@ -1,14 +1,15 @@
 ## AGORA
 AGORA: Human-Supervised Automated Recommendations for Cybersecurity Compliance Auditing
 
-Reference Video:
+List of Requirements Elicitation:
+[Requirements](AGORA_Requirements.pdf)
 
 
 
 # Extensive Use Case Descriptions:
 
 List of all assessed security controls:
-
+[Security Controls](AGORA_Security_Controls.csv)
 
 - Use Case 1
   The first use case depicts the scenario in which the output on the level of compliance adherence given the inputs is assessed and reported. 
