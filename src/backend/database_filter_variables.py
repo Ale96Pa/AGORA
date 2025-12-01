@@ -4,7 +4,7 @@ import json
 
 assessment_filters = {
     "filters": {
-        "compliance_metric": "fitness",
+        "compliance_metric": "cost",
         "cost_function": {
             "missing": {"N":0.2,"A":0.05, "W":0, "R":0.45,"C":0.30},
             "repetition": {"N":0.1,"A":0.2,"W":0.1,"R":0.3,"C":0.3},
@@ -37,7 +37,7 @@ assessment_filters = {
                 "nonAcceptableTime": ">= 2880",
                 "deviations": {
                     "acceptableMissing": "<=20",
-                    "acceptableRepetition": "<=500",
+                    "acceptableRepetition": "<=5000",
                     "acceptableMismatch": "<=5"
                 },
                 "fitness": {
@@ -67,7 +67,7 @@ assessment_filters = {
                 "nonAcceptableTime": ">= 14400",
                 "deviations": {
                     "acceptableMissing": "<=100",
-                    "acceptableRepetition": "<=200",
+                    "acceptableRepetition": "<=2000",
                     "acceptableMismatch": "<=20"
                 },
                 "fitness": {

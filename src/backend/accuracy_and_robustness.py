@@ -33,7 +33,7 @@ from sentence_transformers import SentenceTransformer
 from bert_score import score as bert_score
 
 # ----------------------- USER CONFIG -----------------------
-input_csv = "assessment_security_control_results_robustness.csv"  # change if needed
+input_csv = "assessment_security_control_results_robustness_uc1_temp0.5.csv"  # change if needed
 
 # Embedding model for semantic matching & structural similarity
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
@@ -57,14 +57,18 @@ GROUND_TRUTHS = {
         # Incident volumes & severities
         "Active incidents decreased from 1963 to 451.",
         "The decrease in active incidents suggests mass incidents in the previous month or a resolved backlog.",
-        "Most closed incidents had low or moderate process severity.",
-        "323 closed incidents had high severity.",
-        "216 closed incidents had critical severity.",
+        #"Most closed incidents had low or moderate process severity.",
+        #"323 closed incidents had high severity.",
+        #"216 closed incidents had critical severity.",
+        "7 incidents had critical process severity"
+        "103 incidents had high process severity.",
+        "The majority of incidents had low process severity.",
         "A mass closure of active incidents began on Friday, June 3.",
         "Incidents closed later in June showed higher process severity.",
 
         # Compliance metrics
-        "Average process fitness was approximately 0.695, indicating moderate concerns.",
+        #"Average process fitness was approximately 0.695, indicating moderate concerns.",
+        "Average cost was 0.047 which is in the low process serverity range.",
         "The average SLA was very low with 44.43% and must be considered critical.",
         "Average time to resolve incidents was 15 days 3 hours 27 minutes (21807 minutes).",
     ],
@@ -78,11 +82,11 @@ GROUND_TRUTHS = {
         
         "Average activation duration was 8 days 18 hours 55 minutes (12655 minutes). Above the acceptable threshold.",
 
-        "Average awaiting duration was 16 days 8 hours 10 minutes (23530 minutes).",
+        "Average awaiting duration was 16 days 8 hours 10 minutes (23530 minutes). Above the acceptable threshold.",
 
         "Average transition times were mostly acceptable.",
 
-        "Transition time from awaiting to resolution was 8 days 1 hour 19 minutes (11599 minutes). Above the acceptable threshold.",
+        "Transition time from awaiting to resolution was 8 days 1 hour 19 minutes (11599 minutes).",
 
 
         # Explanations for non-compliant transitions
@@ -94,10 +98,13 @@ GROUND_TRUTHS = {
     # Control 150
     # -----------------------------------------------------
     150: [
-        "The most common variant (NRC) (Count 182) is non-compliant due to missing activation",
+        #"The most common variant (NRC) (Count 182) is non-compliant due to missing activation",
+        "The most common variant (NRC) (Count 182) is now considered process compliant due to automatic merge rules",
         "Variants ARC (count 135) are missing detections and are non-compliant.",
-        "The most frequent variants show repetitive detections before activation.",
-        "Variants with awaiting state frequently show repetitive awaiting events.",
+        #"The most frequent variants show repetitive detections before activation.",
+        "Repetitive detections are no process violation due to potentially multiple triggers",
+        #"Variants with awaiting state frequently show repetitive awaiting events.",
+        "Variants with repetitive awaiting activities are not process violations due to customer or third-party delays.",
     ],
 
     # -----------------------------------------------------
@@ -105,25 +112,29 @@ GROUND_TRUTHS = {
     # -----------------------------------------------------
     151: [
         # General
-        "Detection, activation, and awaiting activities showed high to critical non-compliance and require further assessment.",
+        #"Detection, activation, and awaiting activities showed high to critical non-compliance and require further assessment.",
+        "No process activities showed concering average compliance cost exceeding the individual thresholds.",
 
         # Detection
         "There were 319 missing detections, that violate threshold",
-        "There were 1777 repetitive detections, that violate the threshold",
+        #"There were 1777 repetitive detections, that violate the threshold",
+        "There were 1777 repetitive detections, that do not violate the threshold",
         "There were 0 detection mismatches.",
 
         # Activation
-        "There were 544 missing activations caused by merge rules and not violations.",
-        "There were 1990 repetitive activations, which may indicate resource or analyst management issues.",
-        "There were 115 activation mismatches requiring investigation.",
+        #"There were 544 missing activations that violate the threshold",
+        "There were 544 missing activations caused by merge rules and are not process violations.",
+        "There were 1990 repetitive activations, which violate the threshold",
+        "There were 115 activation mismatches, which violate the theshold",
 
         # Awaiting
-        "There were 1653 repetitive awaiting events due to customer or third-party delays.",
+        #"There were 1653 repetitive awaiting events, that violate the threshold",
+        "There were 1653 repetitive awaiting events, that do not violate the threshold",
         "There were 4 awaiting mismatches, a negligible amount.",
 
         # Resolution
-        #"Repetitive resolutions were caused by merge rules and are not violations.",
-        "Resolution mismatches may represent false negatives later reclassified as true positives."
+        "There were 119 repetitive awaiting events, that violate the threshold",
+        "45 resolution mismatches violate the threshold and may represent false negatives later reclassified as true positives."
     ],
 
     # -----------------------------------------------------
@@ -131,40 +142,40 @@ GROUND_TRUTHS = {
     # -----------------------------------------------------
     152: [
         # Durations with minutes
-        "Average detection duration was 4 days 6 hours 35 minutes.",
-        f"Average detection duration equals {4*1440 + 6*60 + 35} minutes.",
+        "Average detection duration was 4 days 6 hours 35 minutes (6155 minutes). Above the acceptable threshold.",
 
-        "Average activation duration was 8 days 18 hours 55 minutes.",
-        f"Average activation duration equals {8*1440 + 18*60 + 55} minutes.",
-
-        "Average awaiting duration was 16 days 8 hours 10 minutes.",
-        f"Average awaiting duration equals {16*1440 + 8*60 + 10} minutes.",
-
-        "Average resolution duration was 5 days 22 hours 11 minutes.",
-        f"Average resolution duration equals {5*1440 + 22*60 + 11} minutes.",
-
+        "Average activation duration was 8 days 18 hours 55 minutes (12655 minutes). Above the acceptable threshold.",
+        
+        "Average awaiting duration was 16 days 8 hours 10 minutes (23530 minutes). Above the acceptable threshold.",
+        
+        "Average resolution duration was 5 days 22 hours 11 minutes (8531 minutes). Above the acceptable threshold.",
+        
         # Additional context
         "No unusual temporal spikes were observed.",
-        "Weekend periods with no activity (approximately 2.5 days) partially explain increased durations.",
-        "Resolution duration appeared normal and not concerning."
+        "Weekend periods with no work activity (approximately 2.5 days) partially explain increased durations.",
     ],
 
     # -----------------------------------------------------
     # Control 153
     # -----------------------------------------------------
     153: [
-        "Several incidents had process fitness of 0.5 and require evaluation for consistent treatment.",
-        "Incidents with fitness below 0.25 require individual in-depth analysis."
+        #"Several incidents (216) had process fitness of 0.5 and below.",
+        "Critical process severity incidents are 7 in total"
+        #"INC0032450 had the lowest process fitness of 0.19.",
+        "INC0033952 has the highest assigned compliance cost with 0.81"
+        #"Multiple incidents had process fitness between 0.2 and 0.3.",
+        "INC0025696, INC0026744 and INC0032450 show cost of 0.41"
+        "This critical process severity requires deeper individual incident analysis."
     ],
 
     # -----------------------------------------------------
     # Control 154
     # -----------------------------------------------------
     154: [
-        "Low-priority incidents are informational and automatically closed.",
-        "Medium-priority incidents show widely distributed symptoms and affected categories with no identifiable pattern.",
-        "High-priority incidents show repetitive symptoms, locations, and categories and require compliance investigation.",
-        "Critical-priority incidents show repetitive patterns in symptoms and locations and require detailed compliance assessment."
+        "Low-priority (4) incidents are informational and spam about many symptoms, locations, and categories.",
+        "Medium-priority (3) incidents show widely distributed symptoms and affected categories with no clear pattern.",
+        "High-priority (2) incidents show repetitive symptom (491), location (161), and categories (46, 42, 53, 57, 61) and require compliance investigation.",
+        "Critical-priority (1) incidents show repetitive patterns in symptom (491) and locations (204, 143 and categories (46, 42) and require detailed compliance assessment."
     ]
 }
 
@@ -460,5 +471,5 @@ if __name__ == "__main__":
     print("Saved ai_evaluation_per_iteration.csv and ai_evaluation_summary.csv")
     print("Parameters: EMBEDDING_MODEL =", EMBEDDING_MODEL, "MATCH_THRESHOLD =", MATCH_THRESHOLD)
 
-    generate_txt_report(per_iter_df, summary_df, filename="ai_evaluation_report.txt")
-    print("Generated detailed TXT report: ai_evaluation_report.txt")
+    generate_txt_report(per_iter_df, summary_df, filename="ai_evaluation_report_temp0.5.txt")
+    print("Generated detailed TXT report: ai_evaluation_report_temp0.5.txt")
