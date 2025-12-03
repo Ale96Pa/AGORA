@@ -10,10 +10,17 @@ List of Requirements Elicitation:
 
 <table>
   <tr>
-    <td><img src="compliance_configuration.png" width="450"></td>
-    <td><img src="reporting_manager.png" width="450"></td>
+    <td>
+      <h3>Compliance Configuration</h3>
+      <img src="compliance_configuration.png" width="450">
+    </td>
+    <td>
+      <h3>Reporting Manager</h3>
+      <img src="reporting_manager.png" width="450">
+    </td>
   </tr>
 </table>
+
 
 # Extensive Use Case Descriptions:
 
