@@ -85,6 +85,9 @@ To install necessary python dependencies.
 
 To install necessary JavaScript dependencies.
 
+### echo 'GEMINI_API_KEY = "<YOUR_GEMINI_API_KEY>"' > src/backend/api_keys.py
+
+Replace <YOUR_GEMINI_API_KEY> with your API key for Google GEMINI
 
 # Run the application
 
