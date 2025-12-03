@@ -139,3 +139,39 @@
 .assessment-type {
     color: #b0b0b0;
 }
+
+/* View header styling */
+.view-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 0;
+}
+
+.view-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.view-options {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.export-btn {
+    background: #db0099;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.export-btn:hover {
+    background: #b30080;
+}

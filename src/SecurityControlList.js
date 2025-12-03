@@ -114,9 +114,9 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                     <div key={control.id} className="security-control-container">
                         <div className={`security-control-content ${showOptions === control.id ? 'blurred' : ''}`}>
                             <div className="security-control-header">
-                                <div className={`security-control-status ${getStatusClass(control.status)}`}>
+                                {/*<div className={`security-control-status ${getStatusClass(control.status)}`}>
                                     {control.status}
-                                </div>
+                                </div>*/}
                                 <div className="div-109">{control.date || ''}</div>
                                 <img
                                     loading="lazy"
@@ -142,7 +142,7 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                                     <div className="delete-option" style={{ marginBottom: '8px' }}>
                                         <button onClick={() => handleDelete(control.id)}>Delete</button>
                                     </div>
-                                    <div className="assessment-action-box" style={{ marginTop: 4, padding: '12px', border: '2px solid #0099db', borderRadius: '8px', background: '#fafbfc', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <div className="assessment-action-box" style={{ marginTop: 4, padding: '12px', border: '2px solid #0099db', borderRadius: '8px', background: '#fafbfc', display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: 'black' }}>
                                         <div className="generate-assessment" style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px' }}>
                                             <button
                                                 onClick={() => handleGenerateAssessment(control.id)}
@@ -164,13 +164,13 @@ function SecurityControlList({ refreshTrigger, refreshControls }) {
                                                 <span style={{ color: '#009900', fontSize: 20, marginLeft: 4 }} title="Assessment received">&#10003;</span>
                                             )}
                                         </div>
-                                        <div className="additional-instruction-box" style={{ marginTop: 10, width: '100%' }}>
+                                        <div className="additional-instruction-box" style={{ marginTop: 10, width: '100%',}}>
                                             <input
-                                                type="text"
+                                                type="text" 
                                                 placeholder="e.g. additional instruction"
                                                     value={additionalInstructions[control.id] || ''}
                                                     onChange={e => setAdditionalInstructions({ ...additionalInstructions, [control.id]: e.target.value })}
-                                                    style={{ width: '100%', padding: '6px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                                    style={{ width: '100%', padding: '6px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: 'black', color: 'white' }}
                                             />
                                         </div>
                                     </div>

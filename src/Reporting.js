@@ -315,7 +315,7 @@ const Reporting = () => {
                       <th>Title</th>
                       <th>Description</th>
                       <th>Operator ID</th>
-                      <th>Status</th>
+                      {/* <th>Status</th> */}
                       {/* <th>Evidence</th> */}
                       <th>Automatic Recommender Comments</th>
                     </tr>
@@ -331,7 +331,6 @@ const Reporting = () => {
                         <td>{control.title}</td>
                         <td>{control.description}</td>
                         <td>{control.operator_id}</td>
-                        <td>{control.status}</td>
                         {/* <td>{control.evidence}</td> */}
                         <td>{control.comments}</td>
                       </tr>

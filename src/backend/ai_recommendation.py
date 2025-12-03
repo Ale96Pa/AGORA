@@ -17,6 +17,7 @@ from google.genai import types
 from api_keys import GEMINI_API_KEY
 import eel
 import sqlite3
+import json
 
 def generate_ai_recommendation(control, update=None):
 
@@ -307,6 +308,35 @@ def generate_assessment_security_control(control_id, operator_response=None):
         print("database_sec_controls.py")
         print(f"An error occurred: {e}")
         return None
+
+
+@eel.expose
+def clear_comments_for_controls(start_id=148, end_id=154, db_path="../data/security_controls.db"):
+    """Set comments='' for controls with id between start_id and end_id (inclusive).
+
+    Returns a JSON string with number of rows updated: {"updated": n}.
+    """
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        sql = """
+        UPDATE security_controls
+        SET comments = ''
+        WHERE id >= ? AND id <= ?
+        """
+        cursor.execute(sql, (start_id, end_id))
+        updated = cursor.rowcount
+        conn.commit()
+        conn.close()
+        return json.dumps({"updated": updated})
+    except sqlite3.Error as e:
+        print("ai_recommendation.py")
+        print(f"Database error in clear_comments_for_controls: {e}")
+        return json.dumps({"updated": 0, "error": str(e)})
+    except Exception as e:
+        print("ai_recommendation.py")
+        print(f"Unexpected error in clear_comments_for_controls: {e}")
+        return json.dumps({"updated": 0, "error": str(e)})
     
 def check_imported_functions():
     """
@@ -389,67 +419,5 @@ def check_imported_functions():
 # Example usage
 if __name__ == "__main__":
 
-    #recommendation = generate_assessment_security_control(control_id, "Now please reevaluate the current security control but be aware that certain tunings to the global compliance configuration (environment variables) as well as explanation here have been provided. Please only consider those if there is a direct applicability to the security control or the previous assessment. First of all the applied compliance metric has been changed to non-compliance cost (cost) and the cost model with weights per activity and costs per deviation type are provided within cost_function. Furthermore, repetitive detection deviations do not reflect process errors but multiple triggers for the same technical activity such as mass service installs for the same executable for example triggered by the same source user. Therefore, these repetitions can be considered handled in a different case but the trigger occurred multiple times on multiple hosts. The threshold for those repetitive deviations ofdetection has been tuned. Next, the N*RC variant (Detection (potentially multiple)-Resolution-Closure) is caused by temporary merge rules, where for a specific incident as soon as there are new triggers, those are automatically merged to a leading case.No operator was manually involved or assigned to the merged incidents. Therefore, there is no error in the actual process and those variants do not require further attention. Last, repetitive awaiting activities relate to incidents assigned to a customer or third party side, where the actual security operators cannot take influence in incident handling. These repetitive process deviations occur after resubmission times were exceeded and the incident was not assigned back to the SOC operators or has been resolved. These cannot be considered as process harming deviations since these are not in the security operator control. The threshold for repetitive awaiting activities has been tuned accordingly.")
- 
-
-    import csv
-    import time
-    results = []
-    # Pre-load stored recommendations CSV into a lookup to seed the model
-    seed_csv = "assessment_security_control_results_robustness_uc1_temp0.5.csv"
-    seed_lookup = {}
-    try:
-        with open(seed_csv, mode="r", encoding="utf-8") as sf:
-            reader = csv.DictReader(sf)
-            for r in reader:
-                try:
-                    key = (int(r.get("control_id", "0")), int(r.get("iteration", "0")))
-                except Exception:
-                    continue
-                seed_lookup[key] = r.get("recommendation", "")
-    except FileNotFoundError:
-        print(f"Seed CSV '{seed_csv}' not found. Continuing without seeding.")
-
-    control_ids = list(range(151, 152))
-    custom_iterations = {   
-        151: [7],
-    }
-
-    for control_id in control_ids:
-        if control_id in custom_iterations:
-            iterations = custom_iterations[control_id]
-        else:
-            iterations = list(range(1, 11))
-        for iteration in iterations:
-            # If we have a stored recommendation for this control_id+iteration, seed it first
-            seed_reco = seed_lookup.get((control_id, iteration))
-            if seed_reco:
-                seed_prompt = seed_reco + f"\n\nPlease exactly output \"{seed_reco}\""
-                try:
-                    print(f"Seeding control_id {control_id}, iteration {iteration} with stored recommendation before main call...")
-                    _ = generate_assessment_security_control(control_id, seed_prompt)
-                except Exception as e:
-                    print(f"Seeding call failed for control {control_id} iter {iteration}: {e}")
-
-            time.sleep(30)
-            # Main update call (existing long update text)
-            recommendation = generate_assessment_security_control(control_id, "Now please reevaluate the current security control but be aware that certain tunings to the global compliance configuration (environment variables) as well as explanation here have been provided. Please only consider those if there is a direct applicability to the security control or the previous assessment. First of all the applied compliance metric has been changed to non-compliance cost (cost) and the cost model with weights per activity and costs per deviation type are provided within cost_function. Furthermore, repetitive detection deviations do not reflect process errors but multiple triggers for the same technical activity such as mass service installs for the same executable for example triggered by the same source user. Therefore, these repetitions can be considered handled in a different case but the trigger occurred multiple times on multiple hosts. The threshold for those repetitive deviations ofdetection has been tuned. Next, the N*RC variant (Detection (potentially multiple)-Resolution-Closure) is caused by temporary merge rules, where for a specific incident as soon as there are new triggers, those are automatically merged to a leading case.No operator was manually involved or assigned to the merged incidents. Therefore, there is no error in the actual process and those variants do not require further attention. Last, repetitive awaiting activities relate to incidents assigned to a customer or third party side, where the actual security operators cannot take influence in incident handling. These repetitive process deviations occur after resubmission times were exceeded and the incident was not assigned back to the SOC operators or has been resolved. These cannot be considered as process harming deviations since these are not in the security operator control. The threshold for repetitive awaiting activities has been tuned accordingly.")
-            results.append({
-                "control_id": control_id,
-                "iteration": iteration,
-                "recommendation": recommendation
-            })
-            print(f"Completed control_id {control_id}, iteration {iteration}. Waiting 65 seconds before next call...")
-            time.sleep(65)  # Wait for 65 seconds
-
-    print(results)
-    
-    #Write all results to a single CSV file
-    #csv_file = "assessment_security_control_results_robustness_uc2_temp0.5.csv"
-    #with open(csv_file, mode="w", newline='', encoding="utf-8") as f:
-    #    writer = csv.DictWriter(f, fieldnames=["control_id", "iteration", "recommendation"])
-    #    writer.writeheader()
-    #    for row in results:
-    #        writer.writerow(row)
-    #print(f"Results written to {csv_file}")
+    print(clear_comments_for_controls())
 

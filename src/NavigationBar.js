@@ -86,7 +86,7 @@ function NavigationBar({ refreshTrigger, onSelectionChange, activeTab, onTabChan
 
       <div className="section-container">
         {/* Process Analysis Button */}
-        <div
+        {/*<div
           className={`section-content ${activeTab === 'processAnalysis' ? 'active-tab' : ''}`}
           onClick={() => handleTabClick('processAnalysis')} style={{ backgroundColor: 'grey'}}
         >
@@ -94,7 +94,7 @@ function NavigationBar({ refreshTrigger, onSelectionChange, activeTab, onTabChan
             <FaSearch style={{ marginRight: 8, width: 18, height: 18, color: 'white' }} />
             <div className="label">Analysis</div>
           </div>
-        </div>
+        </div>*/}
 
         {/* Compliance Configuration Button */}
         <div
