@@ -1,8 +1,7 @@
 ## AGORA
 AGORA: Human-Supervised Automated Recommendations for Cybersecurity Compliance Auditing
 
-Video Demo:
-[Watch the video](https://www.youtube.com/watch?v=3DvxDxg8y68)
+Video Demo: see supplemental material (hidden for double-blind review)
 
 List of Requirements Elicitation:
 [Requirements](AGORA_Requirements.pdf)
